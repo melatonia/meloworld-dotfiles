@@ -13,20 +13,20 @@ Row {
             Image {
                 anchors.centerIn: parent
                 source: parent.modelData.icon
-                width: 28; height: 28
+                width: 24; height: 24
                 smooth: true
+                mipmap: true
             }
 
             MouseArea {
                 anchors.fill: parent
-                acceptedButtons: Qt.LeftButton | Qt.RightButton
-                onClicked: (mouse) => {
-                    if (mouse.button === Qt.RightButton)
-                        parent.modelData.display.showContextMenu(-1, -1)
-                    else
-                        parent.modelData.display.activate(-1, -1)
-                }
+                hoverEnabled: true
+                onEntered: parent.opacity = 0.8
+                onExited: parent.opacity = 1.0
+                onClicked: parent.modelData.activate()
             }
+
+            Behavior on opacity { NumberAnimation { duration: 150 } }
         }
     }
 }
