@@ -10,19 +10,26 @@ ShellRoot {
         model: Quickshell.screens
 
         PanelWindow {
+            id: panelWin
             required property var modelData
             screen: modelData
             anchors { top: true; left: true; right: true }
             implicitHeight: 55
             color: "transparent"
             exclusiveZone: implicitHeight
+
             Bar { anchors.fill: parent }
+
+            AudioPopup {
+                anchor.window: panelWin
+                anchor.rect.x: panelWin.width - 290
+                anchor.rect.y: panelWin.height
+            }
         }
     }
 
     Variants {
         model: Quickshell.screens
-
         NotificationPopup {
             required property var modelData
             screen: modelData
@@ -31,7 +38,6 @@ ShellRoot {
 
     Variants {
         model: Quickshell.screens
-
         SessionOSD {
             required property var modelData
             screen: modelData
