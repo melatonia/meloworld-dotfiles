@@ -1,0 +1,4 @@
+module quickshell
+
+singleton Colors 1.0 theme/Colors.qml
+singleton PanelColors 1.0 theme/PanelColors.qml

@@ -1,0 +1,10 @@
+module qs.bar.widgets
+
+Pill 1.0 Pill.qml
+ClockWidget 1.0 ClockWidget.qml
+DateWidget 1.0 DateWidget.qml
+BatteryWidget 1.0 BatteryWidget.qml
+NetworkWidget 1.0 NetworkWidget.qml
+BluetoothWidget 1.0 BluetoothWidget.qml
+AudioWidget 1.0 AudioWidget.qml
+SessionWidget 1.0 SessionWidget.qml
