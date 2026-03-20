@@ -1,0 +1,94 @@
+* {
+    bg:         #212121;
+    bg-alt:     #2d2d2d;
+    fg:         #ffffff;
+    fg-dim:     #9e9e9e;
+    // accent:     #CE93D8;
+    // selected-bg: #CE93D8;
+    accent:      #80cbc4;
+    selected-bg: #80cbc4;
+    selected-fg: #212121;
+    urgent:     #ef9a9a;
+
+    background-color: transparent;
+    text-color: @fg;
+    border: 0;
+    margin: 0;
+    padding: 0;
+    spacing: 0;
+}
+
+window {
+    background-color: @bg;
+    border-radius: 8px;
+    width: 600px;
+    padding: 16px;
+}
+
+mainbox {
+    background-color: transparent;
+    spacing: 8px;
+}
+
+inputbar {
+    background-color: @bg-alt;
+    border-radius: 8px;
+    padding: 10px 14px;
+    spacing: 8px;
+    children: [prompt, entry];
+}
+
+prompt {
+    background-color: transparent;
+    text-color: @accent;
+    font: "JetBrainsMono Nerd Font Bold 13";
+}
+
+entry {
+    background-color: transparent;
+    text-color: @fg;
+    placeholder-color: @fg-dim;
+    placeholder: "Search...";
+    cursor: text;
+}
+
+listview {
+    background-color: transparent;
+    columns: 1;
+    lines: 8;
+    spacing: 4px;
+    scrollbar: false;
+}
+
+element {
+    background-color: transparent;
+    border-radius: 8px;
+    padding: 8px 12px;
+    spacing: 10px;
+    children: [element-icon, element-text];
+}
+
+element selected {
+    background-color: @selected-bg;
+    text-color: @selected-fg;
+}
+
+element-icon {
+    background-color: transparent;
+    size: 24px;
+}
+
+element-text {
+    background-color: transparent;
+    text-color: inherit;
+    vertical-align: 0.5;
+    font: "JetBrainsMono Nerd Font 13";
+}
+
+element urgent {
+    text-color: @urgent;
+}
+
+element-text selected {
+    text-color: @selected-fg;
+}
