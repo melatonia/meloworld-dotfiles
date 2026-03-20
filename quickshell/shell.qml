@@ -4,6 +4,7 @@ import Quickshell
 import "bar"
 import "notifications"
 import "osd"
+import "dock"
 
 ShellRoot {
     Variants {
@@ -39,6 +40,14 @@ ShellRoot {
     Variants {
         model: Quickshell.screens
         SessionOSD {
+            required property var modelData
+            screen: modelData
+        }
+    }
+
+    Variants {
+        model: Quickshell.screens
+        Dock {
             required property var modelData
             screen: modelData
         }

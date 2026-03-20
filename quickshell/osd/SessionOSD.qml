@@ -56,7 +56,7 @@ PanelWindow {
                             { label: " Reboot",   color: Colors.orange200, cmd: ["systemctl", "reboot"] },
                             { label: "󰍃 Logout",   color: Colors.green200,  cmd: ["mmsg", "-q"] },
                             { label: "󰒲 Suspend",  color: Colors.blue200,   cmd: ["systemctl", "suspend"] },
-                            { label: " Lock",     color: Colors.yellow200, cmd: [] }
+                            { label: " Lock",     color: Colors.yellow200, cmd: ["hyprlock"] }
                         ]
 
                         delegate: Rectangle {
