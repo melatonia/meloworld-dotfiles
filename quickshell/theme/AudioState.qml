@@ -13,6 +13,7 @@ Singleton {
     property string defaultSource: ""
     property int volume: 0
     property bool muted: false
+    property int micVolume: 0
 
     function show() {
         refresh()
@@ -28,6 +29,9 @@ Singleton {
         sourcesProc.running = true
         defaultSinkProc.running = true
         defaultSourceProc.running = true
+        volProc.running = true
+        muteProc.running = true
+        micVolProc.running = true
     }
 
     function setDefaultSink(name) {
@@ -45,6 +49,11 @@ Singleton {
     function setVolume(newVol) {
         setVolProc.step = newVol + "%"
         setVolProc.running = true
+    }
+
+    function setMicVolume(newVol) {
+        setMicVolProc.step = newVol + "%"
+        setMicVolProc.running = true
     }
 
     Process {
@@ -137,6 +146,9 @@ Singleton {
                     volProc.running = true
                     muteProc.running = true
                 }
+                if (line.indexOf("source") !== -1) {
+                    micVolProc.running = true
+                }
             }
         }
     }
@@ -168,6 +180,25 @@ Singleton {
         id: setVolProc
         property string step: ""
         command: ["pactl", "set-sink-volume", "@DEFAULT_SINK@", step]
+        running: false
+    }
+
+    Process {
+        id: micVolProc
+        command: ["pactl", "get-source-volume", "@DEFAULT_SOURCE@"]
+        running: true
+        stdout: StdioCollector {
+            onStreamFinished: {
+                var match = text.match(/(\d+)%/)
+                if (match) root.micVolume = parseInt(match[1])
+            }
+        }
+    }
+
+    Process {
+        id: setMicVolProc
+        property string step: ""
+        command: ["pactl", "set-source-volume", "@DEFAULT_SOURCE@", step]
         running: false
     }
 }
