@@ -40,4 +40,12 @@ Pill {
         }
         return sym + " " + pct + "%"
     }
+    MouseArea {
+        anchors.fill: parent
+        propagateComposedEvents: true
+        onClicked: (mouse) => {
+            SessionState.powerPopupVisible = !SessionState.powerPopupVisible
+            mouse.accepted = false
+        }
+    }
 }

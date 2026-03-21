@@ -1,47 +1,39 @@
 import QtQuick
-import Quickshell
 import Quickshell.Io
 import "../../theme"
 
 Pill {
     id: root
     pillColor: PanelColors.network
-
-    property string mode: "none"
-    property int strength: 0
     property string ssid: ""
+    property bool connected: false
+    property int signal: 0
 
     label: {
-        if (mode === "wifi") {
-            var sym = ""
-            if (strength >= 80) sym = "󰤨"
-            else if (strength >= 60) sym = "󰤥"
-            else if (strength >= 40) sym = "󰤢"
-            else if (strength >= 20) sym = "󰤟"
-            else sym = "󰤯"
-            return sym + " " + ssid.substring(0, 8)
-        } else if (mode === "ethernet") {
-            return "󰈀 ETH"
-        } else {
-            return "󰤭"
-        }
-    }
-
-    function refresh() {
-        modeProc.running = true
+        if (!connected) return "󰤭"
+        if (ssid === "") return "󰈀 ETH"
+        if (signal >= 80) return "󰤨 " + ssid.substring(0, 10)
+        else if (signal >= 60) return "󰤥 " + ssid.substring(0, 10)
+        else if (signal >= 40) return "󰤢 " + ssid.substring(0, 10)
+        else if (signal >= 20) return "󰤟 " + ssid.substring(0, 10)
+        else return "󰤯 " + ssid.substring(0, 10)
     }
 
     Process {
-        id: modeProc
-        command: ["sh", "-c", "cat /sys/class/net/wlp4s0/operstate 2>/dev/null"]
+        id: refreshProc
+        command: ["nmcli", "-g", "GENERAL.CONNECTION,GENERAL.STATE", "dev", "show", "wlp4s0"]
         running: true
         stdout: StdioCollector {
             onStreamFinished: {
-                if (text.trim() === "up") {
-                    root.mode = "wifi"
-                    strengthProc.running = true
-                    ssidProc.running = true
+                const lines = text.trim().split("\n")
+                const name = lines[0].trim()
+                const state = lines[1].trim()
+                root.connected = state.startsWith("100")
+                root.ssid = root.connected ? name : ""
+                if (root.connected) {
+                    signalProc.running = true
                 } else {
+                    root.signal = 0
                     etherProc.running = true
                 }
             }
@@ -49,42 +41,52 @@ Pill {
     }
 
     Process {
+        id: signalProc
+        command: ["nmcli", "-g", "ACTIVE,SIGNAL", "dev", "wifi", "list", "--rescan", "no"]
+        running: false
+        stdout: StdioCollector {
+            onStreamFinished: {
+                const lines = text.trim().split("\n")
+                for (const line of lines) {
+                    const parts = line.split(":")
+                    if (parts[0] === "yes") {
+                        root.signal = parseInt(parts[1]) || 0
+                        return
+                    }
+                }
+            }
+        }
+    }
+
+    Process {
         id: etherProc
-        command: ["sh", "-c", "cat /sys/class/net/eno1/operstate 2>/dev/null"]
+        command: ["cat", "/sys/class/net/eno1/operstate"]
         running: false
         stdout: StdioCollector {
             onStreamFinished: {
-                root.mode = text.trim() === "up" ? "ethernet" : "none"
+                root.connected = text.trim() === "up"
             }
         }
     }
 
     Process {
-        id: strengthProc
-        command: ["sh", "-c", "awk 'NR==3 {printf \"%3.0f\", ($3/70)*100}' /proc/net/wireless"]
+        id: nmtuiProc
+        command: ["ghostty", "--title=nmtui", "-e", "nmtui"]
         running: false
-        stdout: StdioCollector {
-            onStreamFinished: {
-                var val = parseInt(text.trim())
-                root.strength = isNaN(val) ? 0 : Math.min(100, val)
-            }
-        }
     }
 
-    Process {
-        id: ssidProc
-        command: ["sh", "-c", "iw dev wlp4s0 link | awk '/SSID:/ {print $2}'"]
-        running: false
-        stdout: StdioCollector {
-            onStreamFinished: {
-                root.ssid = text.trim()
-            }
-        }
-    }
     Timer {
-        interval: 5000
+        interval: 10000
         running: true
         repeat: true
-        onTriggered: root.refresh()
+        onTriggered: refreshProc.running = true
+    }
+
+    MouseArea {
+        anchors.fill: parent
+        hoverEnabled: true
+        onEntered: root.opacity = 0.85
+        onExited: root.opacity = 1.0
+        onClicked: nmtuiProc.running = true
     }
 }
