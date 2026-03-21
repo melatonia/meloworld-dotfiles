@@ -1,16 +1,21 @@
-
 import QtQuick
 import Quickshell.Services.UPower
 import "../../theme"
 
 Pill {
-    pillColor: PanelColors.battery
+    id: root
     property var battery: UPower.displayDevice
     property int pct: battery.ready ? Math.round(battery.percentage * 100) : 0
     property bool charging: battery.ready && (
         battery.state === UPowerDeviceState.Charging ||
         battery.state === UPowerDeviceState.FullyCharged
     )
+
+    pillColor: {
+        if (PowerProfiles.profile === PowerProfile.PowerSaver)  return Colors.green200
+        if (PowerProfiles.profile === PowerProfile.Performance) return Colors.deepOrange200
+        return PanelColors.battery
+    }
 
     label: {
         if (!battery.ready) return "󰂑"
@@ -40,6 +45,7 @@ Pill {
         }
         return sym + " " + pct + "%"
     }
+
     MouseArea {
         anchors.fill: parent
         propagateComposedEvents: true

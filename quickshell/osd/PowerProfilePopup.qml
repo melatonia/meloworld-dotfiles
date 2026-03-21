@@ -10,6 +10,12 @@ PopupWindow {
     implicitHeight: column.implicitHeight + 20
     color: "transparent"
 
+    function profileColor(profile) {
+        if (profile === PowerProfile.PowerSaver)  return Colors.green200
+        if (profile === PowerProfile.Performance) return Colors.deepOrange200
+        return Colors.purple200
+    }
+
     Rectangle {
         anchors.fill: parent
         radius: 10
@@ -39,7 +45,7 @@ PopupWindow {
                     visible: modelData.profile !== PowerProfile.Performance
                         || PowerProfiles.hasPerformanceProfile
                     color: PowerProfiles.profile === modelData.profile
-                        ? Colors.purple200 : Colors.grey700
+                        ? profileColor(modelData.profile) : Colors.grey800
 
                     Row {
                         anchors {
@@ -53,7 +59,7 @@ PopupWindow {
                             font.pixelSize: 14
                             font.family: "JetBrainsMono Nerd Font"
                             color: PowerProfiles.profile === modelData.profile
-                                ? Colors.grey900 : Colors.purple200
+                                ? Colors.grey900 : profileColor(modelData.profile)
                             anchors.verticalCenter: parent.verticalCenter
                         }
                         Text {
@@ -61,7 +67,7 @@ PopupWindow {
                             font.pixelSize: 12
                             font.family: "JetBrainsMono Nerd Font"
                             color: PowerProfiles.profile === modelData.profile
-                                ? Colors.grey900 : Colors.purple200
+                                ? Colors.grey900 : profileColor(modelData.profile)
                             anchors.verticalCenter: parent.verticalCenter
                         }
                     }

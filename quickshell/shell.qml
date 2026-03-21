@@ -18,12 +18,12 @@ ShellRoot {
             Bar { anchors.fill: parent }
             AudioPopup {
                 anchor.window: panelWin
-                anchor.rect.x: panelWin.width - 290
+                anchor.rect.x: panelWin.width - 610
                 anchor.rect.y: panelWin.height
             }
             PowerProfilePopup {
                 anchor.window: panelWin
-                anchor.rect.x: panelWin.width - 600
+                anchor.rect.x: panelWin.width - 320
                 anchor.rect.y: panelWin.height
             }
         }
