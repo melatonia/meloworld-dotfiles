@@ -12,6 +12,7 @@ Singleton {
     // readonly property color clock:             Colors.orange200
     readonly property color clock:             Colors.white
     readonly property color date:              Colors.green200
+    readonly property color brightness:        Colors.teal200
     readonly property color bluetooth:         Colors.lightBlue200
     readonly property color session:           Colors.pink200
     readonly property color launcher:          Colors.blueGrey700
