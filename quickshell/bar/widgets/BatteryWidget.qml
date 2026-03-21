@@ -20,7 +20,7 @@ Pill {
     }
 
     onPctChanged: {
-        if (prevPct >= 20 && pct < 20 && !charging) {
+        if (prevPct > 20 && pct <= 20 && !charging) {
             PowerProfiles.profile = PowerProfile.PowerSaver
             brightnessProc.running = true
         }
