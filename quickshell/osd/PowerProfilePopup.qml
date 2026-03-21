@@ -12,8 +12,8 @@ PopupWindow {
 
     function profileColor(profile) {
         if (profile === PowerProfile.PowerSaver)  return Colors.green200
-        if (profile === PowerProfile.Performance) return Colors.deepOrange200
-        return Colors.purple200
+        if (profile === PowerProfile.Performance) return Colors.red200
+        return Colors.orange200
     }
 
     Rectangle {
@@ -34,7 +34,7 @@ PopupWindow {
             Repeater {
                 model: [
                     { profile: PowerProfile.PowerSaver,  icon: "󰌪", label: "Power Saver" },
-                    { profile: PowerProfile.Balanced,    icon: "󰛲", label: "Balanced"    },
+                    { profile: PowerProfile.Balanced,    icon: "", label: "Balanced"    },
                     { profile: PowerProfile.Performance, icon: "󰓅", label: "Performance" }
                 ]
                 delegate: Rectangle {
