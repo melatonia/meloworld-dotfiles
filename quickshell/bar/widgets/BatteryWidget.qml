@@ -1,4 +1,5 @@
 import QtQuick
+import Quickshell.Io
 import Quickshell.Services.UPower
 import "../../theme"
 
@@ -6,6 +7,7 @@ Pill {
     id: root
     property var battery: UPower.displayDevice
     property int pct: battery.ready ? Math.round(battery.percentage * 100) : 0
+    property int prevPct: 0
     property bool charging: battery.ready && (
         battery.state === UPowerDeviceState.Charging ||
         battery.state === UPowerDeviceState.FullyCharged
@@ -13,8 +15,16 @@ Pill {
 
     pillColor: {
         if (PowerProfiles.profile === PowerProfile.PowerSaver)  return Colors.green200
-        if (PowerProfiles.profile === PowerProfile.Performance) return Colors.deepOrange200
-        return PanelColors.battery
+        if (PowerProfiles.profile === PowerProfile.Performance) return Colors.red200
+        return Colors.orange200
+    }
+
+    onPctChanged: {
+        if (prevPct >= 20 && pct < 20 && !charging) {
+            PowerProfiles.profile = PowerProfile.PowerSaver
+            brightnessProc.running = true
+        }
+        prevPct = pct
     }
 
     label: {
@@ -44,6 +54,12 @@ Pill {
             else sym = "󰁺"
         }
         return sym + " " + pct + "%"
+    }
+
+    Process {
+        id: brightnessProc
+        command: ["brightnessctl", "--device=amdgpu_bl1", "set", "60%"]
+        running: false
     }
 
     MouseArea {
