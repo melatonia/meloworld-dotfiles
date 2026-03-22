@@ -8,25 +8,38 @@ PopupWindow {
     id: root
     visible: SessionState.bluetoothPopupVisible
     implicitWidth: 240
-    implicitHeight: column.implicitHeight + 20
-    Behavior on implicitHeight {
-        NumberAnimation { duration: 80; easing.type: Easing.OutCubic }
-    }
+    implicitHeight: 600
     color: "transparent"
 
     readonly property bool btOn: Bluetooth.defaultAdapter && Bluetooth.defaultAdapter.enabled
     readonly property bool scanning: btOn && Bluetooth.defaultAdapter.discovering
+    readonly property int maxListHeight: 5 * 34 + 4 * 4
+
+    function isMacAddress(name) {
+        return /^([0-9A-Fa-f]{2}[-:]){5}[0-9A-Fa-f]{2}$/.test(name.trim())
+    }
 
     Rectangle {
-        anchors.fill: parent
+        id: innerRect
+        width: parent.width
+        height: column.implicitHeight + 20
+        Behavior on height {
+            SmoothedAnimation { velocity: 800; easing.type: Easing.OutExpo }
+        }
         radius: 10
         color: Colors.grey900
         border.color: root.btOn ? Colors.lightBlue200 : Colors.grey700
         border.width: 2
+        clip: true
 
         Column {
             id: column
-            anchors { fill: parent; margins: 10 }
+            anchors {
+                top: parent.top
+                left: parent.left
+                right: parent.right
+                margins: 10
+            }
             spacing: 4
 
             // ── Adapter toggle ────────────────────────────
@@ -81,7 +94,10 @@ PopupWindow {
                         color: Colors.lightBlue200
                     }
                     Row {
-                        anchors { left: parent.left; verticalCenter: parent.verticalCenter; leftMargin: 14; right: parent.right; rightMargin: 10 }
+                        anchors {
+                            left: parent.left; verticalCenter: parent.verticalCenter
+                            leftMargin: 14; right: parent.right; rightMargin: 10
+                        }
                         spacing: 8
                         Text {
                             text: modelData.connected ? "" : ""
@@ -95,8 +111,7 @@ PopupWindow {
                             color: modelData.connected ? Colors.grey900 : Colors.grey200
                             anchors.verticalCenter: parent.verticalCenter
                             elide: Text.ElideRight
-                            // fill remaining space minus battery label
-                            width: parent.width - 15 - 8
+                            width: parent.width - 23 - 8
                                    - (modelData.connected && modelData.batteryAvailable ? 36 : 0)
                         }
                         Text {
@@ -117,7 +132,7 @@ PopupWindow {
                 }
             }
 
-            // ── Divider (only when BT is on) ──────────────
+            // ── Divider ───────────────────────────────────
             Rectangle {
                 visible: root.btOn
                 width: parent.width; height: visible ? 1 : 0
@@ -144,8 +159,6 @@ PopupWindow {
                         font.pixelSize: 15; font.family: "JetBrainsMono Nerd Font"
                         color: root.scanning ? Colors.grey900 : Colors.grey200
                         anchors.verticalCenter: parent.verticalCenter
-
-                        // Pulsing animation while scanning
                         SequentialAnimation on opacity {
                             running: root.scanning
                             loops: Animation.Infinite
@@ -213,44 +226,123 @@ PopupWindow {
                 Behavior on opacity { NumberAnimation { duration: 150 } }
             }
 
-            // ── Unpaired devices (during scan) ────────────
-            Repeater {
-                model: Bluetooth.devices
-                delegate: Rectangle {
-                    required property var modelData
-                    visible: !modelData.paired && root.scanning
-                    width: parent.width; height: visible ? 34 : 0; radius: 6
-                    color: modelData.pairing ? Colors.yellow600 : Colors.grey800
+            // ── Unpaired scan results ─────────────────────
+            Item {
+                visible: root.scanning
+                width: parent.width
+                height: visible ? root.maxListHeight : 0
 
-                    Rectangle {
-                        visible: !modelData.pairing
-                        width: 3; height: parent.height - 10; radius: 2
-                        anchors { left: parent.left; leftMargin: 4; verticalCenter: parent.verticalCenter }
-                        color: Colors.yellow600
+                Flickable {
+                    id: unpairedFlickable
+                    anchors.fill: parent
+                    contentHeight: unpairedColumn.implicitHeight
+                    clip: true
+                    interactive: contentHeight > height
+
+                    Column {
+                        id: unpairedColumn
+                        width: parent.width
+                        spacing: 4
+
+                        Repeater {
+                            model: Bluetooth.devices
+                            delegate: Rectangle {
+                                required property var modelData
+                                readonly property bool show: !modelData.paired
+                                    && !root.isMacAddress(modelData.name)
+                                    && modelData.name.trim() !== ""
+                                visible: show
+                                width: unpairedColumn.width
+                                height: show ? 34 : 0
+                                radius: 6
+                                color: modelData.pairing ? Colors.yellow600 : Colors.grey800
+
+                                Rectangle {
+                                    visible: !modelData.pairing
+                                    width: 3; height: parent.height - 10; radius: 2
+                                    anchors { left: parent.left; leftMargin: 4; verticalCenter: parent.verticalCenter }
+                                    color: Colors.yellow600
+                                }
+                                Row {
+                                    anchors {
+                                        left: parent.left; verticalCenter: parent.verticalCenter
+                                        leftMargin: 14; right: parent.right; rightMargin: 10
+                                    }
+                                    spacing: 8
+                                    Text {
+                                        text: modelData.pairing ? "" : ""
+                                        font.pixelSize: 15; font.family: "JetBrainsMono Nerd Font"
+                                        color: modelData.pairing ? Colors.grey900 : Colors.grey200
+                                        anchors.verticalCenter: parent.verticalCenter
+                                    }
+                                    Text {
+                                        text: modelData.name
+                                        font.pixelSize: 13; font.bold: true; font.family: "JetBrainsMono Nerd Font"
+                                        color: modelData.pairing ? Colors.grey900 : Colors.grey200
+                                        elide: Text.ElideRight
+                                        width: parent.width - 23 - 8
+                                    }
+                                }
+                                MouseArea {
+                                    anchors.fill: parent; hoverEnabled: true
+                                    onEntered: if (!modelData.pairing) parent.opacity = 0.8
+                                    onExited: parent.opacity = 1.0
+                                    onClicked: if (!modelData.pairing) modelData.pair()
+                                }
+                                Behavior on opacity { NumberAnimation { duration: 150 } }
+                            }
+                        }
                     }
+                }
+
+                // Scroll up hint — overlay
+                Rectangle {
+                    visible: !unpairedFlickable.atYBeginning
+                    anchors { top: parent.top; left: parent.left; right: parent.right }
+                    height: 22; radius: 6
+                    color: Colors.grey800
+
                     Row {
-                        anchors { left: parent.left; verticalCenter: parent.verticalCenter; leftMargin: 14; right: parent.right; rightMargin: 10 }
-                        spacing: 8
+                        anchors.centerIn: parent
+                        spacing: 6
                         Text {
-                            text: modelData.pairing ? "" : ""
-                            font.pixelSize: 15; font.family: "JetBrainsMono Nerd Font"
-                            color: modelData.pairing ? Colors.grey900 : Colors.grey200
+                            text: "󰁞"
+                            font.pixelSize: 12; font.family: "JetBrainsMono Nerd Font"
+                            color: Colors.grey500
                             anchors.verticalCenter: parent.verticalCenter
                         }
                         Text {
-                            text: modelData.name
-                            font.pixelSize: 13; font.bold: true; font.family: "JetBrainsMono Nerd Font"
-                            color: modelData.pairing ? Colors.grey900 : Colors.grey200
-                            elide: Text.ElideRight
+                            text: "scroll for more"
+                            font.pixelSize: 11; font.family: "JetBrainsMono Nerd Font"
+                            color: Colors.grey500
+                            anchors.verticalCenter: parent.verticalCenter
                         }
                     }
-                    MouseArea {
-                        anchors.fill: parent; hoverEnabled: true
-                        onEntered: if (!modelData.pairing) parent.opacity = 0.8
-                        onExited: parent.opacity = 1.0
-                        onClicked: if (!modelData.pairing) modelData.pair()
+                }
+
+                // Scroll down hint — overlay
+                Rectangle {
+                    visible: !unpairedFlickable.atYEnd
+                    anchors { bottom: parent.bottom; left: parent.left; right: parent.right }
+                    height: 22; radius: 6
+                    color: Colors.grey800
+
+                    Row {
+                        anchors.centerIn: parent
+                        spacing: 6
+                        Text {
+                            text: "󰁆"
+                            font.pixelSize: 12; font.family: "JetBrainsMono Nerd Font"
+                            color: Colors.grey500
+                            anchors.verticalCenter: parent.verticalCenter
+                        }
+                        Text {
+                            text: "scroll for more"
+                            font.pixelSize: 11; font.family: "JetBrainsMono Nerd Font"
+                            color: Colors.grey500
+                            anchors.verticalCenter: parent.verticalCenter
+                        }
                     }
-                    Behavior on opacity { NumberAnimation { duration: 150 } }
                 }
             }
         }
