@@ -6,16 +6,12 @@ PopupWindow {
     id: root
     visible: AudioState.popupVisible
     implicitWidth: 300
-    implicitHeight: popupColumn.implicitHeight + 20
-    Behavior on implicitHeight {
-        NumberAnimation { duration: 80; easing.type: Easing.OutCubic }
-    }
+    implicitHeight: 600
     color: "transparent"
 
     function shortName(desc) {
         if (!desc) return ""
         var s = desc
-        // Split-half dedup: "MiniFuse 2 MiniFuse 2" → "MiniFuse 2"
         var half = Math.floor(s.length / 2)
         if (s.length % 2 === 0 && s.slice(0, half) === s.slice(half + 1)) {
             s = s.slice(0, half)
@@ -29,13 +25,19 @@ PopupWindow {
         s = s.replace(/\s{2,}/g, " ").trim()
         return s
     }
-    
+
     Rectangle {
-        anchors.fill: parent
+        id: innerRect
+        width: parent.width
+        height: popupColumn.implicitHeight + 20
+        Behavior on height {
+            SmoothedAnimation { velocity: 800; easing.type: Easing.OutExpo }
+        }
         radius: 10
         color: Colors.grey900
         border.color: Colors.teal200
         border.width: 2
+        clip: true
 
         Column {
             id: popupColumn
@@ -86,7 +88,6 @@ PopupWindow {
                         color: isActive ? Colors.grey900 : Colors.grey200
                         elide: Text.ElideRight
                     }
-                    // Tooltip on truncation
                     Rectangle {
                         visible: deviceLabel.truncated && deviceHover.containsMouse
                         z: 10
