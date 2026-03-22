@@ -6,8 +6,11 @@ import "../theme"
 PopupWindow {
     id: root
     visible: SessionState.powerPopupVisible
-    implicitWidth: 200
+    implicitWidth: 210
     implicitHeight: column.implicitHeight + 20
+    Behavior on implicitHeight {
+        NumberAnimation { duration: 80; easing.type: Easing.OutCubic }
+    }
     color: "transparent"
 
     function profileColor(profile) {
@@ -20,7 +23,7 @@ PopupWindow {
         anchors.fill: parent
         radius: 10
         color: Colors.grey900
-        border.color: Colors.grey800
+        border.color: profileColor(PowerProfiles.profile)
         border.width: 2
 
         Column {
@@ -39,35 +42,50 @@ PopupWindow {
                 ]
                 delegate: Rectangle {
                     required property var modelData
-                    width: parent.width
-                    height: 30
-                    radius: 6
                     visible: modelData.profile !== PowerProfile.Performance
                         || PowerProfiles.hasPerformanceProfile
+                    width: parent.width
+                    height: visible ? 34 : 0
+                    radius: 6
                     color: PowerProfiles.profile === modelData.profile
                         ? profileColor(modelData.profile) : Colors.grey800
+
+                    // Left accent stripe for inactive items
+                    Rectangle {
+                        visible: PowerProfiles.profile !== modelData.profile
+                        width: 3
+                        height: parent.height - 10
+                        radius: 2
+                        anchors {
+                            left: parent.left
+                            leftMargin: 4
+                            verticalCenter: parent.verticalCenter
+                        }
+                        color: profileColor(modelData.profile)
+                    }
 
                     Row {
                         anchors {
                             left: parent.left
                             verticalCenter: parent.verticalCenter
-                            leftMargin: 10
+                            leftMargin: 14
                         }
                         spacing: 8
                         Text {
                             text: modelData.icon
-                            font.pixelSize: 14
+                            font.pixelSize: 15
                             font.family: "JetBrainsMono Nerd Font"
                             color: PowerProfiles.profile === modelData.profile
-                                ? Colors.grey900 : profileColor(modelData.profile)
+                                ? Colors.grey900 : Colors.grey200
                             anchors.verticalCenter: parent.verticalCenter
                         }
                         Text {
                             text: modelData.label
-                            font.pixelSize: 12
+                            font.pixelSize: 13
+                            font.bold: true
                             font.family: "JetBrainsMono Nerd Font"
                             color: PowerProfiles.profile === modelData.profile
-                                ? Colors.grey900 : profileColor(modelData.profile)
+                                ? Colors.grey900 : Colors.grey200
                             anchors.verticalCenter: parent.verticalCenter
                         }
                     }

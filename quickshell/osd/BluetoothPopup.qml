@@ -21,7 +21,8 @@ PopupWindow {
         anchors.fill: parent
         radius: 10
         color: Colors.grey900
-        border.color: Colors.grey800
+        border.color: Bluetooth.defaultAdapter && Bluetooth.defaultAdapter.enabled
+            ? Colors.lightBlue200 : Colors.grey700
         border.width: 2
 
         Column {
@@ -35,33 +36,48 @@ PopupWindow {
             // Adapter toggle
             Rectangle {
                 width: parent.width
-                height: 32
+                height: 34
                 radius: 6
                 color: Bluetooth.defaultAdapter && Bluetooth.defaultAdapter.enabled
                     ? Colors.lightBlue200 : Colors.grey800
+
+                // Left accent stripe when off
+                Rectangle {
+                    visible: !(Bluetooth.defaultAdapter && Bluetooth.defaultAdapter.enabled)
+                    width: 3
+                    height: parent.height - 10
+                    radius: 2
+                    anchors {
+                        left: parent.left
+                        leftMargin: 4
+                        verticalCenter: parent.verticalCenter
+                    }
+                    color: Colors.lightBlue200
+                }
 
                 Row {
                     anchors {
                         left: parent.left
                         verticalCenter: parent.verticalCenter
-                        leftMargin: 10
+                        leftMargin: 14
                     }
                     spacing: 8
                     Text {
-                        text: "󰂯"
-                        font.pixelSize: 14
+                        text: ""
+                        font.pixelSize: 15
                         font.family: "JetBrainsMono Nerd Font"
                         color: Bluetooth.defaultAdapter && Bluetooth.defaultAdapter.enabled
-                            ? Colors.grey900 : Colors.lightBlue200
+                            ? Colors.grey900 : Colors.grey200
                         anchors.verticalCenter: parent.verticalCenter
                     }
                     Text {
                         text: Bluetooth.defaultAdapter && Bluetooth.defaultAdapter.enabled
                             ? "Bluetooth On" : "Bluetooth Off"
-                        font.pixelSize: 12
+                        font.pixelSize: 13
+                        font.bold: true
                         font.family: "JetBrainsMono Nerd Font"
                         color: Bluetooth.defaultAdapter && Bluetooth.defaultAdapter.enabled
-                            ? Colors.grey900 : Colors.lightBlue200
+                            ? Colors.grey900 : Colors.grey200
                         anchors.verticalCenter: parent.verticalCenter
                     }
                 }
@@ -85,40 +101,55 @@ PopupWindow {
                     required property var modelData
                     visible: modelData.paired
                     width: parent.width
-                    height: visible ? 32 : 0
+                    height: visible ? 34 : 0
                     radius: 6
                     color: modelData.connected ? Colors.lightBlue200 : Colors.grey800
+
+                    // Left accent stripe when disconnected
+                    Rectangle {
+                        visible: !modelData.connected
+                        width: 3
+                        height: parent.height - 10
+                        radius: 2
+                        anchors {
+                            left: parent.left
+                            leftMargin: 4
+                            verticalCenter: parent.verticalCenter
+                        }
+                        color: Colors.lightBlue200
+                    }
 
                     Row {
                         anchors {
                             left: parent.left
                             verticalCenter: parent.verticalCenter
-                            leftMargin: 10
+                            leftMargin: 14
                             right: parent.right
                             rightMargin: 10
                         }
                         spacing: 8
                         Text {
-                            text: modelData.connected ? "󰂱" : "󰂯"
-                            font.pixelSize: 14
+                            text: modelData.connected ? "" : ""
+                            font.pixelSize: 15
                             font.family: "JetBrainsMono Nerd Font"
-                            color: modelData.connected ? Colors.grey900 : Colors.lightBlue200
+                            color: modelData.connected ? Colors.grey900 : Colors.grey200
                             anchors.verticalCenter: parent.verticalCenter
                         }
                         Text {
                             text: modelData.name.substring(0, 16)
-                            font.pixelSize: 12
+                            font.pixelSize: 13
+                            font.bold: true
                             font.family: "JetBrainsMono Nerd Font"
-                            color: modelData.connected ? Colors.grey900 : Colors.lightBlue200
+                            color: modelData.connected ? Colors.grey900 : Colors.grey200
                             anchors.verticalCenter: parent.verticalCenter
                             elide: Text.ElideRight
                         }
                         Text {
                             visible: modelData.connected && modelData.batteryAvailable
                             text: visible ? Math.round(modelData.battery * 100) + "%" : ""
-                            font.pixelSize: 11
+                            font.pixelSize: 12
                             font.family: "JetBrainsMono Nerd Font"
-                            color: modelData.connected ? Colors.grey900 : Colors.lightBlue200
+                            color: modelData.connected ? Colors.grey900 : Colors.grey200
                             anchors.verticalCenter: parent.verticalCenter
                         }
                     }
@@ -137,33 +168,47 @@ PopupWindow {
             Rectangle {
                 visible: Bluetooth.defaultAdapter && Bluetooth.defaultAdapter.enabled
                 width: parent.width
-                height: visible ? 32 : 0
+                height: visible ? 34 : 0
                 radius: 6
                 color: Bluetooth.defaultAdapter && Bluetooth.defaultAdapter.discovering
                     ? Colors.teal400 : Colors.grey800
+
+                Rectangle {
+                    visible: !(Bluetooth.defaultAdapter && Bluetooth.defaultAdapter.discovering)
+                    width: 3
+                    height: parent.height - 10
+                    radius: 2
+                    anchors {
+                        left: parent.left
+                        leftMargin: 4
+                        verticalCenter: parent.verticalCenter
+                    }
+                    color: Colors.teal400
+                }
 
                 Row {
                     anchors {
                         left: parent.left
                         verticalCenter: parent.verticalCenter
-                        leftMargin: 10
+                        leftMargin: 14
                     }
                     spacing: 8
                     Text {
-                        text: "󰍉"
-                        font.pixelSize: 14
+                        text: ""
+                        font.pixelSize: 15
                         font.family: "JetBrainsMono Nerd Font"
                         color: Bluetooth.defaultAdapter && Bluetooth.defaultAdapter.discovering
-                            ? Colors.grey900 : Colors.teal400
+                            ? Colors.grey900 : Colors.grey200
                         anchors.verticalCenter: parent.verticalCenter
                     }
                     Text {
                         text: Bluetooth.defaultAdapter && Bluetooth.defaultAdapter.discovering
                             ? "Scanning..." : "Scan"
-                        font.pixelSize: 12
+                        font.pixelSize: 13
+                        font.bold: true
                         font.family: "JetBrainsMono Nerd Font"
                         color: Bluetooth.defaultAdapter && Bluetooth.defaultAdapter.discovering
-                            ? Colors.grey900 : Colors.teal400
+                            ? Colors.grey900 : Colors.grey200
                         anchors.verticalCenter: parent.verticalCenter
                     }
                 }
@@ -182,41 +227,53 @@ PopupWindow {
 
             // Pair with PIN
             Rectangle {
-                visible: Bluetooth.defaultAdapter && Bluetooth.defaultAdapter.enabled && Bluetooth.defaultAdapter.discovering
+                visible: Bluetooth.defaultAdapter && Bluetooth.defaultAdapter.enabled
+                    && Bluetooth.defaultAdapter.discovering
                 width: parent.width
-                height: visible ? 32 : 0
+                height: visible ? 34 : 0
                 radius: 6
                 color: Colors.grey800
+
+                Rectangle {
+                    width: 3
+                    height: parent.height - 10
+                    radius: 2
+                    anchors {
+                        left: parent.left
+                        leftMargin: 4
+                        verticalCenter: parent.verticalCenter
+                    }
+                    color: Colors.grey500
+                }
 
                 Row {
                     anchors {
                         left: parent.left
                         verticalCenter: parent.verticalCenter
-                        leftMargin: 10
+                        leftMargin: 14
                     }
                     spacing: 8
                     Text {
-                        text: "󰾰"
-                        font.pixelSize: 14
+                        text: ""
+                        font.pixelSize: 15
                         font.family: "JetBrainsMono Nerd Font"
                         color: Colors.grey400
                         anchors.verticalCenter: parent.verticalCenter
                     }
                     Text {
                         text: "Pair with PIN..."
-                        font.pixelSize: 12
+                        font.pixelSize: 13
+                        font.bold: true
                         font.family: "JetBrainsMono Nerd Font"
                         color: Colors.grey400
                         anchors.verticalCenter: parent.verticalCenter
                     }
                 }
-
                 Process {
                     id: bluetoothctlProc
                     command: ["ghostty", "--title=bluetoothctl", "-e", "bluetoothctl"]
                     running: false
                 }
-
                 MouseArea {
                     anchors.fill: parent
                     hoverEnabled: true
@@ -239,31 +296,45 @@ PopupWindow {
                         && Bluetooth.defaultAdapter
                         && Bluetooth.defaultAdapter.discovering
                     width: parent.width
-                    height: visible ? 32 : 0
+                    height: visible ? 34 : 0
                     radius: 6
                     color: modelData.pairing ? Colors.yellow600 : Colors.grey800
+
+                    Rectangle {
+                        visible: !modelData.pairing
+                        width: 3
+                        height: parent.height - 10
+                        radius: 2
+                        anchors {
+                            left: parent.left
+                            leftMargin: 4
+                            verticalCenter: parent.verticalCenter
+                        }
+                        color: Colors.yellow600
+                    }
 
                     Row {
                         anchors {
                             left: parent.left
                             verticalCenter: parent.verticalCenter
-                            leftMargin: 10
+                            leftMargin: 14
                             right: parent.right
                             rightMargin: 10
                         }
                         spacing: 8
                         Text {
-                            text: modelData.pairing ? "󰔦" : "󰐕"
-                            font.pixelSize: 14
+                            text: modelData.pairing ? "" : ""
+                            font.pixelSize: 15
                             font.family: "JetBrainsMono Nerd Font"
-                            color: modelData.pairing ? Colors.grey900 : Colors.grey400
+                            color: modelData.pairing ? Colors.grey900 : Colors.grey200
                             anchors.verticalCenter: parent.verticalCenter
                         }
                         Text {
                             text: modelData.name.substring(0, 16)
-                            font.pixelSize: 12
+                            font.pixelSize: 13
+                            font.bold: true
                             font.family: "JetBrainsMono Nerd Font"
-                            color: modelData.pairing ? Colors.grey900 : Colors.grey400
+                            color: modelData.pairing ? Colors.grey900 : Colors.grey200
                             anchors.verticalCenter: parent.verticalCenter
                             elide: Text.ElideRight
                         }
