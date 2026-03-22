@@ -115,16 +115,17 @@ Rectangle {
             top: parent.top
             left: parent.left
             right: parent.right
-            topMargin: 16
-            bottomMargin: 16
+            topMargin: 14
+            bottomMargin: 14
             leftMargin: 24
             rightMargin: 16
         }
-        spacing: 8
+        spacing: 0
 
-        // ── Header: app name + timer ring ────────
+        // ── App name row — compact label ──────────
         Row {
             width: parent.width
+            height: 22
 
             Text {
                 text: notification.appName
@@ -132,29 +133,32 @@ Rectangle {
                 font.bold: true
                 font.family: "JetBrainsMono Nerd Font"
                 color: root.accentColor
-                width: parent.width - 36
+                width: parent.width - 32
                 elide: Text.ElideRight
+                anchors.verticalCenter: parent.verticalCenter
             }
 
             Item {
                 id: timerItem
                 width: 32
-                height: 32
+                height: 22
+                anchors.verticalCenter: parent.verticalCenter
                 property real startTime: Date.now()
 
                 Canvas {
                     id: timerRing
-                    anchors.fill: parent
+                    width: 22; height: 22
+                    anchors.right: parent.right
                     property real progress: 1.0
 
                     onPaint: {
                         var ctx = getContext("2d")
                         ctx.reset()
                         ctx.strokeStyle = root.accentColor
-                        ctx.lineWidth = 2.5
+                        ctx.lineWidth = 2
                         ctx.lineCap = "round"
                         ctx.beginPath()
-                        ctx.arc(16, 16, 13, -Math.PI / 2, -Math.PI / 2 + (2 * Math.PI * progress), false)
+                        ctx.arc(11, 11, 8, -Math.PI / 2, -Math.PI / 2 + (2 * Math.PI * progress), false)
                         ctx.stroke()
                     }
 
@@ -172,9 +176,9 @@ Rectangle {
                 }
 
                 Text {
-                    anchors.centerIn: parent
+                    anchors.centerIn: timerRing
                     text: ""
-                    font.pixelSize: 14
+                    font.pixelSize: 11
                     font.family: "JetBrainsMono Nerd Font"
                     color: Colors.grey500
                     MouseArea {
@@ -184,6 +188,19 @@ Rectangle {
                 }
             }
         }
+
+        // ── Thin separator between label and content
+        Rectangle {
+            width: parent.width
+            height: 1
+            color: Colors.grey800
+            opacity: 0.6
+            anchors.topMargin: 6
+            // small gap above and below
+            Item { width: 1; height: 6 }
+        }
+
+        Item { width: 1; height: 8 }
 
         // ── Summary ───────────────────────────────
         Text {
@@ -199,13 +216,15 @@ Rectangle {
             elide: Text.ElideRight
         }
 
+        Item { width: 1; height: 4 }
+
         // ── Body ──────────────────────────────────
         Text {
             visible: notification.body !== ""
             text: notification.body
-            font.pixelSize: 15
+            font.pixelSize: 14
             font.family: "JetBrainsMono Nerd Font"
-            color: Colors.grey400
+            color: Colors.grey300
             width: parent.width
             wrapMode: Text.WordWrap
             maximumLineCount: 3
