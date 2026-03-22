@@ -7,7 +7,12 @@ PopupWindow {
     visible: AudioState.popupVisible
     implicitWidth: 300
     implicitHeight: popupColumn.implicitHeight + 20
-    Behavior on implicitHeight { NumberAnimation { duration: 10 } }
+    Behavior on implicitHeight {
+        NumberAnimation {
+            duration: 80
+            easing.type: Easing.OutCubic
+        }
+    }
     Component.onCompleted: console.log("height:", popupColumn.implicitHeight)
     color: "transparent"
 
