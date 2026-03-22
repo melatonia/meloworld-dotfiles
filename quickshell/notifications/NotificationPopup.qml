@@ -8,7 +8,7 @@ PanelWindow {
     required property var screen
 
     anchors { bottom: true; right: true }
-    implicitWidth: 360
+    implicitWidth: 440
     implicitHeight: notifColumn.implicitHeight + 20
     color: "transparent"
     exclusiveZone: 0

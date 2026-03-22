@@ -6,23 +6,16 @@ Rectangle {
     id: root
     required property Notification notification
 
-    width: 320
-    height: cardContent.implicitHeight + 24
+    width: 400
+    height: cardContent.implicitHeight + 32
     radius: 10
     color: Colors.grey900
     border.color: accentColor
     border.width: 2
 
-    // Derive accent color from hint or app name hash
     readonly property color accentColor: {
-        // Use app-provided hint color if available
-        var hint = notification.hints["image-data"] ? "" : ""
-        var hintColor = notification.hints["x-canonical-private-synchronous"]
-        // Check for urgency-based coloring first
         if (notification.urgency === Notification.Critical) return Colors.red300
-        // Try hint color
         if (notification.hints["x-hint-color"]) return notification.hints["x-hint-color"]
-        // Hash the app name to a stable color from our palette
         return hashColor(notification.appName)
     }
 
@@ -44,13 +37,11 @@ Rectangle {
             Colors.deepPurple200,
             Colors.blueGrey300,
         ]
-        var idx = Math.abs(hash) % colors.length
-        return colors[idx]
+        return colors[Math.abs(hash) % colors.length]
     }
 
-    // Start off-screen to the right
     opacity: 0
-    x: 340
+    x: 420
 
     Component.onCompleted: {
         opacity = 1
@@ -92,7 +83,7 @@ Rectangle {
 
     function dismiss() {
         opacity = 0
-        x = 340
+        x = 420
         dismissTimer.stop()
         ringTimer.running = false
         dismissDelay.start()
@@ -106,16 +97,16 @@ Rectangle {
 
     // ── Left accent stripe ────────────────────────
     Rectangle {
-        width: 3
-        height: parent.height - 20
+        width: 4
+        height: parent.height - 24
         radius: 2
         anchors {
             left: parent.left
-            leftMargin: 6
+            leftMargin: 7
             verticalCenter: parent.verticalCenter
         }
         color: root.accentColor
-        opacity: 0.8
+        opacity: 0.9
     }
 
     Column {
@@ -124,10 +115,12 @@ Rectangle {
             top: parent.top
             left: parent.left
             right: parent.right
-            margins: 12
-            leftMargin: 18
+            topMargin: 16
+            bottomMargin: 16
+            leftMargin: 24
+            rightMargin: 16
         }
-        spacing: 4
+        spacing: 8
 
         // ── Header: app name + timer ring ────────
         Row {
@@ -135,18 +128,18 @@ Rectangle {
 
             Text {
                 text: notification.appName
-                font.pixelSize: 12
+                font.pixelSize: 16
                 font.bold: true
                 font.family: "JetBrainsMono Nerd Font"
                 color: root.accentColor
-                width: parent.width - 28
+                width: parent.width - 36
                 elide: Text.ElideRight
             }
 
             Item {
                 id: timerItem
-                width: 24
-                height: 24
+                width: 32
+                height: 32
                 property real startTime: Date.now()
 
                 Canvas {
@@ -158,10 +151,10 @@ Rectangle {
                         var ctx = getContext("2d")
                         ctx.reset()
                         ctx.strokeStyle = root.accentColor
-                        ctx.lineWidth = 2
+                        ctx.lineWidth = 2.5
                         ctx.lineCap = "round"
                         ctx.beginPath()
-                        ctx.arc(12, 12, 9, -Math.PI / 2, -Math.PI / 2 + (2 * Math.PI * progress), false)
+                        ctx.arc(16, 16, 13, -Math.PI / 2, -Math.PI / 2 + (2 * Math.PI * progress), false)
                         ctx.stroke()
                     }
 
@@ -181,7 +174,7 @@ Rectangle {
                 Text {
                     anchors.centerIn: parent
                     text: ""
-                    font.pixelSize: 12
+                    font.pixelSize: 14
                     font.family: "JetBrainsMono Nerd Font"
                     color: Colors.grey500
                     MouseArea {
@@ -196,7 +189,7 @@ Rectangle {
         Text {
             visible: notification.summary !== ""
             text: notification.summary
-            font.pixelSize: 14
+            font.pixelSize: 18
             font.bold: true
             font.family: "JetBrainsMono Nerd Font"
             color: Colors.grey100
@@ -210,7 +203,7 @@ Rectangle {
         Text {
             visible: notification.body !== ""
             text: notification.body
-            font.pixelSize: 13
+            font.pixelSize: 15
             font.family: "JetBrainsMono Nerd Font"
             color: Colors.grey400
             width: parent.width
