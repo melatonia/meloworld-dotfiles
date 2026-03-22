@@ -1,12 +1,5 @@
 <div align="center">
 
-```
-      |\      _,,,---,,_
-ZZZzz /,`.-'`'    -.  ;-;;,_
-     |,4-  ) )-,_. ,\ (  `'-'
-    '---''(_/--'  `-'\_)  melo.
-```
-
 # 🌿 meloworld
 
 *a rice that feels like /home <3*
