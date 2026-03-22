@@ -5,13 +5,23 @@ import "../theme"
 
 PopupWindow {
     id: root
-    visible: SessionState.powerPopupVisible
+    visible: animState !== "closed"
     implicitWidth: 210
-    implicitHeight: column.implicitHeight + 20
-    Behavior on implicitHeight {
-        NumberAnimation { duration: 80; easing.type: Easing.OutCubic }
-    }
+    implicitHeight: 600
     color: "transparent"
+
+    property string animState: "closed"
+
+    Connections {
+        target: SessionState
+        function onPowerPopupVisibleChanged() {
+            if (SessionState.powerPopupVisible) {
+                animState = "open"
+            } else {
+                animState = "closing"
+            }
+        }
+    }
 
     function profileColor(profile) {
         if (profile === PowerProfile.PowerSaver)  return Colors.green200
@@ -20,11 +30,70 @@ PopupWindow {
     }
 
     Rectangle {
-        anchors.fill: parent
+        id: innerRect
+        width: parent.width
+        height: column.implicitHeight + 20
+        Behavior on height {
+            SmoothedAnimation { velocity: 800; easing.type: Easing.OutExpo }
+        }
+
+        y: 0
+        opacity: 1.0
+
+        states: [
+            State {
+                name: "open"
+                when: root.animState === "open"
+                PropertyChanges { target: innerRect; y: 0; opacity: 1.0 }
+            },
+            State {
+                name: "closing"
+                when: root.animState === "closing"
+                PropertyChanges { target: innerRect; y: -20; opacity: 0.0 }
+            }
+        ]
+
+        transitions: [
+            Transition {
+                from: "*"; to: "open"
+                SequentialAnimation {
+                    PropertyAction { target: innerRect; property: "y"; value: -20 }
+                    PropertyAction { target: innerRect; property: "opacity"; value: 0.0 }
+                    ParallelAnimation {
+                        NumberAnimation {
+                            target: innerRect; property: "y"
+                            to: 0; duration: 250; easing.type: Easing.OutExpo
+                        }
+                        NumberAnimation {
+                            target: innerRect; property: "opacity"
+                            to: 1.0; duration: 180; easing.type: Easing.OutCubic
+                        }
+                    }
+                }
+            },
+            Transition {
+                from: "*"; to: "closing"
+                SequentialAnimation {
+                    ParallelAnimation {
+                        NumberAnimation {
+                            target: innerRect; property: "y"
+                            to: -20; duration: 180; easing.type: Easing.InCubic
+                        }
+                        NumberAnimation {
+                            target: innerRect; property: "opacity"
+                            to: 0.0; duration: 150; easing.type: Easing.InCubic
+                        }
+                    }
+                    ScriptAction { script: root.animState = "closed" }
+                }
+            }
+        ]
+
         radius: 10
         color: Colors.grey900
         border.color: profileColor(PowerProfiles.profile)
         border.width: 2
+        clip: true
 
         Column {
             id: column

@@ -6,10 +6,31 @@ import "../theme"
 
 PopupWindow {
     id: root
-    visible: SessionState.bluetoothPopupVisible
+    visible: animState !== "closed"
     implicitWidth: 240
     implicitHeight: 600
     color: "transparent"
+
+    // "closed" → "opening" → "open" → "closing" → "closed"
+    property string animState: "closed"
+
+    onAnimStateChanged: {
+        if (animState === "closed") {
+            // nothing, window hides
+        }
+    }
+
+    // Watch the external toggle
+    Connections {
+        target: SessionState
+        function onBluetoothPopupVisibleChanged() {
+            if (SessionState.bluetoothPopupVisible) {
+                animState = "open"
+            } else {
+                animState = "closing"
+            }
+        }
+    }
 
     readonly property bool btOn: Bluetooth.defaultAdapter && Bluetooth.defaultAdapter.enabled
     readonly property bool scanning: btOn && Bluetooth.defaultAdapter.discovering
@@ -26,6 +47,62 @@ PopupWindow {
         Behavior on height {
             SmoothedAnimation { velocity: 800; easing.type: Easing.OutExpo }
         }
+
+        // Slide + fade animation
+        y: 0
+        opacity: 1.0
+
+        states: [
+            State {
+                name: "open"
+                when: root.animState === "open"
+                PropertyChanges { target: innerRect; y: 0; opacity: 1.0 }
+            },
+            State {
+                name: "closing"
+                when: root.animState === "closing"
+                PropertyChanges { target: innerRect; y: -20; opacity: 0.0 }
+            }
+        ]
+
+        transitions: [
+            Transition {
+                from: "*"; to: "open"
+                SequentialAnimation {
+                    // Start from above
+                    PropertyAction { target: innerRect; property: "y"; value: -20 }
+                    PropertyAction { target: innerRect; property: "opacity"; value: 0.0 }
+                    ParallelAnimation {
+                        NumberAnimation {
+                            target: innerRect; property: "y"
+                            to: 0; duration: 250; easing.type: Easing.OutExpo
+                        }
+                        NumberAnimation {
+                            target: innerRect; property: "opacity"
+                            to: 1.0; duration: 180; easing.type: Easing.OutCubic
+                        }
+                    }
+                }
+            },
+            Transition {
+                from: "*"; to: "closing"
+                SequentialAnimation {
+                    ParallelAnimation {
+                        NumberAnimation {
+                            target: innerRect; property: "y"
+                            to: -20; duration: 180; easing.type: Easing.InCubic
+                        }
+                        NumberAnimation {
+                            target: innerRect; property: "opacity"
+                            to: 0.0; duration: 150; easing.type: Easing.InCubic
+                        }
+                    }
+                    // After animation finishes, close the window
+                    ScriptAction { script: root.animState = "closed" }
+                }
+            }
+        ]
+
         radius: 10
         color: Colors.grey900
         border.color: root.btOn ? Colors.lightBlue200 : Colors.grey700
@@ -301,18 +378,17 @@ PopupWindow {
                     anchors { top: parent.top; left: parent.left; right: parent.right }
                     height: 22; radius: 6
                     color: Colors.grey800
-
                     Row {
                         anchors.centerIn: parent
                         spacing: 6
                         Text {
-                            text: "󰁞"
+                            text: "󰁄"
                             font.pixelSize: 12; font.family: "JetBrainsMono Nerd Font"
                             color: Colors.grey500
                             anchors.verticalCenter: parent.verticalCenter
                         }
                         Text {
-                            text: "scroll for more"
+                            text: "scroll up"
                             font.pixelSize: 11; font.family: "JetBrainsMono Nerd Font"
                             color: Colors.grey500
                             anchors.verticalCenter: parent.verticalCenter
@@ -326,7 +402,6 @@ PopupWindow {
                     anchors { bottom: parent.bottom; left: parent.left; right: parent.right }
                     height: 22; radius: 6
                     color: Colors.grey800
-
                     Row {
                         anchors.centerIn: parent
                         spacing: 6
