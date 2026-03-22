@@ -257,53 +257,87 @@ PopupWindow {
 
             // ── Volume slider ─────────────────────────────
             Row {
-                width: parent.width; height: 28; spacing: 8
+                width: parent.width; height: 32; spacing: 8
+
                 Text {
                     text: AudioState.muted ? "󰝟" : "󰕾"
-                    font.pixelSize: 18; font.family: "JetBrainsMono Nerd Font"
+                    font.pixelSize: 22; font.family: "JetBrainsMono Nerd Font"
                     color: AudioState.muted ? Colors.grey500 : Colors.teal200
                     anchors.verticalCenter: parent.verticalCenter
+                    width: 26
+                    horizontalAlignment: Text.AlignHCenter
+
+                    Behavior on color {
+                        ColorAnimation { duration: 150 }
+                    }
+
+                    MouseArea {
+                        anchors.fill: parent
+                        cursorShape: Qt.PointingHandCursor
+                        onClicked: AudioState.setMute(!AudioState.muted)
+                    }
                 }
                 AudioSlider {
-                    width: parent.width - 32 - 42
+                    width: parent.width - 34 - 42
                     anchors.verticalCenter: parent.verticalCenter
                     value: AudioState.volume
-                    accentColor: Colors.teal200
+                    accentColor: AudioState.muted ? Colors.grey600 : Colors.teal200
                     onMoved: (v) => AudioState.setVolume(v)
                 }
                 Text {
                     width: 38
-                    text: AudioState.volume + "%"
+                    text: AudioState.muted ? "muted" : AudioState.volume + "%"
                     font.pixelSize: 12; font.family: "JetBrainsMono Nerd Font"
-                    color: Colors.grey400
+                    color: AudioState.muted ? Colors.grey500 : Colors.grey400
                     horizontalAlignment: Text.AlignRight
                     anchors.verticalCenter: parent.verticalCenter
+
+                    Behavior on color {
+                        ColorAnimation { duration: 150 }
+                    }
                 }
             }
 
             // ── Mic slider ────────────────────────────────
             Row {
-                width: parent.width; height: 28; spacing: 8; bottomPadding: 4
+                width: parent.width; height: 32; spacing: 8; bottomPadding: 4
+
                 Text {
-                    text: "󰍬"
-                    font.pixelSize: 18; font.family: "JetBrainsMono Nerd Font"
-                    color: Colors.teal200
+                    text: AudioState.micMuted ? "󰍭" : "󰍬"
+                    font.pixelSize: 22; font.family: "JetBrainsMono Nerd Font"
+                    color: AudioState.micMuted ? Colors.grey500 : Colors.teal200
                     anchors.verticalCenter: parent.verticalCenter
+                    width: 26
+                    horizontalAlignment: Text.AlignHCenter
+
+                    Behavior on color {
+                        ColorAnimation { duration: 150 }
+                    }
+
+                    MouseArea {
+                        anchors.fill: parent
+                        cursorShape: Qt.PointingHandCursor
+                        onClicked: AudioState.setMicMute(!AudioState.micMuted)
+                    }
                 }
                 AudioSlider {
-                    width: parent.width - 32 - 42
+                    width: parent.width - 34 - 42
                     anchors.verticalCenter: parent.verticalCenter
                     value: AudioState.micVolume
-                    accentColor: Colors.teal200
+                    accentColor: AudioState.micMuted ? Colors.grey600 : Colors.teal200
                     onMoved: (v) => AudioState.setMicVolume(v)
                 }
                 Text {
                     width: 38
-                    text: AudioState.micVolume + "%"
+                    text: AudioState.micMuted ? "muted" : AudioState.micVolume + "%"
                     font.pixelSize: 12; font.family: "JetBrainsMono Nerd Font"
-                    color: Colors.grey400
+                    color: AudioState.micMuted ? Colors.grey500 : Colors.grey400
                     horizontalAlignment: Text.AlignRight
                     anchors.verticalCenter: parent.verticalCenter
+
+                    Behavior on color {
+                        ColorAnimation { duration: 150 }
+                    }
                 }
             }
 
