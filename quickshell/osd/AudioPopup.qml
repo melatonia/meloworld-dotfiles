@@ -112,9 +112,10 @@ PopupWindow {
 
             Item { width: 1; height: 2 }
 
-            // ── Output header ─────────────────────────────
+            // ── Output header (only when 2+ sinks) ────────
             Row {
-                height: 34
+                visible: AudioState.sinks.length > 1
+                height: visible ? 34 : 0
                 spacing: 6
                 leftPadding: 4
                 Text {
@@ -131,9 +132,9 @@ PopupWindow {
                 }
             }
 
-            // ── Output devices ────────────────────────────
+            // ── Output devices (only when 2+ sinks) ───────
             Repeater {
-                model: AudioState.sinks
+                model: AudioState.sinks.length > 1 ? AudioState.sinks : []
                 delegate: Rectangle {
                     required property var modelData
                     readonly property bool isActive: modelData.name === AudioState.defaultSink
@@ -180,12 +181,18 @@ PopupWindow {
                 }
             }
 
-            // ── Divider ───────────────────────────────────
-            Rectangle { width: popupColumn.width; height: 1; color: Colors.grey800 }
+            // ── Divider (only when both sections have 2+) ─
+            Rectangle {
+                visible: AudioState.sinks.length > 1 && AudioState.sources.length > 1
+                width: popupColumn.width
+                height: visible ? 1 : 0
+                color: Colors.grey800
+            }
 
-            // ── Input header ──────────────────────────────
+            // ── Input header (only when 2+ sources) ───────
             Row {
-                height: 34
+                visible: AudioState.sources.length > 1
+                height: visible ? 34 : 0
                 spacing: 6
                 leftPadding: 4
                 Text {
@@ -202,9 +209,9 @@ PopupWindow {
                 }
             }
 
-            // ── Input devices ─────────────────────────────
+            // ── Input devices (only when 2+ sources) ──────
             Repeater {
-                model: AudioState.sources
+                model: AudioState.sources.length > 1 ? AudioState.sources : []
                 delegate: Rectangle {
                     required property var modelData
                     readonly property bool isActive: modelData.name === AudioState.defaultSource
@@ -251,23 +258,24 @@ PopupWindow {
                 }
             }
 
-            // ── Divider ───────────────────────────────────
-            Rectangle { width: popupColumn.width; height: 1; color: Colors.grey800 }
-            Item { width: 1; height: 2 }
-
+            // ── Divider before sliders ─────────────────────
+            Rectangle {
+                visible: AudioState.sinks.length > 1 || AudioState.sources.length > 1
+                width: popupColumn.width
+                height: visible ? 1 : 0
+                color: Colors.grey800
+            }
             // ── Volume row ────────────────────────────────
             Rectangle {
                 width: popupColumn.width; height: 34; radius: 6
                 color: Colors.grey800
 
-                // Muted left stripe indicator
                 Rectangle {
                     visible: AudioState.muted
                     width: 3; height: parent.height - 10; radius: 2
                     anchors { left: parent.left; leftMargin: 4; verticalCenter: parent.verticalCenter }
                     color: Colors.grey500
                 }
-
                 Row {
                     anchors { left: parent.left; right: parent.right; verticalCenter: parent.verticalCenter; leftMargin: 10; rightMargin: 10 }
                     spacing: 8
@@ -284,7 +292,6 @@ PopupWindow {
                             onClicked: AudioState.setMute(!AudioState.muted)
                         }
                     }
-
                     AudioSlider {
                         width: parent.width - 16 - 8 - 36 - 8
                         anchors.verticalCenter: parent.verticalCenter
@@ -292,7 +299,6 @@ PopupWindow {
                         accentColor: AudioState.muted ? Colors.grey600 : Colors.teal200
                         onMoved: (v) => AudioState.setVolume(v)
                     }
-
                     Text {
                         width: 36
                         text: AudioState.muted ? "muted" : AudioState.volume + "%"
@@ -316,7 +322,6 @@ PopupWindow {
                     anchors { left: parent.left; leftMargin: 4; verticalCenter: parent.verticalCenter }
                     color: Colors.grey500
                 }
-
                 Row {
                     anchors { left: parent.left; right: parent.right; verticalCenter: parent.verticalCenter; leftMargin: 10; rightMargin: 10 }
                     spacing: 8
@@ -333,7 +338,6 @@ PopupWindow {
                             onClicked: AudioState.setMicMute(!AudioState.micMuted)
                         }
                     }
-
                     AudioSlider {
                         width: parent.width - 16 - 8 - 36 - 8
                         anchors.verticalCenter: parent.verticalCenter
@@ -341,7 +345,6 @@ PopupWindow {
                         accentColor: AudioState.micMuted ? Colors.grey600 : Colors.teal200
                         onMoved: (v) => AudioState.setMicVolume(v)
                     }
-
                     Text {
                         width: 36
                         text: AudioState.micMuted ? "muted" : AudioState.micVolume + "%"
