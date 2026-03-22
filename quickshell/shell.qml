@@ -26,6 +26,11 @@ ShellRoot {
                 anchor.rect.x: panelWin.width - 320
                 anchor.rect.y: panelWin.height
             }
+            BluetoothPopup {
+                anchor.window: panelWin
+                anchor.rect.x: panelWin.width - 530
+                anchor.rect.y: panelWin.height
+            }
         }
     }
     Variants {
