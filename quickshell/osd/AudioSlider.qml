@@ -3,45 +3,49 @@ import "../theme"
 
 Item {
     id: root
-    height: 20
+    height: 24
     property real value: 0
     property real from: 0
     property real to: 100
-    property color accentColor: Colors.purple200
-
+    property color accentColor: Colors.teal200
     signal moved(real value)
+
+    property bool dragging: mouseArea.pressed
 
     Rectangle {
         id: track
         anchors.verticalCenter: parent.verticalCenter
         width: parent.width
-        height: 4
-        radius: 2
-        color: Colors.grey700
+        height: dragging ? 8 : 6
+        radius: height / 2
+        color: Qt.rgba(1, 1, 1, 0.15)
+        Behavior on height { NumberAnimation { duration: 100; easing.type: Easing.OutCubic } }
 
         Rectangle {
             width: (root.value - root.from) / (root.to - root.from) * parent.width
             height: parent.height
-            radius: 2
+            radius: height / 2
             color: root.accentColor
-
             Behavior on width { NumberAnimation { duration: 80 } }
         }
     }
 
     Rectangle {
         id: handle
-        width: 14
-        height: 14
-        radius: 7
+        property real targetX: (root.value - root.from) / (root.to - root.from) * (track.width - 16)
+        width: dragging ? 22 : 16
+        height: dragging ? 22 : 16
+        radius: width / 2
         color: root.accentColor
         anchors.verticalCenter: track.verticalCenter
-        x: (root.value - root.from) / (root.to - root.from) * (track.width - width)
-
+        x: targetX - (width - 16) / 2
+        Behavior on width { NumberAnimation { duration: 100; easing.type: Easing.OutCubic } }
+        Behavior on height { NumberAnimation { duration: 100; easing.type: Easing.OutCubic } }
         Behavior on x { NumberAnimation { duration: 80 } }
     }
 
     MouseArea {
+        id: mouseArea
         anchors.fill: parent
         onPositionChanged: (mouse) => {
             if (pressed) {

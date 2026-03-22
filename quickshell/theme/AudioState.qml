@@ -19,11 +19,9 @@ Singleton {
         refresh()
         popupVisible = true
     }
-
     function hide() {
         popupVisible = false
     }
-
     function refresh() {
         sinksProc.running = true
         sourcesProc.running = true
@@ -33,24 +31,20 @@ Singleton {
         muteProc.running = true
         micVolProc.running = true
     }
-
     function setDefaultSink(name) {
         setSinkProc.sinkName = name
         setSinkProc.running = true
         defaultSink = name
     }
-
     function setDefaultSource(name) {
         setSourceProc.sourceName = name
         setSourceProc.running = true
         defaultSource = name
     }
-
     function setVolume(newVol) {
         setVolProc.step = newVol + "%"
         setVolProc.running = true
     }
-
     function setMicVolume(newVol) {
         setMicVolProc.step = newVol + "%"
         setMicVolProc.running = true
@@ -143,10 +137,14 @@ Singleton {
         stdout: SplitParser {
             onRead: (line) => {
                 if (line.indexOf("sink") !== -1) {
+                    sinksProc.running = true
+                    defaultSinkProc.running = true
                     volProc.running = true
                     muteProc.running = true
                 }
                 if (line.indexOf("source") !== -1) {
+                    sourcesProc.running = true
+                    defaultSourceProc.running = true
                     micVolProc.running = true
                 }
             }
