@@ -8,6 +8,23 @@ Row {
 
     property var tags: ({})
 
+    // Find the currently focused tag number
+    function focusedTag() {
+        for (var i = 1; i <= 9; i++) {
+            if (tags[i] && tags[i].focused) return i
+        }
+        return 1
+    }
+
+    // Get sorted list of visible tag numbers
+    function visibleTags() {
+        var result = []
+        for (var i = 1; i <= 9; i++) {
+            if (tags[i] && (tags[i].focused || tags[i].clients > 0)) result.push(i)
+        }
+        return result
+    }
+
     Process {
         id: watchProc
         command: ["mmsg", "-w", "-t"]
@@ -34,12 +51,22 @@ Row {
             property int tagNum: index + 1
             property bool focused: root.tags[tagNum] ? root.tags[tagNum].focused : false
             property int clients: root.tags[tagNum] ? root.tags[tagNum].clients : 0
+            property bool shouldShow: focused || clients > 0
 
-            visible: focused || clients > 0
-            width: visible ? 28 : 0
+            visible: width > 0
+            width: shouldShow ? 28 : 0
+            Behavior on width {
+                SmoothedAnimation { velocity: 120; easing.type: Easing.OutExpo }
+            }
+
             height: 28
             radius: 5
             color: focused ? PanelColors.workspaceActive : PanelColors.workspaceInactive
+            Behavior on color {
+                ColorAnimation { duration: 150 }
+            }
+
+            clip: true
 
             Text {
                 anchors.centerIn: parent
@@ -48,15 +75,33 @@ Row {
                 font.pixelSize: 16
                 font.bold: true
                 font.family: "JetBrainsMono Nerd Font"
+                Behavior on color {
+                    ColorAnimation { duration: 150 }
+                }
             }
 
             MouseArea {
                 anchors.fill: parent
                 hoverEnabled: true
                 onEntered: parent.opacity = 0.8
-                onExited:  parent.opacity = 1.0
+                onExited: parent.opacity = 1.0
                 onClicked: {
                     switchProc.tagTarget = parent.tagNum
+                    switchProc.running = true
+                }
+                onWheel: (event) => {
+                    var visible = root.visibleTags()
+                    if (visible.length === 0) return
+                    var current = root.focusedTag()
+                    var idx = visible.indexOf(current)
+                    // scroll down → next tag (higher number)
+                    // scroll up → previous tag (lower number)
+                    if (event.angleDelta.y < 0) {
+                        idx = Math.min(idx + 1, visible.length - 1)
+                    } else {
+                        idx = Math.max(idx - 1, 0)
+                    }
+                    switchProc.tagTarget = visible[idx]
                     switchProc.running = true
                 }
             }
