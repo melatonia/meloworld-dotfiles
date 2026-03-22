@@ -8,7 +8,7 @@ PanelWindow {
     required property var screen
 
     anchors { bottom: true; right: true }
-    implicitWidth: 340
+    implicitWidth: 360
     implicitHeight: notifColumn.implicitHeight + 20
     color: "transparent"
     exclusiveZone: 0
@@ -36,7 +36,6 @@ PanelWindow {
 
         Repeater {
             model: server.trackedNotifications
-
             delegate: NotificationCard {
                 required property var modelData
                 notification: modelData
