@@ -255,88 +255,101 @@ PopupWindow {
             Rectangle { width: popupColumn.width; height: 1; color: Colors.grey800 }
             Item { width: 1; height: 2 }
 
-            // ── Volume slider ─────────────────────────────
-            Row {
-                width: parent.width; height: 32; spacing: 8
+            // ── Volume row ────────────────────────────────
+            Rectangle {
+                width: popupColumn.width; height: 34; radius: 6
+                color: Colors.grey800
 
-                Text {
-                    text: AudioState.muted ? "󰝟" : "󰕾"
-                    font.pixelSize: 22; font.family: "JetBrainsMono Nerd Font"
-                    color: AudioState.muted ? Colors.grey500 : Colors.teal200
-                    anchors.verticalCenter: parent.verticalCenter
-                    width: 26
-                    horizontalAlignment: Text.AlignHCenter
+                // Muted left stripe indicator
+                Rectangle {
+                    visible: AudioState.muted
+                    width: 3; height: parent.height - 10; radius: 2
+                    anchors { left: parent.left; leftMargin: 4; verticalCenter: parent.verticalCenter }
+                    color: Colors.grey500
+                }
 
-                    Behavior on color {
-                        ColorAnimation { duration: 150 }
+                Row {
+                    anchors { left: parent.left; right: parent.right; verticalCenter: parent.verticalCenter; leftMargin: 10; rightMargin: 10 }
+                    spacing: 8
+
+                    Text {
+                        text: AudioState.muted ? "󰝟" : "󰕾"
+                        font.pixelSize: 16; font.family: "JetBrainsMono Nerd Font"
+                        color: AudioState.muted ? Colors.grey500 : Colors.teal200
+                        anchors.verticalCenter: parent.verticalCenter
+                        Behavior on color { ColorAnimation { duration: 150 } }
+                        MouseArea {
+                            anchors.fill: parent
+                            cursorShape: Qt.PointingHandCursor
+                            onClicked: AudioState.setMute(!AudioState.muted)
+                        }
                     }
 
-                    MouseArea {
-                        anchors.fill: parent
-                        cursorShape: Qt.PointingHandCursor
-                        onClicked: AudioState.setMute(!AudioState.muted)
+                    AudioSlider {
+                        width: parent.width - 16 - 8 - 36 - 8
+                        anchors.verticalCenter: parent.verticalCenter
+                        value: AudioState.volume
+                        accentColor: AudioState.muted ? Colors.grey600 : Colors.teal200
+                        onMoved: (v) => AudioState.setVolume(v)
                     }
-                }
-                AudioSlider {
-                    width: parent.width - 34 - 42
-                    anchors.verticalCenter: parent.verticalCenter
-                    value: AudioState.volume
-                    accentColor: AudioState.muted ? Colors.grey600 : Colors.teal200
-                    onMoved: (v) => AudioState.setVolume(v)
-                }
-                Text {
-                    width: 38
-                    text: AudioState.muted ? "muted" : AudioState.volume + "%"
-                    font.pixelSize: 12; font.family: "JetBrainsMono Nerd Font"
-                    color: AudioState.muted ? Colors.grey500 : Colors.grey400
-                    horizontalAlignment: Text.AlignRight
-                    anchors.verticalCenter: parent.verticalCenter
 
-                    Behavior on color {
-                        ColorAnimation { duration: 150 }
+                    Text {
+                        width: 36
+                        text: AudioState.muted ? "muted" : AudioState.volume + "%"
+                        font.pixelSize: 13; font.family: "JetBrainsMono Nerd Font"
+                        color: AudioState.muted ? Colors.grey500 : Colors.grey300
+                        horizontalAlignment: Text.AlignRight
+                        anchors.verticalCenter: parent.verticalCenter
+                        Behavior on color { ColorAnimation { duration: 150 } }
                     }
                 }
             }
 
-            // ── Mic slider ────────────────────────────────
-            Row {
-                width: parent.width; height: 32; spacing: 8; bottomPadding: 4
+            // ── Mic row ───────────────────────────────────
+            Rectangle {
+                width: popupColumn.width; height: 34; radius: 6
+                color: Colors.grey800
 
-                Text {
-                    text: AudioState.micMuted ? "󰍭" : "󰍬"
-                    font.pixelSize: 22; font.family: "JetBrainsMono Nerd Font"
-                    color: AudioState.micMuted ? Colors.grey500 : Colors.teal200
-                    anchors.verticalCenter: parent.verticalCenter
-                    width: 26
-                    horizontalAlignment: Text.AlignHCenter
+                Rectangle {
+                    visible: AudioState.micMuted
+                    width: 3; height: parent.height - 10; radius: 2
+                    anchors { left: parent.left; leftMargin: 4; verticalCenter: parent.verticalCenter }
+                    color: Colors.grey500
+                }
 
-                    Behavior on color {
-                        ColorAnimation { duration: 150 }
+                Row {
+                    anchors { left: parent.left; right: parent.right; verticalCenter: parent.verticalCenter; leftMargin: 10; rightMargin: 10 }
+                    spacing: 8
+
+                    Text {
+                        text: AudioState.micMuted ? "󰍭" : "󰍬"
+                        font.pixelSize: 16; font.family: "JetBrainsMono Nerd Font"
+                        color: AudioState.micMuted ? Colors.grey500 : Colors.teal200
+                        anchors.verticalCenter: parent.verticalCenter
+                        Behavior on color { ColorAnimation { duration: 150 } }
+                        MouseArea {
+                            anchors.fill: parent
+                            cursorShape: Qt.PointingHandCursor
+                            onClicked: AudioState.setMicMute(!AudioState.micMuted)
+                        }
                     }
 
-                    MouseArea {
-                        anchors.fill: parent
-                        cursorShape: Qt.PointingHandCursor
-                        onClicked: AudioState.setMicMute(!AudioState.micMuted)
+                    AudioSlider {
+                        width: parent.width - 16 - 8 - 36 - 8
+                        anchors.verticalCenter: parent.verticalCenter
+                        value: AudioState.micVolume
+                        accentColor: AudioState.micMuted ? Colors.grey600 : Colors.teal200
+                        onMoved: (v) => AudioState.setMicVolume(v)
                     }
-                }
-                AudioSlider {
-                    width: parent.width - 34 - 42
-                    anchors.verticalCenter: parent.verticalCenter
-                    value: AudioState.micVolume
-                    accentColor: AudioState.micMuted ? Colors.grey600 : Colors.teal200
-                    onMoved: (v) => AudioState.setMicVolume(v)
-                }
-                Text {
-                    width: 38
-                    text: AudioState.micMuted ? "muted" : AudioState.micVolume + "%"
-                    font.pixelSize: 12; font.family: "JetBrainsMono Nerd Font"
-                    color: AudioState.micMuted ? Colors.grey500 : Colors.grey400
-                    horizontalAlignment: Text.AlignRight
-                    anchors.verticalCenter: parent.verticalCenter
 
-                    Behavior on color {
-                        ColorAnimation { duration: 150 }
+                    Text {
+                        width: 36
+                        text: AudioState.micMuted ? "muted" : AudioState.micVolume + "%"
+                        font.pixelSize: 13; font.family: "JetBrainsMono Nerd Font"
+                        color: AudioState.micMuted ? Colors.grey500 : Colors.grey300
+                        horizontalAlignment: Text.AlignRight
+                        anchors.verticalCenter: parent.verticalCenter
+                        Behavior on color { ColorAnimation { duration: 150 } }
                     }
                 }
             }
