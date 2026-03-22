@@ -1,10 +1,9 @@
 configuration {
-    modi: "drun";
-    font: "JetBrainsMono Nerd Font 13";
-    show-icons: true;
-    icon-theme: "Papirus";
+    modi:                "drun";
+    font:                "JetBrainsMono Nerd Font Bold 13";
+    show-icons:          true;
+    icon-theme:          "Papirus";
     drun-display-format: "{name}";
-    display-drun: "  Apps";
 }
 
-@theme "meloworld"
+@theme "/home/melatonia/.config/rofi/themes/meloworld.rasi"
