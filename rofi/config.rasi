@@ -6,4 +6,4 @@ configuration {
     drun-display-format: "{name}";
 }
 
-@theme "/home/melatonia/.config/rofi/themes/meloworld.rasi"
+@theme "~/.config/rofi/themes/meloworld.rasi"
