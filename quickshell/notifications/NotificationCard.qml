@@ -6,16 +6,22 @@ Rectangle {
     id: root
     required property Notification notification
 
-    width: 400
+    // ── Dimensions ────────────────────────────────
+    readonly property int cardWidth:   400
+    readonly property int dismissMs:   4000
+    readonly property int animSlideMs: 250
+
+    width:  cardWidth
     height: cardContent.implicitHeight + 32
     radius: 10
-    color: Colors.grey900
+    color:  Colors.grey900
     border.color: accentColor
     border.width: 2
 
+    // ── Accent color ──────────────────────────────
     readonly property color accentColor: {
         if (notification.urgency === Notification.Critical) return Colors.red300
-        if (notification.hints["x-hint-color"]) return notification.hints["x-hint-color"]
+        if (notification.hints["x-hint-color"])             return notification.hints["x-hint-color"]
         return hashColor(notification.appName)
     }
 
@@ -26,22 +32,17 @@ Rectangle {
             hash = hash & hash
         }
         var colors = [
-            Colors.teal200,
-            Colors.lightBlue200,
-            Colors.green200,
-            Colors.purple200,
-            Colors.orange200,
-            Colors.pink200,
-            Colors.yellow200,
-            Colors.cyan200,
-            Colors.deepPurple200,
+            Colors.teal200, Colors.lightBlue200, Colors.green200,
+            Colors.purple200, Colors.orange200, Colors.pink200,
+            Colors.yellow200, Colors.cyan200, Colors.deepPurple200,
             Colors.blueGrey300,
         ]
         return colors[Math.abs(hash) % colors.length]
     }
 
+    // ── Entry animation ───────────────────────────
     opacity: 0
-    x: 420
+    x: cardWidth + 20          // slide in from the right, based on own width
 
     Component.onCompleted: {
         opacity = 1
@@ -57,12 +58,28 @@ Rectangle {
         SmoothedAnimation { velocity: 1400; easing.type: Easing.OutExpo }
     }
 
+    // ── Dismiss logic ─────────────────────────────
+    function dismiss() {
+        opacity = 0
+        x = cardWidth + 20     // slide out to where it came from
+        dismissTimer.stop()
+        ringTimer.running = false
+        dismissDelay.start()
+    }
+
     Timer {
         id: dismissTimer
-        interval: 4000
+        interval: root.dismissMs
         onTriggered: root.dismiss()
     }
 
+    Timer {
+        id: dismissDelay
+        interval: animSlideMs
+        onTriggered: notification.expire()
+    }
+
+    // ── Hover: pause/resume dismiss ───────────────
     MouseArea {
         anchors.fill: parent
         hoverEnabled: true
@@ -73,7 +90,7 @@ Rectangle {
             timerRing.requestPaint()
         }
         onExited: {
-            dismissTimer.interval = 4000
+            dismissTimer.interval = root.dismissMs
             dismissTimer.restart()
             ringTimer.running = true
             timerItem.startTime = Date.now()
@@ -81,23 +98,9 @@ Rectangle {
         onClicked: root.dismiss()
     }
 
-    function dismiss() {
-        opacity = 0
-        x = 420
-        dismissTimer.stop()
-        ringTimer.running = false
-        dismissDelay.start()
-    }
-
-    Timer {
-        id: dismissDelay
-        interval: 250
-        onTriggered: notification.expire()
-    }
-
     // ── Left accent stripe ────────────────────────
     Rectangle {
-        width: 4
+        width:  4
         height: parent.height - 24
         radius: 2
         anchors {
@@ -105,42 +108,42 @@ Rectangle {
             leftMargin: 7
             verticalCenter: parent.verticalCenter
         }
-        color: root.accentColor
+        color:   root.accentColor
         opacity: 0.9
     }
 
+    // ── Content ───────────────────────────────────
     Column {
         id: cardContent
         anchors {
-            top: parent.top
-            left: parent.left
-            right: parent.right
-            topMargin: 14
-            bottomMargin: 14
-            leftMargin: 24
+            top:    parent.top
+            left:   parent.left
+            right:  parent.right
+            topMargin:   14
+            leftMargin:  24
             rightMargin: 16
         }
         spacing: 0
 
-        // ── App name row — compact label ──────────
+        // App name + timer ring row
         Row {
-            width: parent.width
+            width:  parent.width
             height: 22
 
             Text {
-                text: notification.appName
+                text:  notification.appName
                 font.pixelSize: 16
-                font.bold: true
-                font.family: "JetBrainsMono Nerd Font"
+                font.bold:      true
+                font.family:    "JetBrainsMono Nerd Font"
                 color: root.accentColor
-                width: parent.width - 32
+                width: parent.width - timerItem.width
                 elide: Text.ElideRight
                 anchors.verticalCenter: parent.verticalCenter
             }
 
             Item {
                 id: timerItem
-                width: 32
+                width:  32
                 height: 22
                 anchors.verticalCenter: parent.verticalCenter
                 property real startTime: Date.now()
@@ -155,10 +158,13 @@ Rectangle {
                         var ctx = getContext("2d")
                         ctx.reset()
                         ctx.strokeStyle = root.accentColor
-                        ctx.lineWidth = 2
-                        ctx.lineCap = "round"
+                        ctx.lineWidth   = 2
+                        ctx.lineCap     = "round"
                         ctx.beginPath()
-                        ctx.arc(11, 11, 8, -Math.PI / 2, -Math.PI / 2 + (2 * Math.PI * progress), false)
+                        ctx.arc(11, 11, 8,
+                            -Math.PI / 2,
+                            -Math.PI / 2 + (2 * Math.PI * progress),
+                            false)
                         ctx.stroke()
                     }
 
@@ -168,18 +174,22 @@ Rectangle {
                 Timer {
                     id: ringTimer
                     interval: 50
-                    running: true
-                    repeat: true
+                    running:  true
+                    repeat:   true
                     onTriggered: {
-                        timerRing.progress = Math.max(0, (4000 - (Date.now() - timerItem.startTime)) / 4000)
+                        timerRing.progress = Math.max(
+                            0,
+                            (root.dismissMs - (Date.now() - timerItem.startTime)) / root.dismissMs
+                        )
                     }
                 }
 
+                // Small X icon inside the ring — click to dismiss
                 Text {
                     anchors.centerIn: timerRing
                     text: ""
                     font.pixelSize: 11
-                    font.family: "JetBrainsMono Nerd Font"
+                    font.family:    "JetBrainsMono Nerd Font"
                     color: Colors.grey500
                     MouseArea {
                         anchors.fill: parent
@@ -189,47 +199,45 @@ Rectangle {
             }
         }
 
-        // ── Thin separator between label and content
+        // Separator
         Rectangle {
-            width: parent.width
-            height: 1
-            color: Colors.grey800
+            width:   parent.width
+            height:  1
+            color:   Colors.grey800
             opacity: 0.6
-            anchors.topMargin: 6
-            // small gap above and below
-            Item { width: 1; height: 6 }
         }
 
         Item { width: 1; height: 8 }
 
-        // ── Summary ───────────────────────────────
+        // Summary
         Text {
             visible: notification.summary !== ""
-            text: notification.summary
+            text:    notification.summary
             font.pixelSize: 18
-            font.bold: true
-            font.family: "JetBrainsMono Nerd Font"
+            font.bold:      true
+            font.family:    "JetBrainsMono Nerd Font"
             color: Colors.grey100
             width: parent.width
-            wrapMode: Text.WordWrap
+            wrapMode:        Text.WordWrap
             maximumLineCount: 2
             elide: Text.ElideRight
         }
 
         Item { width: 1; height: 4 }
 
-        // ── Body ──────────────────────────────────
+        // Body
         Text {
             visible: notification.body !== ""
-            text: notification.body
+            text:    notification.body
             font.pixelSize: 14
-            font.family: "JetBrainsMono Nerd Font"
+            font.family:    "JetBrainsMono Nerd Font"
             color: Colors.grey300
             width: parent.width
-            wrapMode: Text.WordWrap
+            wrapMode:        Text.WordWrap
             maximumLineCount: 3
             elide: Text.ElideRight
             textFormat: Text.PlainText
         }
+
     }
 }
