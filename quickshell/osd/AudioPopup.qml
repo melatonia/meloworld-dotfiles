@@ -22,27 +22,44 @@ PopupWindow {
         }
     }
 
+    // ── Naming Logic (Reverted to the version you liked) ──
     function shortName(desc) {
         if (!desc) return ""
-        var s = desc
-        var half = Math.floor(s.length / 2)
-        if (s.length % 2 === 0 && s.slice(0, half) === s.slice(half + 1)) {
-            s = s.slice(0, half)
-        } else {
-            s = s.replace(/^(.+)\s+\1$/, "$1")
+        let s = desc.trim()
+
+        const noise = /\b(HD Audio|Controller|Analog|Stereo|Mono|Digital|Output|Input|Series)\b/gi
+        s = s.replace(noise, "")
+
+        let words = s.split(/\s+/).filter(w => w.length > 0)
+        let uniqueWords = []
+        for (let i = 0; i < words.length; i++) {
+            let isDuplicate = false
+            for (let j = 0; j < uniqueWords.length; j++) {
+                if (uniqueWords[j].toLowerCase() === words[i].toLowerCase()) {
+                    isDuplicate = true
+                    break
+                }
+            }
+            if (!isDuplicate) {
+                uniqueWords.push(words[i])
+            }
         }
-        s = s.replace(/\s*HD\s+Audio\b/gi, "")
-        s = s.replace(/\s*Controller\b/gi, "")
-        s = s.replace(/\s*Analog\s*(Stereo|Mono)?\b/gi, "")
-        s = s.replace(/\s*Direct\b/gi, "")
-        s = s.replace(/\s{2,}/g, " ").trim()
-        return s
+
+        s = uniqueWords.join(" ")
+        s = s.replace(/[()\[\]\-_]/g, " ").replace(/\s{2,}/g, " ")
+        return s.trim() || desc
     }
 
     Rectangle {
         id: innerRect
         width: parent.width
         height: popupColumn.implicitHeight + 20
+        radius: 10
+        color: Colors.grey900
+        border.color: Colors.teal200
+        border.width: 2
+        clip: false // Essential for tooltips to show outside the bounds
+
         Behavior on height {
             SmoothedAnimation { velocity: 800; easing.type: Easing.OutExpo }
         }
@@ -65,45 +82,27 @@ PopupWindow {
 
         transitions: [
             Transition {
-                from: "*"; to: "open"
+                to: "open"
                 SequentialAnimation {
                     PropertyAction { target: innerRect; property: "y"; value: -20 }
                     PropertyAction { target: innerRect; property: "opacity"; value: 0.0 }
                     ParallelAnimation {
-                        NumberAnimation {
-                            target: innerRect; property: "y"
-                            to: 0; duration: 250; easing.type: Easing.OutExpo
-                        }
-                        NumberAnimation {
-                            target: innerRect; property: "opacity"
-                            to: 1.0; duration: 180; easing.type: Easing.OutCubic
-                        }
+                        NumberAnimation { target: innerRect; property: "y"; to: 0; duration: 250; easing.type: Easing.OutExpo }
+                        NumberAnimation { target: innerRect; property: "opacity"; to: 1.0; duration: 180; easing.type: Easing.OutCubic }
                     }
                 }
             },
             Transition {
-                from: "*"; to: "closing"
+                to: "closing"
                 SequentialAnimation {
                     ParallelAnimation {
-                        NumberAnimation {
-                            target: innerRect; property: "y"
-                            to: -20; duration: 180; easing.type: Easing.InCubic
-                        }
-                        NumberAnimation {
-                            target: innerRect; property: "opacity"
-                            to: 0.0; duration: 150; easing.type: Easing.InCubic
-                        }
+                        NumberAnimation { target: innerRect; property: "y"; to: -20; duration: 180; easing.type: Easing.InCubic }
+                        NumberAnimation { target: innerRect; property: "opacity"; to: 0.0; duration: 150; easing.type: Easing.InCubic }
                     }
                     ScriptAction { script: root.animState = "closed" }
                 }
             }
         ]
-
-        radius: 10
-        color: Colors.grey900
-        border.color: Colors.teal200
-        border.width: 2
-        clip: true
 
         Column {
             id: popupColumn
@@ -112,248 +111,138 @@ PopupWindow {
 
             Item { width: 1; height: 2 }
 
-            // ── Output header (only when 2+ sinks) ────────
+            // ── Output Section ──
             Row {
+                id: outHeader
                 visible: AudioState.sinks.length > 1
                 height: visible ? 34 : 0
                 spacing: 6
                 leftPadding: 4
-                Text {
-                    text: "󰕾"
-                    font.pixelSize: 16; font.family: "JetBrainsMono Nerd Font"
-                    color: Colors.teal200
-                    anchors.verticalCenter: parent.verticalCenter
-                }
-                Text {
-                    text: "Output"
-                    font.pixelSize: 16; font.bold: true; font.family: "JetBrainsMono Nerd Font"
-                    color: Colors.grey200
-                    anchors.verticalCenter: parent.verticalCenter
-                }
+                Text { text: "󰕾"; font.pixelSize: 16; font.family: "JetBrainsMono Nerd Font"; color: Colors.teal200; anchors.verticalCenter: parent.verticalCenter }
+                Text { text: "Output"; font.pixelSize: 16; font.bold: true; font.family: "JetBrainsMono Nerd Font"; color: Colors.grey200; anchors.verticalCenter: parent.verticalCenter }
             }
 
-            // ── Output devices (only when 2+ sinks) ───────
             Repeater {
                 model: AudioState.sinks.length > 1 ? AudioState.sinks : []
                 delegate: Rectangle {
+                    id: devBox
                     required property var modelData
                     readonly property bool isActive: modelData.name === AudioState.defaultSink
                     width: popupColumn.width; height: 34; radius: 6
-                    color: isActive ? Colors.teal200 : Colors.grey800
+                    color: isActive ? Colors.teal200 : (devMouse.containsMouse ? Colors.grey700 : Colors.grey800)
 
-                    Rectangle {
-                        visible: !isActive
-                        width: 3; height: parent.height - 10; radius: 2
-                        anchors { left: parent.left; leftMargin: 4; verticalCenter: parent.verticalCenter }
-                        color: Colors.teal200
-                    }
                     Text {
-                        id: deviceLabel
                         anchors { left: parent.left; verticalCenter: parent.verticalCenter; leftMargin: 14; right: parent.right; rightMargin: 8 }
                         text: root.shortName(modelData.description)
                         font.pixelSize: 13; font.bold: true; font.family: "JetBrainsMono Nerd Font"
                         color: isActive ? Colors.grey900 : Colors.grey200
                         elide: Text.ElideRight
                     }
+
+                    // Fading Tooltip
                     Rectangle {
-                        visible: deviceLabel.truncated && deviceHover.containsMouse
-                        z: 10
-                        anchors { top: parent.bottom; topMargin: 4; horizontalCenter: parent.horizontalCenter }
-                        width: tipText.implicitWidth + 16; height: 26; radius: 5
-                        color: Colors.grey800
-                        border.color: Colors.teal200; border.width: 1
+                        id: tooltip
+                        anchors { bottom: parent.top; bottomMargin: 6; horizontalCenter: parent.horizontalCenter }
+                        width: tipText.implicitWidth + 16; height: 26; radius: 6
+                        color: Colors.grey800; border.color: Colors.teal200; border.width: 1
+                        z: 999
+                        visible: opacity > 0
+                        opacity: devMouse.containsMouse ? 1.0 : 0.0
+
+                        Behavior on opacity {
+                            SequentialAnimation {
+                                PauseAnimation { duration: 300 } // Small delay
+                                NumberAnimation { duration: 150 }
+                            }
+                        }
+
                         Text {
                             id: tipText
                             anchors.centerIn: parent
-                            text: modelData.description
-                            font.pixelSize: 12; font.family: "JetBrainsMono Nerd Font"
-                            color: Colors.grey200
+                            text: modelData.description // The "Full" name you wanted to see
+                            font.pixelSize: 11; font.family: "JetBrainsMono Nerd Font"; color: Colors.grey100
                         }
                     }
-                    MouseArea {
-                        id: deviceHover
-                        anchors.fill: parent; hoverEnabled: true
-                        onEntered: if (!parent.isActive) parent.opacity = 0.8
-                        onExited: parent.opacity = 1.0
-                        onClicked: AudioState.setDefaultSink(modelData.name)
-                    }
-                    Behavior on opacity { NumberAnimation { duration: 150 } }
+
+                    MouseArea { id: devMouse; anchors.fill: parent; hoverEnabled: true; onClicked: AudioState.setDefaultSink(modelData.name) }
                 }
             }
 
-            // ── Divider (only when both sections have 2+) ─
-            Rectangle {
-                visible: AudioState.sinks.length > 1 && AudioState.sources.length > 1
-                width: popupColumn.width
-                height: visible ? 1 : 0
-                color: Colors.grey800
-            }
-
-            // ── Input header (only when 2+ sources) ───────
+            // ── Input Section ──
             Row {
+                id: inHeader
                 visible: AudioState.sources.length > 1
                 height: visible ? 34 : 0
                 spacing: 6
                 leftPadding: 4
-                Text {
-                    text: "󰍬"
-                    font.pixelSize: 16; font.family: "JetBrainsMono Nerd Font"
-                    color: Colors.teal200
-                    anchors.verticalCenter: parent.verticalCenter
-                }
-                Text {
-                    text: "Input"
-                    font.pixelSize: 16; font.bold: true; font.family: "JetBrainsMono Nerd Font"
-                    color: Colors.grey200
-                    anchors.verticalCenter: parent.verticalCenter
-                }
+                Text { text: "󰍬"; font.pixelSize: 16; font.family: "JetBrainsMono Nerd Font"; color: Colors.teal200; anchors.verticalCenter: parent.verticalCenter }
+                Text { text: "Input"; font.pixelSize: 16; font.bold: true; font.family: "JetBrainsMono Nerd Font"; color: Colors.grey200; anchors.verticalCenter: parent.verticalCenter }
             }
 
-            // ── Input devices (only when 2+ sources) ──────
             Repeater {
                 model: AudioState.sources.length > 1 ? AudioState.sources : []
                 delegate: Rectangle {
+                    id: inBox
                     required property var modelData
                     readonly property bool isActive: modelData.name === AudioState.defaultSource
                     width: popupColumn.width; height: 34; radius: 6
-                    color: isActive ? Colors.teal200 : Colors.grey800
+                    color: isActive ? Colors.teal200 : (inMouse.containsMouse ? Colors.grey700 : Colors.grey800)
 
-                    Rectangle {
-                        visible: !isActive
-                        width: 3; height: parent.height - 10; radius: 2
-                        anchors { left: parent.left; leftMargin: 4; verticalCenter: parent.verticalCenter }
-                        color: Colors.teal200
-                    }
                     Text {
-                        id: srcLabel
                         anchors { left: parent.left; verticalCenter: parent.verticalCenter; leftMargin: 14; right: parent.right; rightMargin: 8 }
                         text: root.shortName(modelData.description)
                         font.pixelSize: 13; font.bold: true; font.family: "JetBrainsMono Nerd Font"
                         color: isActive ? Colors.grey900 : Colors.grey200
                         elide: Text.ElideRight
                     }
+
                     Rectangle {
-                        visible: srcLabel.truncated && srcHover.containsMouse
-                        z: 10
-                        anchors { top: parent.bottom; topMargin: 4; horizontalCenter: parent.horizontalCenter }
-                        width: srcTip.implicitWidth + 16; height: 26; radius: 5
-                        color: Colors.grey800
-                        border.color: Colors.teal200; border.width: 1
-                        Text {
-                            id: srcTip
-                            anchors.centerIn: parent
-                            text: modelData.description
-                            font.pixelSize: 12; font.family: "JetBrainsMono Nerd Font"
-                            color: Colors.grey200
+                        id: inTooltip
+                        anchors { bottom: parent.top; bottomMargin: 6; horizontalCenter: parent.horizontalCenter }
+                        width: inTipText.implicitWidth + 16; height: 26; radius: 6
+                        color: Colors.grey800; border.color: Colors.teal200; border.width: 1
+                        z: 999
+                        visible: opacity > 0
+                        opacity: inMouse.containsMouse ? 1.0 : 0.0
+
+                        Behavior on opacity {
+                            SequentialAnimation {
+                                PauseAnimation { duration: 400 }
+                                NumberAnimation { duration: 150 }
+                            }
                         }
+
+                        Text { id: inTipText; anchors.centerIn: parent; text: modelData.description; font.pixelSize: 11; font.family: "JetBrainsMono Nerd Font"; color: Colors.grey100 }
                     }
-                    MouseArea {
-                        id: srcHover
-                        anchors.fill: parent; hoverEnabled: true
-                        onEntered: if (!parent.isActive) parent.opacity = 0.8
-                        onExited: parent.opacity = 1.0
-                        onClicked: AudioState.setDefaultSource(modelData.name)
-                    }
-                    Behavior on opacity { NumberAnimation { duration: 150 } }
+
+                    MouseArea { id: inMouse; anchors.fill: parent; hoverEnabled: true; onClicked: AudioState.setDefaultSource(modelData.name) }
                 }
             }
 
-            // ── Divider before sliders ─────────────────────
-            Rectangle {
-                visible: AudioState.sinks.length > 1 || AudioState.sources.length > 1
-                width: popupColumn.width
-                height: visible ? 1 : 0
-                color: Colors.grey800
-            }
-            // ── Volume row ────────────────────────────────
-            Rectangle {
-                width: popupColumn.width; height: 34; radius: 6
-                color: Colors.grey800
+            // ── Dividers & Sliders ──
+            Rectangle { visible: outHeader.visible || inHeader.visible; width: parent.width; height: 1; color: Colors.grey800 }
 
-                Rectangle {
-                    visible: AudioState.muted
-                    width: 3; height: parent.height - 10; radius: 2
-                    anchors { left: parent.left; leftMargin: 4; verticalCenter: parent.verticalCenter }
-                    color: Colors.grey500
-                }
+            // Volume
+            Rectangle {
+                width: parent.width; height: 34; radius: 6; color: Colors.grey800
                 Row {
-                    anchors { left: parent.left; right: parent.right; verticalCenter: parent.verticalCenter; leftMargin: 10; rightMargin: 10 }
+                    anchors { fill: parent; margins: 10 }
                     spacing: 8
-
-                    Text {
-                        text: AudioState.muted ? "󰝟" : "󰕾"
-                        font.pixelSize: 16; font.family: "JetBrainsMono Nerd Font"
-                        color: AudioState.muted ? Colors.grey500 : Colors.teal200
-                        anchors.verticalCenter: parent.verticalCenter
-                        Behavior on color { ColorAnimation { duration: 150 } }
-                        MouseArea {
-                            anchors.fill: parent
-                            cursorShape: Qt.PointingHandCursor
-                            onClicked: AudioState.setMute(!AudioState.muted)
-                        }
-                    }
-                    AudioSlider {
-                        width: parent.width - 16 - 8 - 36 - 8
-                        anchors.verticalCenter: parent.verticalCenter
-                        value: AudioState.volume
-                        accentColor: AudioState.muted ? Colors.grey600 : Colors.teal200
-                        onMoved: (v) => AudioState.setVolume(v)
-                    }
-                    Text {
-                        width: 36
-                        text: AudioState.muted ? "muted" : AudioState.volume + "%"
-                        font.pixelSize: 13; font.family: "JetBrainsMono Nerd Font"
-                        color: AudioState.muted ? Colors.grey500 : Colors.grey300
-                        horizontalAlignment: Text.AlignRight
-                        anchors.verticalCenter: parent.verticalCenter
-                        Behavior on color { ColorAnimation { duration: 150 } }
-                    }
+                    Text { text: AudioState.muted ? "󰝟" : "󰕾"; font.pixelSize: 16; color: AudioState.muted ? Colors.grey500 : Colors.teal200; anchors.verticalCenter: parent.verticalCenter; MouseArea { anchors.fill: parent; onClicked: AudioState.setMute(!AudioState.muted) } }
+                    AudioSlider { width: parent.width - 64; anchors.verticalCenter: parent.verticalCenter; value: AudioState.volume; accentColor: AudioState.muted ? Colors.grey600 : Colors.teal200; onMoved: (v) => AudioState.setVolume(v) }
+                    Text { text: AudioState.volume + "%"; width: 32; font.pixelSize: 12; color: Colors.grey300; horizontalAlignment: Text.AlignRight; anchors.verticalCenter: parent.verticalCenter }
                 }
             }
 
-            // ── Mic row ───────────────────────────────────
+            // Mic
             Rectangle {
-                width: popupColumn.width; height: 34; radius: 6
-                color: Colors.grey800
-
-                Rectangle {
-                    visible: AudioState.micMuted
-                    width: 3; height: parent.height - 10; radius: 2
-                    anchors { left: parent.left; leftMargin: 4; verticalCenter: parent.verticalCenter }
-                    color: Colors.grey500
-                }
+                width: parent.width; height: 34; radius: 6; color: Colors.grey800
                 Row {
-                    anchors { left: parent.left; right: parent.right; verticalCenter: parent.verticalCenter; leftMargin: 10; rightMargin: 10 }
+                    anchors { fill: parent; margins: 10 }
                     spacing: 8
-
-                    Text {
-                        text: AudioState.micMuted ? "󰍭" : "󰍬"
-                        font.pixelSize: 16; font.family: "JetBrainsMono Nerd Font"
-                        color: AudioState.micMuted ? Colors.grey500 : Colors.teal200
-                        anchors.verticalCenter: parent.verticalCenter
-                        Behavior on color { ColorAnimation { duration: 150 } }
-                        MouseArea {
-                            anchors.fill: parent
-                            cursorShape: Qt.PointingHandCursor
-                            onClicked: AudioState.setMicMute(!AudioState.micMuted)
-                        }
-                    }
-                    AudioSlider {
-                        width: parent.width - 16 - 8 - 36 - 8
-                        anchors.verticalCenter: parent.verticalCenter
-                        value: AudioState.micVolume
-                        accentColor: AudioState.micMuted ? Colors.grey600 : Colors.teal200
-                        onMoved: (v) => AudioState.setMicVolume(v)
-                    }
-                    Text {
-                        width: 36
-                        text: AudioState.micMuted ? "muted" : AudioState.micVolume + "%"
-                        font.pixelSize: 13; font.family: "JetBrainsMono Nerd Font"
-                        color: AudioState.micMuted ? Colors.grey500 : Colors.grey300
-                        horizontalAlignment: Text.AlignRight
-                        anchors.verticalCenter: parent.verticalCenter
-                        Behavior on color { ColorAnimation { duration: 150 } }
-                    }
+                    Text { text: AudioState.micMuted ? "󰍭" : "󰍬"; font.pixelSize: 16; color: AudioState.micMuted ? Colors.grey500 : Colors.teal200; anchors.verticalCenter: parent.verticalCenter; MouseArea { anchors.fill: parent; onClicked: AudioState.setMicMute(!AudioState.micMuted) } }
+                    AudioSlider { width: parent.width - 64; anchors.verticalCenter: parent.verticalCenter; value: AudioState.micVolume; accentColor: AudioState.micMuted ? Colors.grey600 : Colors.teal200; onMoved: (v) => AudioState.setMicVolume(v) }
+                    Text { text: AudioState.micVolume + "%"; width: 32; font.pixelSize: 12; color: Colors.grey300; horizontalAlignment: Text.AlignRight; anchors.verticalCenter: parent.verticalCenter }
                 }
             }
 
