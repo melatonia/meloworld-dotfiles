@@ -91,7 +91,10 @@ cp -r ghostty ~/.config/
 cp -r rofi ~/.config/
 ```
 
-you need adjust your network interface names, backlight device, wallpaper path, and popup anchor positions (shell.qml).
+you can use this code to remove window buttons from apps.
+```bash
+gsettings set org.gnome.desktop.wm.preferences button-layout ":"
+```
 
 ### dependencies
 
