@@ -21,20 +21,45 @@ Pill {
 
     Process {
         id: refreshProc
-        command: ["nmcli", "-g", "GENERAL.CONNECTION,GENERAL.STATE", "dev", "show", "wlp4s0"]
+        command: ["nmcli", "-t", "-f", "TYPE,STATE,CONNECTION", "dev"]
         running: true
         stdout: StdioCollector {
             onStreamFinished: {
                 const lines = text.trim().split("\n")
-                const name = lines[0].trim()
-                const state = lines[1].trim()
-                root.connected = state.startsWith("100")
-                root.ssid = root.connected ? name : ""
-                if (root.connected) {
+                let hasWifi = false
+                let hasEth = false
+                let activeSsid = ""
+                
+                for (let i = 0; i < lines.length; i++) {
+                    const parts = lines[i].split(":")
+                    if (parts.length >= 2) {
+                        const type = parts[0]
+                        const state = parts[1]
+                        const conn = parts.length > 2 ? parts[2] : ""
+                        
+                        if (state.startsWith("connected")) {
+                            if (type === "wifi") {
+                                hasWifi = true
+                                activeSsid = conn
+                            } else if (type === "ethernet") {
+                                hasEth = true
+                            }
+                        }
+                    }
+                }
+                
+                if (hasWifi) {
+                    root.connected = true
+                    root.ssid = activeSsid
                     signalProc.running = true
-                } else {
+                } else if (hasEth) {
+                    root.connected = true
+                    root.ssid = ""
                     root.signal = 0
-                    etherProc.running = true
+                } else {
+                    root.connected = false
+                    root.ssid = ""
+                    root.signal = 0
                 }
             }
         }
@@ -58,16 +83,6 @@ Pill {
         }
     }
 
-    Process {
-        id: etherProc
-        command: ["cat", "/sys/class/net/eno1/operstate"]
-        running: false
-        stdout: StdioCollector {
-            onStreamFinished: {
-                root.connected = text.trim() === "up"
-            }
-        }
-    }
 
     Process {
         id: nmtuiProc
