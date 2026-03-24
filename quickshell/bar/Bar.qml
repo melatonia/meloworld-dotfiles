@@ -6,6 +6,9 @@ import "../theme"
 Item {
     id: root
 
+    property alias rightContainer: rightContainer
+    property alias rightBar: rightBar
+
     Rectangle {
         id: leftContainer
         anchors.left: parent.left
