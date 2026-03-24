@@ -6,9 +6,10 @@ import "../../theme"
 Pill {
     id: root
     property var battery: UPower.displayDevice
-    property int pct: battery.ready ? Math.round(battery.percentage * 100) : 0
+    property bool hasBattery: battery && battery.ready
+    property int pct: hasBattery ? Math.round(battery.percentage * 100) : 0
     property int prevPct: 0
-    property bool charging: battery.ready && (
+    property bool charging: hasBattery && (
         battery.state === UPowerDeviceState.Charging ||
         battery.state === UPowerDeviceState.FullyCharged
     )
@@ -20,7 +21,7 @@ Pill {
     }
 
     onPctChanged: {
-        if (prevPct > 20 && pct <= 20 && !charging) {
+        if (hasBattery && prevPct > 20 && pct <= 20 && !charging) {
             PowerProfiles.profile = PowerProfile.PowerSaver
             brightnessProc.running = true
         }
@@ -28,7 +29,7 @@ Pill {
     }
 
     label: {
-        if (!battery.ready) return "󰂑"
+        if (!hasBattery) return "󰚥"
         var sym = ""
         if (charging) {
             if (pct >= 90) sym = "󰂅"
@@ -58,7 +59,7 @@ Pill {
 
     Process {
         id: brightnessProc
-        command: ["brightnessctl", "set", "60%"]
+        command: ["brightnessctl", "set", "50%"]
         running: false
     }
 
