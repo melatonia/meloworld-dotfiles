@@ -13,12 +13,9 @@ Pill {
         if (connected.length === 0) return "󰂯"
         return "󰂱 " + connected[0].name.substring(0, 8)
     }
-    MouseArea {
-        anchors.fill: parent
-        propagateComposedEvents: true
-        onClicked: (mouse) => {
-            SessionState.bluetoothPopupVisible = !SessionState.bluetoothPopupVisible
-            mouse.accepted = false
-        }
+    mouseArea.propagateComposedEvents: true
+    mouseArea.onClicked: (mouse) => {
+        SessionState.bluetoothPopupVisible = !SessionState.bluetoothPopupVisible
+        mouse.accepted = false
     }
 }

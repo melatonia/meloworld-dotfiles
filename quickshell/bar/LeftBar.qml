@@ -8,8 +8,12 @@ Row {
     Rectangle {
         id: launcher
         width: 28; height: 28; radius: 5
-        color: PanelColors.launcher
+        color: lmouseArea.containsMouse ? Qt.lighter(PanelColors.launcher, 1.15) : PanelColors.launcher
+        scale: lmouseArea.containsMouse ? 1.03 : 1.0
         anchors.verticalCenter: parent.verticalCenter
+
+        Behavior on color { ColorAnimation { duration: 150 } }
+        Behavior on scale { NumberAnimation { duration: 150; easing.type: Easing.OutSine } }
 
         Text {
             anchors.centerIn: parent
@@ -20,13 +24,11 @@ Row {
             font.family: "JetBrainsMono Nerd Font"
         }
         MouseArea {
+            id: lmouseArea
             anchors.fill: parent
             hoverEnabled: true
-            onEntered: launcher.opacity = 0.8
-            onExited:  launcher.opacity = 1.0
             onClicked: Quickshell.execDetached(["rofi", "-show", "drun"])
         }
-        Behavior on opacity { NumberAnimation { duration: 150 } }
     }
 
     WorkspaceBar {

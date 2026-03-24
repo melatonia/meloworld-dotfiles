@@ -58,16 +58,13 @@ Pill {
 
     Process {
         id: brightnessProc
-        command: ["brightnessctl", "--device=amdgpu_bl1", "set", "60%"]
+        command: ["brightnessctl", "set", "60%"]
         running: false
     }
 
-    MouseArea {
-        anchors.fill: parent
-        propagateComposedEvents: true
-        onClicked: (mouse) => {
-            SessionState.powerPopupVisible = !SessionState.powerPopupVisible
-            mouse.accepted = false
-        }
+    mouseArea.propagateComposedEvents: true
+    mouseArea.onClicked: (mouse) => {
+        SessionState.powerPopupVisible = !SessionState.powerPopupVisible
+        mouse.accepted = false
     }
 }

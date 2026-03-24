@@ -82,11 +82,5 @@ Pill {
         onTriggered: refreshProc.running = true
     }
 
-    MouseArea {
-        anchors.fill: parent
-        hoverEnabled: true
-        onEntered: root.opacity = 0.85
-        onExited: root.opacity = 1.0
-        onClicked: nmtuiProc.running = true
-    }
+    mouseArea.onClicked: nmtuiProc.running = true
 }

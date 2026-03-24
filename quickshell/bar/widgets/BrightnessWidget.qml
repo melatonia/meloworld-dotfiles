@@ -53,14 +53,8 @@ Pill {
         running: false
     }
 
-    MouseArea {
-        anchors.fill: parent
-        hoverEnabled: true
-        onEntered: root.opacity = 0.85
-        onExited: root.opacity = 1.0
-        onWheel: (wheel) => {
-            setProc.step = wheel.angleDelta.y > 0 ? "+5%" : "5%-"
-            setProc.running = true
-        }
+    mouseArea.onWheel: (wheel) => {
+        setProc.step = wheel.angleDelta.y > 0 ? "+5%" : "5%-"
+        setProc.running = true
     }
 }

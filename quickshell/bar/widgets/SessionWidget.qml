@@ -5,8 +5,5 @@ Pill {
     pillColor: PanelColors.session
     label: "⏻"
 
-    MouseArea {
-        anchors.fill: parent
-        onClicked: SessionState.show()
-    }
+    mouseArea.onClicked: SessionState.show()
 }
