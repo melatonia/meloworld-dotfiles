@@ -5,5 +5,12 @@ Pill {
     pillColor: PanelColors.session
     label: "⏻"
 
-    mouseArea.onClicked: SessionState.show()
+    mouseArea.onClicked: {
+        if (SessionState.visible) {
+            SessionState.hide()
+        } else {
+            SessionState.closeAllPopups()
+            SessionState.show()
+        }
+    }
 }

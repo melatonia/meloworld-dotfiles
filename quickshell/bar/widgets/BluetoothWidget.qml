@@ -15,7 +15,12 @@ Pill {
     }
     mouseArea.propagateComposedEvents: true
     mouseArea.onClicked: (mouse) => {
-        SessionState.bluetoothPopupVisible = !SessionState.bluetoothPopupVisible
+        if (SessionState.bluetoothPopupVisible) {
+            SessionState.bluetoothPopupVisible = false
+        } else {
+            SessionState.closeAllPopups()
+            SessionState.bluetoothPopupVisible = true
+        }
         mouse.accepted = false
     }
 }

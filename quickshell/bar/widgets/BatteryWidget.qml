@@ -64,7 +64,12 @@ Pill {
 
     mouseArea.propagateComposedEvents: true
     mouseArea.onClicked: (mouse) => {
-        SessionState.powerPopupVisible = !SessionState.powerPopupVisible
+        if (SessionState.powerPopupVisible) {
+            SessionState.powerPopupVisible = false
+        } else {
+            SessionState.closeAllPopups()
+            SessionState.powerPopupVisible = true
+        }
         mouse.accepted = false
     }
 }

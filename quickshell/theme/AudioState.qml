@@ -17,6 +17,7 @@ Singleton {
     property bool micMuted: false
 
     function show() {
+        SessionState.closeAllPopups()
         refresh()
         popupVisible = true
     }
