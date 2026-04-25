@@ -85,13 +85,15 @@ Rectangle {
     Rectangle {
         id: card
         anchors.centerIn: parent
-        width: Math.max(320, parent.width * 0.18)
-        height: cardLayout.implicitHeight + 20
+        width: 380
+        height: cardLayout.implicitHeight + 32
         radius: root.radiusLarge
         color: root.clrBg
-        border.width: 3
-        border.color: root.clrBorder
+        border.width: 4
+        border.color: passwordField.activeFocus ? root.clrAccent : root.clrBorder
         visible: typeof primaryScreen !== 'undefined' ? primaryScreen : true
+
+        Behavior on border.color { ColorAnimation { duration: 150 } }
 
         SequentialAnimation {
             id: shakeAnim
@@ -105,9 +107,9 @@ Rectangle {
             id: cardLayout
             anchors {
                 fill: parent
-                margins: 10
+                margins: 16
             }
-            spacing: 8
+            spacing: 12
 
             // User Selection
             ColumnLayout {
@@ -118,12 +120,11 @@ Rectangle {
                     id: userRepeater
                     model: userModel
                     delegate: Rectangle {
+                        readonly property bool isActive: index === root.selectedIndex
                         Layout.fillWidth: true
-                        height: 36
+                        height: 38
                         radius: root.radiusMed
-                        color: index === root.selectedIndex
-                            ? root.clrAccent
-                            : (userMa.containsMouse || delegateItem.activeFocus ? root.clrBorder : "transparent")
+                        color: isActive ? root.clrBorder : (userMa.containsMouse || delegateItem.activeFocus ? root.clrBgAlt : "transparent")
 
                         Behavior on color { ColorAnimation { duration: 150 } }
                         
@@ -150,17 +151,19 @@ Rectangle {
                             Text {
                                 text: ""
                                 font.family: root.fontMain
-                                font.pixelSize: 14
-                                color: index === root.selectedIndex ? root.clrPillFg : root.clrFg
+                                font.pixelSize: 16
+                                color: isActive ? root.clrAccent : root.clrFg
+                                Behavior on color { ColorAnimation { duration: 150 } }
                             }
 
                             Text {
                                 Layout.fillWidth: true
                                 text: (model.name || model.realName || "user")
                                 font.pixelSize: 14
-                                font.bold: index === root.selectedIndex
+                                font.bold: isActive
                                 font.family: root.fontMain
-                                color: index === root.selectedIndex ? root.clrPillFg : root.clrFg
+                                color: isActive ? root.clrAccent : root.clrFg
+                                Behavior on color { ColorAnimation { duration: 150 } }
                             }
                         }
 
@@ -178,60 +181,65 @@ Rectangle {
                 }
             }
 
-            Item { Layout.preferredHeight: 2 }
+            Rectangle {
+                Layout.fillWidth: true
+                height: 40
+                radius: root.radiusMed
+                color: root.clrBgAlt
 
-                Rectangle {
-                    Layout.fillWidth: true
-                    height: 40
-                    radius: root.radiusMed
-                    color: root.clrBgAlt
-                    border.width: 2
-                    border.color: passwordField.activeFocus ? root.clrAccent : "transparent"
-
-                    Behavior on border.color { ColorAnimation { duration: 150 } }
-
-                    TextInput {
-                        id: passwordField
-                        anchors {
-                            fill: parent
-                            leftMargin: 12
-                            rightMargin: 12
-                        }
-                        verticalAlignment: TextInput.AlignVCenter
-                        echoMode: TextInput.Password
-                        passwordCharacter: "•"
-                        font.pixelSize: 14
-                        font.family: root.fontMain
-                        color: root.clrFg
-                        selectionColor: root.clrAccent
-                        clip: true
-                        
-                        KeyNavigation.tab: loginButton
-                        KeyNavigation.backtab: userRepeater
-
-                        onAccepted: loginAction()
+                    RowLayout {
+                        anchors.fill: parent
+                        anchors.leftMargin: 12
+                        anchors.rightMargin: 12
+                        spacing: 12
 
                         Text {
-                            anchors.fill: parent
-                            text: "password"
-                            verticalAlignment: Text.AlignVCenter
+                            text: ""
+                            font.family: root.fontMain
+                            font.pixelSize: 16
+                            color: passwordField.activeFocus ? root.clrAccent : root.clrFgDim
+                            Behavior on color { ColorAnimation { duration: 150 } }
+                        }
+
+                        TextInput {
+                            id: passwordField
+                            Layout.fillWidth: true
+                            Layout.fillHeight: true
+                            verticalAlignment: TextInput.AlignVCenter
+                            echoMode: TextInput.Password
+                            passwordCharacter: "•"
                             font.pixelSize: 14
                             font.family: root.fontMain
-                            color: root.clrFgDim
-                            visible: passwordField.text.length === 0 && !passwordField.activeFocus
-                        }
-                        
-                        Text {
-                            anchors.right: parent.right
-                            anchors.rightMargin: 10
-                            anchors.verticalCenter: parent.verticalCenter
-                            text: "󰪛"
-                            font.family: root.fontMain
-                            color: root.clrUrgent
-                            visible: (passwordField.modifiers & Qt.CapsLockModifier)
-                            ToolTip.visible: maCaps.containsMouse
-                            ToolTip.text: "Caps Lock is ON"
-                            MouseArea { id: maCaps; anchors.fill: parent; hoverEnabled: true }
+                            color: root.clrFg
+                            selectionColor: root.clrAccent
+                            clip: true
+                            
+                            KeyNavigation.tab: loginButton
+                            KeyNavigation.backtab: userRepeater
+
+                            onAccepted: loginAction()
+
+                            Text {
+                                anchors.fill: parent
+                                text: "Password..."
+                                verticalAlignment: Text.AlignVCenter
+                                font.pixelSize: 14
+                                font.family: root.fontMain
+                                color: root.clrFgDim
+                                visible: passwordField.text.length === 0 && !passwordField.activeFocus
+                            }
+                            
+                            Text {
+                                anchors.right: parent.right
+                                anchors.verticalCenter: parent.verticalCenter
+                                text: "󰪛"
+                                font.family: root.fontMain
+                                color: root.clrUrgent
+                                visible: (passwordField.modifiers & Qt.CapsLockModifier)
+                                ToolTip.visible: maCaps.containsMouse
+                                ToolTip.text: "Caps Lock is ON"
+                                MouseArea { id: maCaps; anchors.fill: parent; hoverEnabled: true }
+                            }
                         }
                     }
                 }
@@ -249,17 +257,52 @@ Rectangle {
                 visible: text.length > 0
             }
 
-            // Login Button
-            PillButton {
+            Rectangle {
                 id: loginButton
                 Layout.fillWidth: true
-                Layout.preferredHeight: 36
-                label: "Login"
-                pillColor: root.clrAccent
-                fontMain: root.fontMain
-                onClicked: loginAction()
+                Layout.preferredHeight: 38
+                radius: root.radiusMed
+                color: loginMa.containsMouse ? Qt.lighter(root.clrAccent, 1.15) : root.clrAccent
+                scale: loginMa.containsMouse ? 1.02 : 1.0
+
+                Behavior on color { ColorAnimation { duration: 150 } }
+                Behavior on scale { NumberAnimation { duration: 150; easing.type: Easing.OutSine } }
+                
+                activeFocusOnTab: true
                 KeyNavigation.tab: rebootButton
                 KeyNavigation.backtab: passwordField
+                
+                Keys.onPressed: {
+                    if (event.key === Qt.Key_Return || event.key === Qt.Key_Enter) {
+                        loginAction()
+                        event.accepted = true
+                    }
+                }
+
+                RowLayout {
+                    anchors.centerIn: parent
+                    spacing: 12
+                    Text {
+                        text: "󰍂"
+                        font.family: root.fontMain
+                        font.pixelSize: 16
+                        color: root.clrBg
+                    }
+                    Text {
+                        text: "Login"
+                        font.family: root.fontMain
+                        font.bold: true
+                        font.pixelSize: 14
+                        color: root.clrBg
+                    }
+                }
+
+                MouseArea {
+                    id: loginMa
+                    anchors.fill: parent
+                    hoverEnabled: true
+                    onClicked: loginAction()
+                }
             }
         }
     }
