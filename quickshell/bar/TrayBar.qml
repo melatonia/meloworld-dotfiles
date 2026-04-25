@@ -1,32 +1,31 @@
 import QtQuick
 import Quickshell.Services.SystemTray
+import "widgets"
+import "../theme"
 
 Row {
-    spacing: 4
+    spacing: 6
 
     Repeater {
         model: SystemTray.items
-        delegate: Item {
-            required property SystemTrayItem modelData
-            width: 32; height: 32
+        delegate: Pill {
+            id: trayDelegate
+            required property var modelData
+            pillColor: PanelColors.tray
+            
+            implicitWidth: 32
+            // implicitHeight: 28 (default)
 
             Image {
                 anchors.centerIn: parent
-                source: parent.modelData.icon
-                width: 24; height: 24
+                source: trayDelegate.modelData.icon || ""
+                width: 20; height: 20
                 smooth: true
                 mipmap: true
+                visible: source != ""
             }
 
-            MouseArea {
-                anchors.fill: parent
-                hoverEnabled: true
-                onEntered: parent.opacity = 0.8
-                onExited: parent.opacity = 1.0
-                onClicked: parent.modelData.activate()
-            }
-
-            Behavior on opacity { NumberAnimation { duration: 150 } }
+            mouseArea.onClicked: trayDelegate.modelData.activate()
         }
     }
 }
