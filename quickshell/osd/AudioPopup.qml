@@ -31,16 +31,12 @@ PopupWindow {
         s = s.replace(noise, "")
 
         let words = s.split(/\s+/).filter(w => w.length > 0)
+        let seen = new Set()
         let uniqueWords = []
         for (let i = 0; i < words.length; i++) {
-            let isDuplicate = false
-            for (let j = 0; j < uniqueWords.length; j++) {
-                if (uniqueWords[j].toLowerCase() === words[i].toLowerCase()) {
-                    isDuplicate = true
-                    break
-                }
-            }
-            if (!isDuplicate) {
+            let lw = words[i].toLowerCase()
+            if (!seen.has(lw)) {
+                seen.add(lw)
                 uniqueWords.push(words[i])
             }
         }

@@ -1,4 +1,5 @@
 import QtQuick
+import Quickshell
 import Quickshell.Io
 import "../theme"
 
@@ -25,10 +26,21 @@ Row {
         return result
     }
 
+    Timer {
+        id: watchRestartTimer
+        interval: 1000
+        onTriggered: watchProc.running = true
+    }
+
     Process {
         id: watchProc
         command: ["mmsg", "-w", "-t"]
         running: true
+        onRunningChanged: {
+            if (!running) {
+                watchRestartTimer.start()
+            }
+        }
         stdout: SplitParser {
             onRead: (line) => {
                 var match = line.match(/\S+\s+tag\s+(\d+)\s+(\d+)\s+(\d+)\s+(\d+)/)
@@ -86,8 +98,7 @@ Row {
                 onEntered: parent.opacity = 0.8
                 onExited: parent.opacity = 1.0
                 onClicked: {
-                    switchProc.tagTarget = parent.tagNum
-                    switchProc.running = true
+                    Quickshell.execDetached(["mmsg", "-s", "-t", parent.tagNum.toString()])
                 }
                 onWheel: (event) => {
                     var visible = root.visibleTags()
@@ -101,8 +112,7 @@ Row {
                     } else {
                         idx = Math.max(idx - 1, 0)
                     }
-                    switchProc.tagTarget = visible[idx]
-                    switchProc.running = true
+                    Quickshell.execDetached(["mmsg", "-s", "-t", visible[idx].toString()])
                 }
             }
 
@@ -110,10 +120,5 @@ Row {
         }
     }
 
-    Process {
-        id: switchProc
-        property int tagTarget: 1
-        command: ["mmsg", "-s", "-t", tagTarget.toString()]
-        running: false
-    }
+    // Process was removed
 }
