@@ -15,7 +15,7 @@ Singleton {
     readonly property color date:              Colors.green200
     readonly property color brightness:        Colors.yellow200
     readonly property color bluetooth:         Colors.lightBlue200
-    readonly property color session:           Colors.pink200
+    readonly property color session:           Colors.red200
     readonly property color launcher:          Colors.blueGrey700
     readonly property color workspaceActive:   Colors.white
     readonly property color workspaceInactive: Colors.grey800

@@ -7,6 +7,7 @@ Row {
     property alias audioWidget: audioWidget
     property alias bluetoothWidget: bluetoothWidget
     property alias batteryWidget: batteryWidget
+    property alias sessionWidget: sessionWidget
 
     TrayBar          { anchors.verticalCenter: parent.verticalCenter }
     BrightnessWidget { anchors.verticalCenter: parent.verticalCenter }
@@ -15,5 +16,5 @@ Row {
     NetworkWidget    { anchors.verticalCenter: parent.verticalCenter }
     BatteryWidget    { id: batteryWidget; anchors.verticalCenter: parent.verticalCenter }
     DateWidget       { anchors.verticalCenter: parent.verticalCenter }
-    SessionWidget    { anchors.verticalCenter: parent.verticalCenter }
+    SessionWidget    { id: sessionWidget; anchors.verticalCenter: parent.verticalCenter }
 }

@@ -31,18 +31,16 @@ ShellRoot {
                 anchor.rect.x: bar.rightContainer.x + bar.rightBar.x + bar.rightBar.bluetoothWidget.x + (bar.rightBar.bluetoothWidget.width / 2) - (implicitWidth / 2)
                 anchor.rect.y: panelWin.height
             }
+            SessionPopup {
+                anchor.window: panelWin
+                anchor.rect.x: bar.rightContainer.x + bar.rightBar.x + bar.rightBar.sessionWidget.x + (bar.rightBar.sessionWidget.width / 2) - (implicitWidth / 2)
+                anchor.rect.y: panelWin.height
+            }
         }
     }
     Variants {
         model: Quickshell.screens
         NotificationPopup {
-            required property var modelData
-            screen: modelData
-        }
-    }
-    Variants {
-        model: Quickshell.screens
-        SessionOSD {
             required property var modelData
             screen: modelData
         }
