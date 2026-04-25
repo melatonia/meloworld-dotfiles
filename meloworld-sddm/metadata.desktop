@@ -1,0 +1,6 @@
+[SddmGreeterTheme]
+Name=meloworld-sddm
+Description=meloworld login screen
+Author=melatonia
+ConfigFile=theme.conf
+Screenshot=
