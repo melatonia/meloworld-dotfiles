@@ -266,6 +266,7 @@ Rectangle {
 
     // ── Bottom Left (Session) ─────────────────────────────────
     BarContainer {
+        id: bottomLeftBar
         anchors {
             bottom: parent.bottom
             left: parent.left
@@ -279,15 +280,78 @@ Rectangle {
             pillColor: root.clrSession
             fontMain: root.fontMain
             onClicked: {
-                var count = 1
-                if (typeof sessionModel !== 'undefined' && sessionModel) {
-                    count = (typeof sessionModel.count !== 'undefined') ? sessionModel.count : (typeof sessionModel.rowCount === 'function' ? sessionModel.rowCount() : 1)
-                }
-                root.sessionIndex = (root.sessionIndex + 1) % Math.max(1, count)
-                updateSession()
+                sessionMenu.visible = !sessionMenu.visible
             }
             KeyNavigation.tab: userRepeater.count > 0 ? userRepeater.itemAt(0) : passwordField
             KeyNavigation.backtab: shutdownButton
+        }
+    }
+
+    Rectangle {
+        id: sessionMenu
+        visible: false
+        width: 180
+        height: sessionColumn.implicitHeight + 20
+        radius: root.radiusLarge
+        color: root.clrBg
+        border.color: root.clrSession
+        border.width: 2
+        anchors {
+            bottom: bottomLeftBar.top
+            left: bottomLeftBar.left
+            bottomMargin: 10
+        }
+
+        Column {
+            id: sessionColumn
+            anchors {
+                top: parent.top
+                left: parent.left
+                right: parent.right
+                margins: 10
+            }
+            spacing: 4
+
+            Repeater {
+                model: typeof sessionModel !== 'undefined' ? sessionModel : null
+                delegate: Rectangle {
+                    width: sessionColumn.width
+                    height: 34
+                    radius: root.radiusMed
+                    color: itemMa.containsMouse ? root.clrBgAlt : "transparent"
+
+                    Rectangle {
+                        width: 3
+                        height: parent.height - 10
+                        radius: 2
+                        anchors { left: parent.left; leftMargin: 4; verticalCenter: parent.verticalCenter }
+                        color: root.sessionIndex === index ? root.clrSession : "transparent"
+                    }
+
+                    Text {
+                        anchors { left: parent.left; leftMargin: 14; right: parent.right; rightMargin: 10; verticalCenter: parent.verticalCenter }
+                        text: model.name || model.display || "Session"
+                        color: root.clrFg
+                        font.pixelSize: 13
+                        font.bold: root.sessionIndex === index
+                        font.family: root.fontMain
+                        elide: Text.ElideRight
+                    }
+
+                    MouseArea {
+                        id: itemMa
+                        anchors.fill: parent
+                        hoverEnabled: true
+                        onClicked: {
+                            root.sessionIndex = index
+                            updateSession()
+                            sessionMenu.visible = false
+                        }
+                    }
+
+                    Behavior on color { ColorAnimation { duration: 150 } }
+                }
+            }
         }
     }
 
