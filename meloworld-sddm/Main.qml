@@ -36,8 +36,8 @@ Rectangle {
     property int radiusMed:   8
     property int radiusSmall: 5
 
-    property int    selectedIndex: 0
-    property int    sessionIndex:  0
+    property int    selectedIndex: typeof userModel !== 'undefined' && userModel ? Math.max(0, userModel.lastIndex) : 0
+    property int    sessionIndex:  typeof sessionModel !== 'undefined' && sessionModel ? Math.max(0, sessionModel.lastIndex) : 0
     property string sessionLabel:  "session"
 
     // ── Background ────────────────────────────────────────────
