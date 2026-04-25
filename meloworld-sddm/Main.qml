@@ -276,80 +276,137 @@ Rectangle {
 
         PillButton {
             id: sessionPill
-            label: "⊹ " + root.sessionLabel
+            label: " " + root.sessionLabel
             pillColor: root.clrSession
             fontMain: root.fontMain
             onClicked: {
-                sessionMenu.visible = !sessionMenu.visible
+                sessionMenuContainer.toggle()
             }
             KeyNavigation.tab: userRepeater.count > 0 ? userRepeater.itemAt(0) : passwordField
             KeyNavigation.backtab: shutdownButton
         }
     }
 
-    Rectangle {
-        id: sessionMenu
-        visible: false
+    Item {
+        id: sessionMenuContainer
+        visible: animState !== "closed"
         width: 180
         height: sessionColumn.implicitHeight + 20
-        radius: root.radiusLarge
-        color: root.clrBg
-        border.color: root.clrSession
-        border.width: 2
         anchors {
             bottom: bottomLeftBar.top
             left: bottomLeftBar.left
             bottomMargin: 10
         }
 
-        Column {
-            id: sessionColumn
-            anchors {
-                top: parent.top
-                left: parent.left
-                right: parent.right
-                margins: 10
-            }
-            spacing: 4
+        property string animState: "closed"
 
-            Repeater {
-                model: typeof sessionModel !== 'undefined' ? sessionModel : null
-                delegate: Rectangle {
-                    width: sessionColumn.width
-                    height: 34
-                    radius: root.radiusMed
-                    color: itemMa.containsMouse ? root.clrBgAlt : "transparent"
+        function open() { animState = "open" }
+        function close() { animState = "closing" }
+        function toggle() { if (animState === "open") close(); else open(); }
 
-                    Rectangle {
-                        width: 3
-                        height: parent.height - 10
-                        radius: 2
-                        anchors { left: parent.left; leftMargin: 4; verticalCenter: parent.verticalCenter }
-                        color: root.sessionIndex === index ? root.clrSession : "transparent"
-                    }
+        Rectangle {
+            id: innerSessionRect
+            width: parent.width
+            height: parent.height
+            radius: root.radiusLarge
+            color: root.clrBg
+            border.color: root.clrSession
+            border.width: 2
+            clip: true
 
-                    Text {
-                        anchors { left: parent.left; leftMargin: 14; right: parent.right; rightMargin: 10; verticalCenter: parent.verticalCenter }
-                        text: model.name || model.display || "Session"
-                        color: root.clrFg
-                        font.pixelSize: 13
-                        font.bold: root.sessionIndex === index
-                        font.family: root.fontMain
-                        elide: Text.ElideRight
-                    }
+            y: 0
+            opacity: 1.0
 
-                    MouseArea {
-                        id: itemMa
-                        anchors.fill: parent
-                        hoverEnabled: true
-                        onClicked: {
-                            root.sessionIndex = index
-                            updateSession()
-                            sessionMenu.visible = false
+            states: [
+                State {
+                    name: "open"
+                    when: sessionMenuContainer.animState === "open"
+                    PropertyChanges { target: innerSessionRect; y: 0; opacity: 1.0 }
+                },
+                State {
+                    name: "closing"
+                    when: sessionMenuContainer.animState === "closing"
+                    PropertyChanges { target: innerSessionRect; y: 20; opacity: 0.0 }
+                }
+            ]
+
+            transitions: [
+                Transition {
+                    to: "open"
+                    SequentialAnimation {
+                        PropertyAction { target: innerSessionRect; property: "y"; value: 20 }
+                        PropertyAction { target: innerSessionRect; property: "opacity"; value: 0.0 }
+                        ParallelAnimation {
+                            NumberAnimation { target: innerSessionRect; property: "y"; to: 0; duration: 250; easing.type: Easing.OutExpo }
+                            NumberAnimation { target: innerSessionRect; property: "opacity"; to: 1.0; duration: 180; easing.type: Easing.OutCubic }
                         }
                     }
+                },
+                Transition {
+                    to: "closing"
+                    SequentialAnimation {
+                        ParallelAnimation {
+                            NumberAnimation { target: innerSessionRect; property: "y"; to: 20; duration: 180; easing.type: Easing.InCubic }
+                            NumberAnimation { target: innerSessionRect; property: "opacity"; to: 0.0; duration: 150; easing.type: Easing.InCubic }
+                        }
+                        ScriptAction { script: sessionMenuContainer.animState = "closed" }
+                    }
+                }
+            ]
 
-                    Behavior on color { ColorAnimation { duration: 150 } }
+            Column {
+                id: sessionColumn
+                anchors {
+                    top: parent.top
+                    left: parent.left
+                    right: parent.right
+                    margins: 10
+                }
+                spacing: 4
+
+                Repeater {
+                    model: typeof sessionModel !== 'undefined' ? sessionModel : null
+                    delegate: Rectangle {
+                        readonly property bool isActive: root.sessionIndex === index
+                        width: sessionColumn.width
+                        height: 34
+                        radius: 6
+                        color: isActive ? root.clrSession : root.clrBgAlt
+
+                        Rectangle {
+                            visible: !isActive
+                            width: 3
+                            height: parent.height - 10
+                            radius: 2
+                            anchors { left: parent.left; leftMargin: 4; verticalCenter: parent.verticalCenter }
+                            color: root.clrSession
+                        }
+
+                        Text {
+                            anchors { left: parent.left; leftMargin: 14; right: parent.right; rightMargin: 10; verticalCenter: parent.verticalCenter }
+                            text: model.name || model.display || "Session"
+                            color: isActive ? root.clrBg : root.clrFg
+                            font.pixelSize: 13
+                            font.bold: true
+                            font.family: root.fontMain
+                            elide: Text.ElideRight
+                        }
+
+                        MouseArea {
+                            id: itemMa
+                            anchors.fill: parent
+                            hoverEnabled: true
+                            onEntered: if (!isActive) parent.opacity = 0.8
+                            onExited: parent.opacity = 1.0
+                            onClicked: {
+                                root.sessionIndex = index
+                                updateSession()
+                                sessionMenuContainer.close()
+                            }
+                        }
+
+                        Behavior on opacity { NumberAnimation { duration: 150 } }
+                    }
                 }
             }
         }
@@ -392,7 +449,7 @@ Rectangle {
         if (count > 0 && root.sessionIndex < count) {
             var idx = sessionModel.index(root.sessionIndex, 0)
             var name = sessionModel.data(idx, Qt.DisplayRole)
-            root.sessionLabel = name || "session"
+            root.sessionLabel = name || "Session"
         }
     }
 
