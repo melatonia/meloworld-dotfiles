@@ -3,4 +3,7 @@ Name=meloworld-sddm
 Description=meloworld login screen
 Author=melatonia
 ConfigFile=theme.conf
+Main=Main.qml
+Type=sddm-theme
+QtVersion=6
 Screenshot=

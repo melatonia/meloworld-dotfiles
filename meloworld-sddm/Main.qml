@@ -1,97 +1,56 @@
-import QtQuick
-import QtQuick.Controls
-import QtQuick.Layouts
-import SddmComponents
+import QtQuick 2.15
+import QtQuick.Controls 2.15
+import QtQuick.Layouts 1.15
+import QtQuick.Window 2.15
 
-Item {
+Rectangle {
     id: root
-    width: Screen.width
-    height: Screen.height
+    anchors.fill: parent
+    color: root.clrBg
+    visible: true
+    opacity: 0
 
-    // ── Design System (Sync with Rofi + Quickshell) ───────────
-    readonly property color clrBg:       "#212121"
-    readonly property color clrBgAlt:    "#2d2d2d"
-    readonly property color clrFg:       "#ffffffdd"
-    readonly property color clrFgDim:    "#616161"
-    readonly property color clrAccent:   "#80cbc4"
-    readonly property color clrBorder:   "#424242"
-    readonly property color clrUrgent:   "#ef9a9a"
-    readonly property color clrReboot:   "#ffcc80"
-    readonly property color clrSession:  "#a5d6a7"
-    readonly property color clrClock:    "#ffffffdd"
-    readonly property color clrPillFg:   "#212121"
+    
+    NumberAnimation on opacity {
+        from: 0
+        to: 1
+        duration: 800
+        easing.type: Easing.OutCubic
+    }
 
-    readonly property string fontMain: "JetBrainsMono Nerd Font"
-    readonly property int radiusLarge: 12
-    readonly property int radiusMed:   8
-    readonly property int radiusSmall: 5
+    // ── Design System ─────────────────────────────────────────
+    property color clrBg:       (typeof config !== 'undefined' && config.background_color) ? config.background_color : "#212121"
+    property color clrBgAlt:    "#2d2d2d"
+    property color clrFg:       "#ffffffdd"
+    property color clrFgDim:    "#616161"
+    property color clrAccent:   (typeof config !== 'undefined' && config.accent_color) ? config.accent_color : "#80cbc4"
+    property color clrBorder:   "#424242"
+    property color clrUrgent:   (typeof config !== 'undefined' && config.urgent_color) ? config.urgent_color : "#ef9a9a"
+    property color clrReboot:   "#ffcc80"
+    property color clrSession:  "#a5d6a7"
+    property color clrClock:    "#ffffffdd"
+    property color clrPillFg:   "#212121"
+
+    property string fontMain: (typeof config !== 'undefined' && config.font) ? config.font : "JetBrainsMono Nerd Font"
+    property int radiusLarge: 12
+    property int radiusMed:   8
+    property int radiusSmall: 5
 
     property int    selectedIndex: 0
     property int    sessionIndex:  0
     property string sessionLabel:  "session"
 
-    // ── Components ────────────────────────────────────────────
-
-    // Exact replica of quickshell/bar/widgets/Pill.qml
-    component PillButton: Rectangle {
-        id: pill
-        property string label:     ""
-        property color  pillColor: root.clrAccent
-        signal clicked()
-
-        implicitHeight: 28
-        implicitWidth:  pillText.implicitWidth + 16 // 8px each side
-        radius: 5
-        color: ma.containsMouse ? Qt.lighter(pillColor, 1.15) : pillColor
-        scale: ma.containsMouse ? 1.03 : 1.0
-
-        Behavior on color { ColorAnimation { duration: 150 } }
-        Behavior on scale { NumberAnimation { duration: 150; easing.type: Easing.OutSine } }
-
-        Text {
-            id: pillText
-            anchors.centerIn: parent
-            text: pill.label
-            font.pixelSize: 16
-            font.bold: true
-            font.family: root.fontMain
-            color: root.clrPillFg
-        }
-
-        MouseArea {
-            id: ma
-            anchors.fill: parent
-            hoverEnabled: true
-            cursorShape: Qt.PointingHandCursor
-            onClicked: pill.clicked()
-        }
-    }
-
-    // Exact replica of quickshell/bar/Bar.qml containers
-    component BarContainer: Rectangle {
-        id: container
-        property alias spacing: innerRow.spacing
-        default property alias children: innerRow.children
-
-        height: 40
-        radius: 8
-        color: root.clrBg
-        width: innerRow.implicitWidth + 12 // 6px each side
-
-        Row {
-            id: innerRow
-            anchors.centerIn: parent
-            spacing: 6 // Matches LeftBar.qml spacing
-        }
-    }
-
     // ── Background ────────────────────────────────────────────
     Image {
         anchors.fill: parent
-        source: config.background || "assets/wallpaper.jpeg"
+        source: {
+            if (typeof config === 'undefined' || !config.background) return "assets/wallpaper.jpeg";
+            var bg = config.background;
+            if (bg.indexOf(":/") === -1 && bg.indexOf("/") === 0) return "file://" + bg;
+            return bg;
+        }
         fillMode: Image.PreserveAspectCrop
 
-        // Dark overlay
         Rectangle {
             anchors.fill: parent
             color: "black"
@@ -106,17 +65,18 @@ Item {
             horizontalCenter: parent.horizontalCenter
             topMargin: 12
         }
+        visible: typeof primaryScreen !== 'undefined' ? primaryScreen : true
 
         PillButton {
             pillColor: root.clrClock
-            label: "  " + Qt.formatDateTime(new Date(), "HH:mm")
+            fontMain: root.fontMain
+            label: " " + timeLabel
+            
+            property string timeLabel: Qt.formatDateTime(new Date(), "HH:mm")
 
             Timer {
-                interval: 1000
-                running: true
-                repeat: true
-                triggeredOnStart: true
-                onTriggered: parent.label = "  " + Qt.formatDateTime(new Date(), "HH:mm")
+                interval: 1000; running: true; repeat: true; triggeredOnStart: true
+                onTriggered: parent.timeLabel = Qt.formatDateTime(new Date(), "HH:mm")
             }
         }
     }
@@ -125,43 +85,67 @@ Item {
     Rectangle {
         id: card
         anchors.centerIn: parent
-        width: 320
-        height: cardLayout.implicitHeight + 20 // 10px each side (matching Rofi window padding)
+        width: Math.max(320, parent.width * 0.18)
+        height: cardLayout.implicitHeight + 20
         radius: root.radiusLarge
         color: root.clrBg
         border.width: 3
         border.color: root.clrBorder
+        visible: typeof primaryScreen !== 'undefined' ? primaryScreen : true
+
+        SequentialAnimation {
+            id: shakeAnim
+            NumberAnimation { target: card; property: "anchors.horizontalCenterOffset"; from: 0; to: 10; duration: 50; easing.type: Easing.OutQuad }
+            NumberAnimation { target: card; property: "anchors.horizontalCenterOffset"; from: 10; to: -10; duration: 50; easing.type: Easing.OutQuad }
+            NumberAnimation { target: card; property: "anchors.horizontalCenterOffset"; from: -10; to: 10; duration: 50; easing.type: Easing.OutQuad }
+            NumberAnimation { target: card; property: "anchors.horizontalCenterOffset"; from: 10; to: 0; duration: 50; easing.type: Easing.OutQuad }
+        }
 
         ColumnLayout {
             id: cardLayout
             anchors {
                 fill: parent
-                margins: 10 // Matches Rofi window padding: 10px
+                margins: 10
             }
-            spacing: 8 // Matches Rofi mainbox spacing: 8px
+            spacing: 8
 
             // User Selection
             ColumnLayout {
                 Layout.fillWidth: true
-                spacing: 2 // Closer spacing for user elements
+                spacing: 2
 
                 Repeater {
+                    id: userRepeater
                     model: userModel
                     delegate: Rectangle {
                         Layout.fillWidth: true
-                        height: 36 // Matches Rofi element height approx (8+13+8+2)
+                        height: 36
                         radius: root.radiusMed
                         color: index === root.selectedIndex
                             ? root.clrAccent
-                            : (userMa.containsMouse ? root.clrBorder : "transparent")
+                            : (userMa.containsMouse || delegateItem.activeFocus ? root.clrBorder : "transparent")
 
                         Behavior on color { ColorAnimation { duration: 150 } }
+                        
+                        activeFocusOnTab: true
+                        id: delegateItem
+                        
+                        KeyNavigation.tab: (index === userRepeater.count - 1) ? passwordField : undefined
+                        KeyNavigation.backtab: (index === 0) ? sessionPill : undefined
+
+                        Keys.onPressed: {
+                            if (event.key === Qt.Key_Return || event.key === Qt.Key_Enter) {
+                                root.selectedIndex = index
+                                passwordField.forceActiveFocus()
+                                event.accepted = true
+                            }
+                        }
 
                         RowLayout {
                             anchors.fill: parent
-                            anchors.leftMargin: 12  // Matches Rofi element padding: 8px 12px
+                            anchors.leftMargin: 12
                             anchors.rightMargin: 12
-                            spacing: 12 // Matches Rofi element spacing: 12px
+                            spacing: 12
 
                             Text {
                                 text: ""
@@ -172,7 +156,7 @@ Item {
 
                             Text {
                                 Layout.fillWidth: true
-                                text: model.name || model.realName || "user"
+                                text: (model.name || model.realName || "user")
                                 font.pixelSize: 14
                                 font.bold: index === root.selectedIndex
                                 font.family: root.fontMain
@@ -196,45 +180,61 @@ Item {
 
             Item { Layout.preferredHeight: 2 }
 
-            // Password Field
-            Rectangle {
-                Layout.fillWidth: true
-                height: 40 // Matches Rofi inputbar height (approx)
-                radius: root.radiusMed
-                color: root.clrBgAlt
-                border.width: 2
-                border.color: passwordField.activeFocus ? root.clrAccent : "transparent"
+                Rectangle {
+                    Layout.fillWidth: true
+                    height: 40
+                    radius: root.radiusMed
+                    color: root.clrBgAlt
+                    border.width: 2
+                    border.color: passwordField.activeFocus ? root.clrAccent : "transparent"
 
-                Behavior on border.color { ColorAnimation { duration: 150 } }
+                    Behavior on border.color { ColorAnimation { duration: 150 } }
 
-                TextInput {
-                    id: passwordField
-                    anchors {
-                        fill: parent
-                        leftMargin: 12 // Matches Rofi inputbar padding: 10px 12px
-                        rightMargin: 12
-                    }
-                    verticalAlignment: TextInput.AlignVCenter
-                    echoMode: TextInput.Password
-                    passwordCharacter: "•"
-                    font.pixelSize: 14
-                    font.family: root.fontMain
-                    color: root.clrFg
-                    selectionColor: root.clrAccent
-                    clip: true
-                    onAccepted: loginAction()
-
-                    Text {
-                        anchors.fill: parent
-                        text: "password"
-                        verticalAlignment: Text.AlignVCenter
+                    TextInput {
+                        id: passwordField
+                        anchors {
+                            fill: parent
+                            leftMargin: 12
+                            rightMargin: 12
+                        }
+                        verticalAlignment: TextInput.AlignVCenter
+                        echoMode: TextInput.Password
+                        passwordCharacter: "•"
                         font.pixelSize: 14
                         font.family: root.fontMain
-                        color: root.clrFgDim
-                        visible: passwordField.text.length === 0 && !passwordField.activeFocus
+                        color: root.clrFg
+                        selectionColor: root.clrAccent
+                        clip: true
+                        
+                        KeyNavigation.tab: loginButton
+                        KeyNavigation.backtab: userRepeater
+
+                        onAccepted: loginAction()
+
+                        Text {
+                            anchors.fill: parent
+                            text: "password"
+                            verticalAlignment: Text.AlignVCenter
+                            font.pixelSize: 14
+                            font.family: root.fontMain
+                            color: root.clrFgDim
+                            visible: passwordField.text.length === 0 && !passwordField.activeFocus
+                        }
+                        
+                        Text {
+                            anchors.right: parent.right
+                            anchors.rightMargin: 10
+                            anchors.verticalCenter: parent.verticalCenter
+                            text: "󰪛"
+                            font.family: root.fontMain
+                            color: root.clrUrgent
+                            visible: (passwordField.modifiers & Qt.CapsLockModifier)
+                            ToolTip.visible: maCaps.containsMouse
+                            ToolTip.text: "Caps Lock is ON"
+                            MouseArea { id: maCaps; anchors.fill: parent; hoverEnabled: true }
+                        }
                     }
                 }
-            }
 
             // Error Message
             Text {
@@ -251,11 +251,15 @@ Item {
 
             // Login Button
             PillButton {
+                id: loginButton
                 Layout.fillWidth: true
-                Layout.preferredHeight: 36 // Matches user element height
+                Layout.preferredHeight: 36
                 label: "Login"
                 pillColor: root.clrAccent
+                fontMain: root.fontMain
                 onClicked: loginAction()
+                KeyNavigation.tab: rebootButton
+                KeyNavigation.backtab: passwordField
             }
         }
     }
@@ -267,15 +271,23 @@ Item {
             left: parent.left
             margins: 12
         }
+        visible: typeof primaryScreen !== 'undefined' ? primaryScreen : true
 
         PillButton {
             id: sessionPill
             label: "⊹ " + root.sessionLabel
             pillColor: root.clrSession
+            fontMain: root.fontMain
             onClicked: {
-                root.sessionIndex = (root.sessionIndex + 1) % Math.max(sessionModel.count, 1)
+                var count = 1
+                if (typeof sessionModel !== 'undefined' && sessionModel) {
+                    count = (typeof sessionModel.count !== 'undefined') ? sessionModel.count : (typeof sessionModel.rowCount === 'function' ? sessionModel.rowCount() : 1)
+                }
+                root.sessionIndex = (root.sessionIndex + 1) % Math.max(1, count)
                 updateSession()
             }
+            KeyNavigation.tab: userRepeater.count > 0 ? userRepeater.itemAt(0) : passwordField
+            KeyNavigation.backtab: shutdownButton
         }
     }
 
@@ -286,40 +298,47 @@ Item {
             right: parent.right
             margins: 12
         }
+        visible: typeof primaryScreen !== 'undefined' ? primaryScreen : true
 
         PillButton {
+            id: rebootButton
             label: " Reboot"
             pillColor: root.clrReboot
+            fontMain: root.fontMain
             onClicked: sddm.reboot()
+            KeyNavigation.tab: shutdownButton
+            KeyNavigation.backtab: loginButton
         }
 
         PillButton {
+            id: shutdownButton
             label: "⏻ Shutdown"
             pillColor: root.clrUrgent
+            fontMain: root.fontMain
             onClicked: sddm.powerOff()
+            KeyNavigation.tab: sessionPill
+            KeyNavigation.backtab: rebootButton
         }
     }
 
     // ── Logic ─────────────────────────────────────────────────
     function updateSession() {
-        if (sessionModel && sessionModel.count > 0) {
-            var name = sessionModel.data(
-                sessionModel.index(root.sessionIndex, 0),
-                Qt.DisplayRole
-            )
+        if (typeof sessionModel === 'undefined' || !sessionModel) return;
+        var count = (typeof sessionModel.count !== 'undefined') ? sessionModel.count : (typeof sessionModel.rowCount === 'function' ? sessionModel.rowCount() : 0)
+        if (count > 0 && root.sessionIndex < count) {
+            var idx = sessionModel.index(root.sessionIndex, 0)
+            var name = sessionModel.data(idx, Qt.DisplayRole)
             root.sessionLabel = name || "session"
         }
     }
 
     function loginAction() {
+        if (typeof userModel === 'undefined' || !userModel || userModel.count === 0) return
         errorText.text = ""
-        var username = userModel.data(
-            userModel.index(root.selectedIndex, 0),
-            Qt.UserRole + 1
-        ) || userModel.data(
-            userModel.index(root.selectedIndex, 0),
-            Qt.DisplayRole
-        )
+
+        var idx = userModel.index(root.selectedIndex, 0)
+        var username = userModel.data(idx, "name") || userModel.data(idx, 0x0101) || userModel.data(idx, Qt.DisplayRole) || userModel.lastUser
+
         sddm.login(username, passwordField.text, root.sessionIndex)
     }
 
@@ -329,6 +348,11 @@ Item {
             errorText.text = "incorrect password"
             passwordField.text = ""
             passwordField.forceActiveFocus()
+            shakeAnim.start()
+        }
+        function onLoginSucceeded() {
+            errorText.color = root.clrAccent
+            errorText.text = "logging in..."
         }
     }
 
@@ -337,3 +361,4 @@ Item {
         passwordField.forceActiveFocus()
     }
 }
+
