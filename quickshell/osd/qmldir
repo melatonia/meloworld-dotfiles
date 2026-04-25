@@ -3,3 +3,4 @@ AudioPopup 1.0 AudioPopup.qml
 AudioSlider 1.0 AudioSlider.qml
 PowerProfilePopup 1.0 PowerProfilePopup.qml
 BluetoothPopup 1.0 BluetoothPopup.qml
+WifiPopup 1.0 WifiPopup.qml

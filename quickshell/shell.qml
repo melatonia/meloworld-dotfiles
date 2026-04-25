@@ -32,6 +32,12 @@ ShellRoot {
                 anchor.rect.x: Math.min(bar.rightContainer.x + bar.rightBar.x + bar.rightBar.bluetoothWidget.x + (bar.rightBar.bluetoothWidget.width / 2) - (implicitWidth / 2), bar.rightContainer.x + bar.rightContainer.width - implicitWidth)
                 anchor.rect.y: panelWin.height
             }
+            WifiPopup {
+                id: wifiPopup
+                screenObj: modelData
+                xPos: Math.min(bar.rightContainer.x + bar.rightBar.x + bar.rightBar.networkWidget.x + (bar.rightBar.networkWidget.width / 2) - (implicitWidth / 2), bar.rightContainer.x + bar.rightContainer.width - implicitWidth)
+                yPos: panelWin.height
+            }
             SessionPopup {
                 anchor.window: panelWin
                 anchor.rect.x: Math.min(bar.rightContainer.x + bar.rightBar.x + bar.rightBar.sessionWidget.x + (bar.rightBar.sessionWidget.width / 2) - (implicitWidth / 2), bar.rightContainer.x + bar.rightContainer.width - implicitWidth)
