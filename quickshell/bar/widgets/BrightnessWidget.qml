@@ -1,4 +1,5 @@
 import QtQuick
+import Quickshell
 import Quickshell.Io
 import "../../theme"
 
@@ -47,16 +48,9 @@ Pill {
         onTriggered: brightnessProc.running = true
     }
 
-    Process {
-        id: setProc
-        property string step: ""
-        command: ["brightnessctl", "set", step]
-        running: false
-    }
-
     mouseArea.onWheel: (wheel) => {
-        setProc.step = wheel.angleDelta.y > 0 ? "+5%" : "5%-"
-        setProc.running = true
+        let step = wheel.angleDelta.y > 0 ? "+5%" : "5%-"
+        Quickshell.execDetached(["brightnessctl", "set", step])
         brightnessProc.running = true
     }
 }

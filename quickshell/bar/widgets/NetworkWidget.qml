@@ -1,4 +1,5 @@
 import QtQuick
+import Quickshell
 import Quickshell.Io
 import "../../theme"
 
@@ -83,13 +84,6 @@ Pill {
         }
     }
 
-
-    Process {
-        id: nmtuiProc
-        command: ["ghostty", "--title=nmtui", "-e", "nmtui"]
-        running: false
-    }
-
     Timer {
         interval: 10000
         running: true
@@ -97,5 +91,5 @@ Pill {
         onTriggered: refreshProc.running = true
     }
 
-    mouseArea.onClicked: nmtuiProc.running = true
+    mouseArea.onClicked: Quickshell.execDetached(["ghostty", "--title=nmtui", "-e", "nmtui"])
 }

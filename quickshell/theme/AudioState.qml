@@ -38,36 +38,30 @@ Singleton {
     }
 
     function setDefaultSink(name) {
-        setSinkProc.sinkName = name
-        setSinkProc.running = true
+        Quickshell.execDetached(["pactl", "set-default-sink", name])
         defaultSink = name
     }
 
     function setDefaultSource(name) {
-        setSourceProc.sourceName = name
-        setSourceProc.running = true
+        Quickshell.execDetached(["pactl", "set-default-source", name])
         defaultSource = name
     }
 
     function setVolume(newVol) {
-        setVolProc.step = newVol + "%"
-        setVolProc.running = true
+        Quickshell.execDetached(["pactl", "set-sink-volume", "@DEFAULT_SINK@", newVol + "%"])
     }
 
     function setMicVolume(newVol) {
-        setMicVolProc.step = newVol + "%"
-        setMicVolProc.running = true
+        Quickshell.execDetached(["pactl", "set-source-volume", "@DEFAULT_SOURCE@", newVol + "%"])
     }
 
     function setMute(mute) {
-        setMuteProc.muteVal = mute ? "1" : "0"
-        setMuteProc.running = true
+        Quickshell.execDetached(["pactl", "set-sink-mute", "@DEFAULT_SINK@", mute ? "1" : "0"])
         root.muted = mute
     }
 
     function setMicMute(mute) {
-        setMicMuteProc.muteVal = mute ? "1" : "0"
-        setMicMuteProc.running = true
+        Quickshell.execDetached(["pactl", "set-source-mute", "@DEFAULT_SOURCE@", mute ? "1" : "0"])
         root.micMuted = mute
     }
 
@@ -140,26 +134,22 @@ Singleton {
         }
     }
 
-    // ── Set default sink/source ───────────────────
-    Process {
-        id: setSinkProc
-        property string sinkName: ""
-        command: ["pactl", "set-default-sink", sinkName]
-        running: false
-    }
-
-    Process {
-        id: setSourceProc
-        property string sourceName: ""
-        command: ["pactl", "set-default-source", sourceName]
-        running: false
-    }
-
     // ── Subscribe to changes ──────────────────────
+    Timer {
+        id: subRestartTimer
+        interval: 1000
+        onTriggered: subscribeProc.running = true
+    }
+
     Process {
         id: subscribeProc
         command: ["pactl", "subscribe"]
         running: true
+        onRunningChanged: {
+            if (!running) {
+                subRestartTimer.start()
+            }
+        }
         stdout: SplitParser {
             onRead: (line) => {
                 if (line.indexOf("sink") !== -1) {
@@ -191,13 +181,6 @@ Singleton {
         }
     }
 
-    Process {
-        id: setVolProc
-        property string step: ""
-        command: ["pactl", "set-sink-volume", "@DEFAULT_SINK@", step]
-        running: false
-    }
-
     // ── Mute ──────────────────────────────────────
     Process {
         id: muteProc
@@ -208,13 +191,6 @@ Singleton {
                 root.muted = text.indexOf("yes") !== -1
             }
         }
-    }
-
-    Process {
-        id: setMuteProc
-        property string muteVal: "0"
-        command: ["pactl", "set-sink-mute", "@DEFAULT_SINK@", muteVal]
-        running: false
     }
 
     // ── Mic volume ────────────────────────────────
@@ -230,13 +206,6 @@ Singleton {
         }
     }
 
-    Process {
-        id: setMicVolProc
-        property string step: ""
-        command: ["pactl", "set-source-volume", "@DEFAULT_SOURCE@", step]
-        running: false
-    }
-
     // ── Mic mute ──────────────────────────────────
     Process {
         id: micMuteProc
@@ -249,10 +218,5 @@ Singleton {
         }
     }
 
-    Process {
-        id: setMicMuteProc
-        property string muteVal: "0"
-        command: ["pactl", "set-source-mute", "@DEFAULT_SOURCE@", muteVal]
-        running: false
-    }
+    // Set mic mute process removed
 }

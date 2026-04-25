@@ -1,4 +1,5 @@
 import QtQuick
+import Quickshell
 import Quickshell.Io
 import Quickshell.Services.UPower
 import "../../theme"
@@ -23,7 +24,7 @@ Pill {
     onPctChanged: {
         if (hasBattery && prevPct > 20 && pct <= 20 && !charging) {
             PowerProfiles.profile = PowerProfile.PowerSaver
-            brightnessProc.running = true
+            Quickshell.execDetached(["brightnessctl", "set", "50%"])
         }
         prevPct = pct
     }
@@ -55,12 +56,6 @@ Pill {
             else sym = "󰁺"
         }
         return sym + " " + pct + "%"
-    }
-
-    Process {
-        id: brightnessProc
-        command: ["brightnessctl", "set", "50%"]
-        running: false
     }
 
     mouseArea.propagateComposedEvents: true
