@@ -8,10 +8,12 @@ Pill {
 
     readonly property int brightness: BrightnessState.brightness
 
+    widestLabel: "󰃠 100%"
     label: {
-        if (brightness >= 80) return "󰃠 " + brightness + "%"
-        else if (brightness >= 40) return "󰃟 " + brightness + "%"
-        else return "󰃞 " + brightness + "%"
+        let ico = "󰃞 "
+        if (brightness >= 80) ico = "󰃠 "
+        else if (brightness >= 40) ico = "󰃟 "
+        return ico + brightness + "%"
     }
 
     mouseArea.onClicked: (mouse) => {

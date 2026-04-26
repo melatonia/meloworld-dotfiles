@@ -29,7 +29,7 @@ PopupBase {
     // ── Content ───────────────────────────────────
     Column {
         id: column
-        anchors { top: parent.top; left: parent.left; right: parent.right; margins: 10 }
+        anchors { top: parent.top; left: parent.left; right: parent.right; margins: root.padding }
         spacing: 4
 
         // ── Adapter toggle ────────────────────────

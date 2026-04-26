@@ -21,7 +21,7 @@ PopupBase {
     // ── Content ───────────────────────────────────
     Column {
         id: column
-        anchors { fill: parent; margins: 10 }
+        anchors { fill: parent; margins: root.padding }
         spacing: 4
 
         Repeater {

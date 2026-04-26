@@ -17,13 +17,13 @@ PopupBase {
 
     Column {
         id: column
-        anchors { fill: parent; margins: 10 }
+        anchors { fill: parent; margins: root.padding }
         spacing: 8
 
         Rectangle {
             width: parent.width; height: 34; radius: 6; color: PanelColors.rowBackground
             Row {
-                anchors { fill: parent; margins: 10 }
+                anchors { fill: parent; margins: root.padding }
                 spacing: 8
                 Text {
                     text: {

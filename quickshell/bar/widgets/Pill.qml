@@ -6,10 +6,21 @@ Rectangle {
     property color pillColor: PanelColors.audio
     property color textColor: PanelColors.pillForeground
     property string label: ""
+    property string widestLabel: ""
+    property int minWidth: 0
     property alias mouseArea: mouseArea
+    default property alias content: contentRow.data
+
+    TextMetrics {
+        id: widestMetric
+        font.pixelSize: 16; font.bold: true; font.family: "JetBrainsMono Nerd Font"
+        text: root.widestLabel
+    }
+
+    property int effectiveMinWidth: Math.max(minWidth, widestLabel !== "" ? widestMetric.width + 16 : 0)
 
     implicitHeight: 28
-    implicitWidth: pillLabel.implicitWidth + 16
+    implicitWidth: Math.max(effectiveMinWidth, contentRow.implicitWidth + 16)
     radius: 5
     color: mouseArea.containsMouse ? Qt.lighter(pillColor, 1.15) : pillColor
     scale: mouseArea.containsMouse ? 1.03 : 1.0
@@ -23,13 +34,19 @@ Rectangle {
         hoverEnabled: true
     }
 
-    Text {
-        id: pillLabel
+    Row {
+        id: contentRow
         anchors.centerIn: parent
-        text: root.label
-        font.pixelSize: 16
-        font.bold: true
-        font.family: "JetBrainsMono Nerd Font"
-        color: root.textColor
+        spacing: 4
+
+        Text {
+            id: pillLabel
+            visible: root.label !== ""
+            text: root.label
+            font.pixelSize: 16
+            font.bold: true
+            font.family: "JetBrainsMono Nerd Font"
+            color: root.textColor
+        }
     }
 }

@@ -40,10 +40,8 @@ PopupBase {
     // ── Content ───────────────────────────────────
     Column {
         id: popupColumn
-        anchors { top: parent.top; left: parent.left; right: parent.right; margins: 10 }
-        spacing: 4
-
-        Item { width: 1; height: 2 }
+        anchors { top: parent.top; left: parent.left; right: parent.right; margins: root.padding }
+        spacing: 8
 
         // ── Output section ────────────────────────
         Row {
@@ -154,12 +152,15 @@ PopupBase {
         }
 
         // ── Divider ───────────────────────────────
-        Rectangle { visible: outHeader.visible || inHeader.visible; width: parent.width; height: 1; color: PanelColors.rowBackground }
+        Rectangle { 
+            visible: outHeader.visible || inHeader.visible
+            width: parent.width; height: visible ? 1 : 0; color: PanelColors.rowBackground 
+        }
 
         Rectangle {
             width: parent.width; height: 34; radius: 6; color: PanelColors.rowBackground
             Row {
-                anchors { fill: parent; margins: 10 }
+                anchors { fill: parent; margins: root.padding }
                 spacing: 8
                 Text {
                     text: AudioState.muted ? "󰝟" : "󰕾"
@@ -180,7 +181,7 @@ PopupBase {
         Rectangle {
             width: parent.width; height: 34; radius: 6; color: PanelColors.rowBackground
             Row {
-                anchors { fill: parent; margins: 10 }
+                anchors { fill: parent; margins: root.padding }
                 spacing: 8
                 Text {
                     text: AudioState.micMuted ? "󰍭" : "󰍬"
@@ -198,6 +199,5 @@ PopupBase {
             }
         }
 
-        Item { width: 1; height: 4 }
     }
 }

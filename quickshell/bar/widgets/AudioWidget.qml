@@ -6,6 +6,7 @@ Pill {
     pillColor: (AudioState.muted || AudioState.volume === 0) ? PanelColors.rowBackground : PanelColors.audio
     textColor: (AudioState.muted || AudioState.volume === 0) ? PanelColors.textMain : PanelColors.pillForeground
 
+    widestLabel: "󰕾 100%"
     label: (AudioState.muted || AudioState.volume === 0) ? "󰝟 Muted" : "󰕾 " + AudioState.volume + "%"
 
     mouseArea.onClicked: AudioState.popupVisible ? AudioState.hide() : AudioState.show()

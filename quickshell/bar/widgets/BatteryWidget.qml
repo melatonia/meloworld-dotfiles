@@ -26,6 +26,7 @@ Pill {
         prevPct = pct
     }
 
+    widestLabel: "󰁹 100%"
     label: {
         if (!hasBattery) return "󰚥"
         var sym = ""

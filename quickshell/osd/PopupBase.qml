@@ -12,7 +12,7 @@ import "../theme"
 //
 //       Connections { target: SomeSingleton; function onFlagChanged() { animState = flag ? "open" : "closing" } }
 //
-//       Column { id: myColumn; anchors { top: parent.top; left: parent.left; right: parent.right; margins: 10 } ... }
+//       Column { id: myColumn; anchors { top: parent.top; left: parent.left; right: parent.right; margins: parent.padding } ... }
 //   }
 //
 // Children declared inside a PopupBase instance are placed directly inside the
@@ -26,6 +26,7 @@ PopupWindow {
     property bool   clipContent:   true
     // Bind this to your content Column's implicitHeight:
     property int    contentHeight: 0
+    property int    padding:       12
 
     // ── Children go directly into the inner panel ──
     default property alias panelContent: innerRect.data
@@ -38,7 +39,7 @@ PopupWindow {
     Rectangle {
         id: innerRect
         width:  parent.width
-        height: root.contentHeight + 20
+        height: root.contentHeight + (root.padding * 2)
         radius: 10
         color:  PanelColors.popupBackground
         border.color: root.borderColor

@@ -26,7 +26,7 @@ PopupBase {
     // ── Content ───────────────────────────────────
     Item {
         id: contentArea
-        anchors { top: parent.top; left: parent.left; right: parent.right; margins: 10 }
+        anchors { top: parent.top; left: parent.left; right: parent.right; margins: root.padding }
         implicitHeight: root.menuState === "menu" ? menuColumn.implicitHeight : confirmColumn.implicitHeight
 
         // ── Main menu ─────────────────────────────
