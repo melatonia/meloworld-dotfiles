@@ -63,7 +63,7 @@ PopupBase {
                 required property var modelData
                 readonly property bool isActive: modelData.name === AudioState.defaultSink
                 width: popupColumn.width; height: 34; radius: 6
-                color: isActive ? Colors.teal200 : (devMouse.containsMouse ? Colors.grey700 : PanelColors.rowBackground)
+                color: isActive ? PanelColors.audio : (devMouse.containsMouse ? Qt.lighter(PanelColors.rowBackground, 1.1) : PanelColors.rowBackground)
 
                 Text {
                     anchors { left: parent.left; verticalCenter: parent.verticalCenter; leftMargin: 14; right: parent.right; rightMargin: 8 }
@@ -91,7 +91,7 @@ PopupBase {
                         id: tipText
                         anchors.centerIn: parent
                         text: modelData.description
-                        font.pixelSize: 11; font.family: "JetBrainsMono Nerd Font"; color: Colors.grey100
+                        font.pixelSize: 11; font.family: "JetBrainsMono Nerd Font"; color: PanelColors.textMain
                     }
                 }
 
@@ -117,7 +117,7 @@ PopupBase {
                 required property var modelData
                 readonly property bool isActive: modelData.name === AudioState.defaultSource
                 width: popupColumn.width; height: 34; radius: 6
-                color: isActive ? Colors.teal200 : (inMouse.containsMouse ? Colors.grey700 : PanelColors.rowBackground)
+                color: isActive ? PanelColors.audio : (inMouse.containsMouse ? Qt.lighter(PanelColors.rowBackground, 1.1) : PanelColors.rowBackground)
 
                 Text {
                     anchors { left: parent.left; verticalCenter: parent.verticalCenter; leftMargin: 14; right: parent.right; rightMargin: 8 }
@@ -145,7 +145,7 @@ PopupBase {
                         id: inTipText
                         anchors.centerIn: parent
                         text: modelData.description
-                        font.pixelSize: 11; font.family: "JetBrainsMono Nerd Font"; color: Colors.grey100
+                        font.pixelSize: 11; font.family: "JetBrainsMono Nerd Font"; color: PanelColors.textMain
                     }
                 }
 

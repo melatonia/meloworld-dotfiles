@@ -20,7 +20,7 @@ Rectangle {
 
     // ── Accent color ──────────────────────────────
     readonly property color accentColor: {
-        if (notification.urgency === Notification.Critical) return Colors.red200
+        if (notification.urgency === Notification.Critical) return PanelColors.error
         if (notification.hints["x-hint-color"])             return notification.hints["x-hint-color"]
         return hashColor(notification.appName)
     }

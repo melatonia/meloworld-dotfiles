@@ -19,7 +19,7 @@ Row {
             anchors.centerIn: parent
             text: ""
             font.pixelSize: 16
-            color: Colors.white
+            color: PanelColors.textAccent
             font.family: "JetBrainsMono Nerd Font"
         }
         MouseArea {

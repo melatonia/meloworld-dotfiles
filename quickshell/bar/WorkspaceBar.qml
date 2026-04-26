@@ -85,7 +85,7 @@ Row {
             Text {
                 anchors.centerIn: parent
                 text:        tagNum
-                color:       parent.focused ? PanelColors.pillForeground : Colors.grey400
+                color:       parent.focused ? PanelColors.pillForeground : PanelColors.textDim
                 font.pixelSize: 16
                 font.bold:   true
                 font.family: "JetBrainsMono Nerd Font"
