@@ -27,7 +27,7 @@ Rectangle {
     property int    selectedIndex:   (typeof userModel !== 'undefined' && userModel) ? Math.max(0, userModel.lastIndex) : 0
     property int    sessionIndex:    (typeof sessionModel !== 'undefined' && sessionModel) ? Math.max(0, sessionModel.lastIndex) : 0
     property string sessionLabel:    "session"
-    property string currentUsername: (typeof sddm !== 'undefined') ? sddm.lastUser : ""  // FIX: store username directly
+    property string currentUsername: (typeof sddm !== 'undefined') ? (sddm.lastUser || "") : ""
 
     onSelectedIndexChanged: updateSessionLabel()
 
@@ -61,7 +61,7 @@ Rectangle {
             pillColor: root.clrFg
             textColor: root.clrBg
             fontMain: root.fontMain
-            label: " " + timeLabel
+            label: " " + timeLabel
             activeFocusOnTab: false
 
             property string timeLabel: Qt.formatDateTime(new Date(), "HH:mm")
@@ -138,7 +138,7 @@ Rectangle {
                             anchors.fill: parent
                             anchors.leftMargin: 12
                             spacing: 12
-                            Text { text: ""; font.family: root.fontMain; font.pixelSize: 16; color: isActive ? root.clrAccent : root.clrFg }
+                            Text { text: ""; font.family: root.fontMain; font.pixelSize: 16; color: isActive ? root.clrAccent : root.clrFg }
                             Text {
                                 Layout.fillWidth: true
                                 text: model.name || model.realName || "user"
@@ -256,7 +256,7 @@ Rectangle {
 
         PillButton {
             id: sessionPill
-            label: " " + root.sessionLabel
+            label: " " + root.sessionLabel
             pillColor: root.clrSession
             textColor: root.clrBg
             fontMain: root.fontMain
@@ -273,7 +273,7 @@ Rectangle {
 
         PillButton {
             id: rebootButton
-            label: " Reboot"
+            label: "󰜉 Reboot"
             pillColor: root.clrReboot
             textColor: root.clrBg
             fontMain: root.fontMain
@@ -282,7 +282,7 @@ Rectangle {
 
         PillButton {
             id: shutdownButton
-            label: "⏻ Shutdown"
+            label: "󰐥 Shutdown"
             pillColor: root.clrUrgent
             textColor: root.clrBg
             fontMain: root.fontMain
@@ -301,8 +301,11 @@ Rectangle {
         visible: animState !== "closed"
         enabled: animState !== "closed"
         property string animState: "closed"
-        function open()   { animState = "open"    }
-        function close()  { animState = "closing" }
+        function open()   {
+            animState = "open"
+            Qt.callLater(function() { sessionRepeater.itemAt(root.sessionIndex).forceActiveFocus() })
+        }
+        function close()  { animState = "closing"; sessionPill.forceActiveFocus() }
         function toggle() { animState === "open" ? close() : open() }
 
         Rectangle {
@@ -352,13 +355,32 @@ Rectangle {
                 spacing: 4
 
                 Repeater {
+                    id: sessionRepeater
                     model: (typeof sessionModel !== 'undefined') ? sessionModel : null
                     delegate: Rectangle {
+                        id: sessionDelegate
                         readonly property bool isActive: root.sessionIndex === index
                         width: sessionColumn.width
                         height: 34
                         radius: 6
                         color: isActive ? root.clrSession : root.clrBgAlt
+                        activeFocusOnTab: false
+
+                        // Visual focus indicator
+                        border.width: sessionDelegate.activeFocus ? 2 : 0
+                        border.color: Qt.lighter(root.clrSession, 1.3)
+
+                        // KeyNavigation is the proper QML way to wire up/down focus transfer
+                        // between siblings — more reliable than manual Keys.onUpPressed
+                        KeyNavigation.up:   index > 0 ? sessionRepeater.itemAt(index - 1) : null
+                        KeyNavigation.down: index < sessionRepeater.count - 1 ? sessionRepeater.itemAt(index + 1) : null
+
+                        Keys.onReturnPressed: function(event) { root.sessionIndex = index; updateSessionLabel(); sessionMenuContainer.close(); event.accepted = true }
+                        Keys.onEnterPressed:  function(event) { root.sessionIndex = index; updateSessionLabel(); sessionMenuContainer.close(); event.accepted = true }
+                        Keys.onEscapePressed: function(event) { sessionMenuContainer.close(); event.accepted = true }
+                        // Tab closes the flyout and returns focus to the password field
+                        Keys.onTabPressed:    function(event) { sessionMenuContainer.close(); passwordField.forceActiveFocus(); event.accepted = true }
+                        Keys.onBacktabPressed: function(event) { sessionMenuContainer.close(); sessionPill.forceActiveFocus(); event.accepted = true }
                         Rectangle {
                             visible: !isActive
                             width: 3; height: parent.height - 12; radius: 2; color: root.clrSession
