@@ -21,6 +21,9 @@ PanelWindow {
 
         onNotification: (notif) => {
             notif.tracked = true
+            const home = Quickshell.env("HOME")
+            const path = home + "/.config/quickshell/assets/sounds/notification.mp3"
+            Quickshell.execDetached(["pw-play", path])
         }
     }
 
