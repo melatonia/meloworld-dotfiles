@@ -16,5 +16,6 @@ Singleton {
         wifiPopupVisible = false
         visible = false
         AudioState.hide()
+        BrightnessState.hide()
     }
 }

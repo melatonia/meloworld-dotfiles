@@ -5,7 +5,7 @@ import "../theme"
 PopupBase {
     id: root
     implicitWidth:  300
-    borderColor:    Colors.teal200
+    borderColor:    PanelColors.audio
     clipContent:    false  // must be false so tooltips can overflow the panel bounds
     contentHeight:  popupColumn.implicitHeight
 
@@ -52,8 +52,8 @@ PopupBase {
             height:  visible ? 34 : 0
             spacing: 6
             leftPadding: 4
-            Text { text: "󰕾"; font.pixelSize: 16; font.family: "JetBrainsMono Nerd Font"; color: Colors.teal200; anchors.verticalCenter: parent.verticalCenter }
-            Text { text: "Output"; font.pixelSize: 16; font.bold: true; font.family: "JetBrainsMono Nerd Font"; color: Colors.grey200; anchors.verticalCenter: parent.verticalCenter }
+            Text { text: "󰕾"; font.pixelSize: 16; font.family: "JetBrainsMono Nerd Font"; color: PanelColors.audio; anchors.verticalCenter: parent.verticalCenter }
+            Text { text: "Output"; font.pixelSize: 16; font.bold: true; font.family: "JetBrainsMono Nerd Font"; color: PanelColors.textMain; anchors.verticalCenter: parent.verticalCenter }
         }
 
         Repeater {
@@ -69,7 +69,7 @@ PopupBase {
                     anchors { left: parent.left; verticalCenter: parent.verticalCenter; leftMargin: 14; right: parent.right; rightMargin: 8 }
                     text: root.shortName(modelData.description)
                     font.pixelSize: 13; font.bold: true; font.family: "JetBrainsMono Nerd Font"
-                    color: isActive ? PanelColors.pillForeground : Colors.grey200
+                    color: isActive ? PanelColors.pillForeground : PanelColors.textMain
                     elide: Text.ElideRight
                 }
 
@@ -77,7 +77,7 @@ PopupBase {
                 Rectangle {
                     anchors { bottom: parent.top; bottomMargin: 6; horizontalCenter: parent.horizontalCenter }
                     width: tipText.implicitWidth + 16; height: 26; radius: 6
-                    color: PanelColors.rowBackground; border.color: Colors.teal200; border.width: 1
+                    color: PanelColors.rowBackground; border.color: PanelColors.audio; border.width: 1
                     z: 999
                     visible: opacity > 0
                     opacity: devMouse.containsMouse ? 1.0 : 0.0
@@ -106,8 +106,8 @@ PopupBase {
             height:  visible ? 34 : 0
             spacing: 6
             leftPadding: 4
-            Text { text: "󰍬"; font.pixelSize: 16; font.family: "JetBrainsMono Nerd Font"; color: Colors.teal200; anchors.verticalCenter: parent.verticalCenter }
-            Text { text: "Input"; font.pixelSize: 16; font.bold: true; font.family: "JetBrainsMono Nerd Font"; color: Colors.grey200; anchors.verticalCenter: parent.verticalCenter }
+            Text { text: "󰍬"; font.pixelSize: 16; font.family: "JetBrainsMono Nerd Font"; color: PanelColors.audio; anchors.verticalCenter: parent.verticalCenter }
+            Text { text: "Input"; font.pixelSize: 16; font.bold: true; font.family: "JetBrainsMono Nerd Font"; color: PanelColors.textMain; anchors.verticalCenter: parent.verticalCenter }
         }
 
         Repeater {
@@ -123,7 +123,7 @@ PopupBase {
                     anchors { left: parent.left; verticalCenter: parent.verticalCenter; leftMargin: 14; right: parent.right; rightMargin: 8 }
                     text: root.shortName(modelData.description)
                     font.pixelSize: 13; font.bold: true; font.family: "JetBrainsMono Nerd Font"
-                    color: isActive ? PanelColors.pillForeground : Colors.grey200
+                    color: isActive ? PanelColors.pillForeground : PanelColors.textMain
                     elide: Text.ElideRight
                 }
 
@@ -131,7 +131,7 @@ PopupBase {
                 Rectangle {
                     anchors { bottom: parent.top; bottomMargin: 6; horizontalCenter: parent.horizontalCenter }
                     width: inTipText.implicitWidth + 16; height: 26; radius: 6
-                    color: PanelColors.rowBackground; border.color: Colors.teal200; border.width: 1
+                    color: PanelColors.rowBackground; border.color: PanelColors.audio; border.width: 1
                     z: 999
                     visible: opacity > 0
                     opacity: inMouse.containsMouse ? 1.0 : 0.0
@@ -163,17 +163,17 @@ PopupBase {
                 spacing: 8
                 Text {
                     text: AudioState.muted ? "󰝟" : "󰕾"
-                    font.pixelSize: 16
-                    color: AudioState.muted ? Colors.grey500 : Colors.teal200
+                    font.pixelSize: 16; font.family: "JetBrainsMono Nerd Font"
+                    color: AudioState.muted ? PanelColors.textDim : PanelColors.audio
                     anchors.verticalCenter: parent.verticalCenter
                     MouseArea { anchors.fill: parent; onClicked: AudioState.setMute(!AudioState.muted) }
                 }
-                AudioSlider {
+                PanelSlider {
                     width: parent.width - 64; anchors.verticalCenter: parent.verticalCenter
-                    value: AudioState.volume; accentColor: AudioState.muted ? Colors.grey600 : Colors.teal200
+                    value: AudioState.volume; accentColor: AudioState.muted ? PanelColors.textDim : PanelColors.audio
                     onMoved: (v) => AudioState.setVolume(v)
                 }
-                Text { text: AudioState.volume + "%"; width: 32; font.pixelSize: 12; color: Colors.grey300; horizontalAlignment: Text.AlignRight; anchors.verticalCenter: parent.verticalCenter }
+                Text { text: AudioState.volume + "%"; width: 32; font.pixelSize: 12; font.family: "JetBrainsMono Nerd Font"; color: PanelColors.textMain; horizontalAlignment: Text.AlignRight; anchors.verticalCenter: parent.verticalCenter }
             }
         }
 
@@ -184,17 +184,17 @@ PopupBase {
                 spacing: 8
                 Text {
                     text: AudioState.micMuted ? "󰍭" : "󰍬"
-                    font.pixelSize: 16
-                    color: AudioState.micMuted ? Colors.grey500 : Colors.teal200
+                    font.pixelSize: 16; font.family: "JetBrainsMono Nerd Font"
+                    color: AudioState.micMuted ? PanelColors.textDim : PanelColors.audio
                     anchors.verticalCenter: parent.verticalCenter
                     MouseArea { anchors.fill: parent; onClicked: AudioState.setMicMute(!AudioState.micMuted) }
                 }
-                AudioSlider {
+                PanelSlider {
                     width: parent.width - 64; anchors.verticalCenter: parent.verticalCenter
-                    value: AudioState.micVolume; accentColor: AudioState.micMuted ? Colors.grey600 : Colors.teal200
+                    value: AudioState.micVolume; accentColor: AudioState.micMuted ? PanelColors.textDim : PanelColors.audio
                     onMoved: (v) => AudioState.setMicVolume(v)
                 }
-                Text { text: AudioState.micVolume + "%"; width: 32; font.pixelSize: 12; color: Colors.grey300; horizontalAlignment: Text.AlignRight; anchors.verticalCenter: parent.verticalCenter }
+                Text { text: AudioState.micVolume + "%"; width: 32; font.pixelSize: 12; font.family: "JetBrainsMono Nerd Font"; color: PanelColors.textMain; horizontalAlignment: Text.AlignRight; anchors.verticalCenter: parent.verticalCenter }
             }
         }
 

@@ -4,7 +4,8 @@ import "../../theme"
 
 Pill {
     id: root
-    pillColor: PanelColors.bluetooth
+    pillColor: (adapter && adapter.enabled) ? PanelColors.bluetooth : PanelColors.rowBackground
+    textColor: (adapter && adapter.enabled) ? PanelColors.pillForeground : PanelColors.textMain
     property var adapter: Bluetooth.defaultAdapter
     property var connectedDevices: Bluetooth.devices
     label: {

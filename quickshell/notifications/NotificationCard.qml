@@ -20,7 +20,7 @@ Rectangle {
 
     // ── Accent color ──────────────────────────────
     readonly property color accentColor: {
-        if (notification.urgency === Notification.Critical) return Colors.red300
+        if (notification.urgency === Notification.Critical) return Colors.red200
         if (notification.hints["x-hint-color"])             return notification.hints["x-hint-color"]
         return hashColor(notification.appName)
     }
@@ -190,7 +190,7 @@ Rectangle {
                     text: ""
                     font.pixelSize: 11
                     font.family:    "JetBrainsMono Nerd Font"
-                    color: Colors.grey500
+                    color: PanelColors.textDim
                     MouseArea {
                         anchors.fill: parent
                         onClicked: root.dismiss()
@@ -216,7 +216,7 @@ Rectangle {
             font.pixelSize: 18
             font.bold:      true
             font.family:    "JetBrainsMono Nerd Font"
-            color: Colors.grey100
+            color: PanelColors.textAccent
             width: parent.width
             wrapMode:        Text.WordWrap
             maximumLineCount: 2
@@ -231,7 +231,7 @@ Rectangle {
             text:    notification.body
             font.pixelSize: 14
             font.family:    "JetBrainsMono Nerd Font"
-            color: Colors.grey300
+            color: PanelColors.textMain
             width: parent.width
             wrapMode:        Text.WordWrap
             maximumLineCount: 3

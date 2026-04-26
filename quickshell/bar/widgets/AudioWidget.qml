@@ -3,9 +3,10 @@ import "../../theme"
 
 Pill {
     id: root
-    pillColor: PanelColors.audio
+    pillColor: (AudioState.muted || AudioState.volume === 0) ? PanelColors.rowBackground : PanelColors.audio
+    textColor: (AudioState.muted || AudioState.volume === 0) ? PanelColors.textMain : PanelColors.pillForeground
 
-    label: (AudioState.muted || AudioState.volume === 0) ? "󰝟" : "󰕾 " + AudioState.volume + "%"
+    label: (AudioState.muted || AudioState.volume === 0) ? "󰝟 Muted" : "󰕾 " + AudioState.volume + "%"
 
     mouseArea.onClicked: AudioState.popupVisible ? AudioState.hide() : AudioState.show()
     mouseArea.onWheel: (wheel) => {

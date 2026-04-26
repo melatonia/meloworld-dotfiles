@@ -22,6 +22,11 @@ ShellRoot {
                 anchor.rect.x: Math.min(bar.rightContainer.x + bar.rightBar.x + bar.rightBar.audioWidget.x + (bar.rightBar.audioWidget.width / 2) - (implicitWidth / 2), bar.rightContainer.x + bar.rightContainer.width - implicitWidth)
                 anchor.rect.y: panelWin.height
             }
+            BrightnessPopup {
+                anchor.window: panelWin
+                anchor.rect.x: Math.min(bar.rightContainer.x + bar.rightBar.x + bar.rightBar.brightnessWidget.x + (bar.rightBar.brightnessWidget.width / 2) - (implicitWidth / 2), bar.rightContainer.x + bar.rightContainer.width - implicitWidth)
+                anchor.rect.y: panelWin.height
+            }
             PowerProfilePopup {
                 anchor.window: panelWin
                 anchor.rect.x: Math.min(bar.rightContainer.x + bar.rightBar.x + bar.rightBar.batteryWidget.x + (bar.rightBar.batteryWidget.width / 2) - (implicitWidth / 2), bar.rightContainer.x + bar.rightContainer.width - implicitWidth)

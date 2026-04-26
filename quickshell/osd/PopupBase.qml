@@ -22,7 +22,7 @@ PopupWindow {
 
     // ── Configuration ─────────────────────────────
     property string animState:     "closed"
-    property color  borderColor:   Colors.grey700
+    property color  borderColor:   PanelColors.border
     property bool   clipContent:   true
     // Bind this to your content Column's implicitHeight:
     property int    contentHeight: 0

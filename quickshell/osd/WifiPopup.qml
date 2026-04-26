@@ -131,7 +131,7 @@ PanelWindow {
 
         radius: 10
         color: PanelColors.popupBackground
-        border.color: NetworkState.wifiEnabled ? PanelColors.network : Colors.grey700
+        border.color: NetworkState.wifiEnabled ? PanelColors.network : PanelColors.border
         border.width: 2
         clip: true
 
@@ -169,12 +169,12 @@ PanelWindow {
                         Text {
                             text: NetworkState.wifiEnabled ? "󰤨" : "󰤭"
                             font.pixelSize: 15; font.family: "JetBrainsMono Nerd Font"
-                            color: NetworkState.wifiEnabled ? PanelColors.pillForeground : Colors.grey200
+                            color: NetworkState.wifiEnabled ? PanelColors.pillForeground : PanelColors.textMain
                         }
                         Text {
                             text: NetworkState.wifiEnabled ? "WiFi On" : "WiFi Off"
                             font.pixelSize: 13; font.bold: true; font.family: "JetBrainsMono Nerd Font"
-                            color: NetworkState.wifiEnabled ? PanelColors.pillForeground : Colors.grey200
+                            color: NetworkState.wifiEnabled ? PanelColors.pillForeground : PanelColors.textMain
                         }
                     }
                     MouseArea {
@@ -240,12 +240,12 @@ PanelWindow {
                             Text {
                                 text: root.signalIcon(modelData.signal)
                                 font.pixelSize: 15; font.family: "JetBrainsMono Nerd Font"
-                                color: Colors.grey200
+                                color: PanelColors.textMain
                             }
                             Text {
                                 text: modelData.ssid
                                 font.pixelSize: 13; font.bold: true; font.family: "JetBrainsMono Nerd Font"
-                                color: Colors.grey200
+                                color: PanelColors.textMain
                                 elide: Text.ElideRight
                                 width: parent.width - 23 - 8 - knownKeyIcon.width - 8
                             }
@@ -276,12 +276,12 @@ PanelWindow {
                 Rectangle {
                     visible: NetworkState.wifiEnabled
                     width: parent.width; height: visible ? 34 : 0; radius: 6
-                    color: NetworkState.isScanning ? Colors.deepPurple200 : PanelColors.rowBackground
+                    color: NetworkState.isScanning ? PanelColors.networkScanning : PanelColors.rowBackground
                     Rectangle {
                         visible: !NetworkState.isScanning
                         width: 3; height: parent.height - 10; radius: 2
                         anchors { left: parent.left; leftMargin: 4; verticalCenter: parent.verticalCenter }
-                        color: Colors.deepPurple200
+                        color: PanelColors.networkScanning
                     }
                     Row {
                         anchors { left: parent.left; leftMargin: 14; verticalCenter: parent.verticalCenter }
@@ -289,7 +289,7 @@ PanelWindow {
                         Text {
                             text: "󰑐"
                             font.pixelSize: 15; font.family: "JetBrainsMono Nerd Font"
-                            color: NetworkState.isScanning ? PanelColors.pillForeground : Colors.grey200
+                            color: NetworkState.isScanning ? PanelColors.pillForeground : PanelColors.textMain
                             SequentialAnimation on opacity {
                                 running: NetworkState.isScanning
                                 loops: Animation.Infinite
@@ -300,7 +300,7 @@ PanelWindow {
                         Text {
                             text: NetworkState.isScanning ? "Scanning..." : "Scan"
                             font.pixelSize: 13; font.bold: true; font.family: "JetBrainsMono Nerd Font"
-                            color: NetworkState.isScanning ? PanelColors.pillForeground : Colors.grey200
+                            color: NetworkState.isScanning ? PanelColors.pillForeground : PanelColors.textMain
                         }
                     }
                     MouseArea {
@@ -334,7 +334,7 @@ PanelWindow {
                         Text {
                             text: "Connecting..."
                             font.pixelSize: 13; font.bold: true; font.family: "JetBrainsMono Nerd Font"
-                            color: Colors.grey200
+                            color: PanelColors.textMain
                         }
                     }
                 }
@@ -347,7 +347,7 @@ PanelWindow {
                     Rectangle {
                         width: 3; height: parent.height - 10; radius: 2
                         anchors { left: parent.left; leftMargin: 4; verticalCenter: parent.verticalCenter }
-                        color: Colors.grey500
+                        color: PanelColors.textDim
                     }
                     Row {
                         anchors { left: parent.left; leftMargin: 14; verticalCenter: parent.verticalCenter }
@@ -355,12 +355,12 @@ PanelWindow {
                         Text {
                             text: "󰈀"
                             font.pixelSize: 15; font.family: "JetBrainsMono Nerd Font"
-                            color: Colors.grey400
+                            color: PanelColors.textDim
                         }
                         Text {
                             text: "Open nmtui..."
                             font.pixelSize: 13; font.bold: true; font.family: "JetBrainsMono Nerd Font"
-                            color: Colors.grey400
+                            color: PanelColors.textDim
                         }
                     }
                     MouseArea {
@@ -402,7 +402,7 @@ PanelWindow {
                                     Rectangle {
                                         width: 3; height: parent.height - 10; radius: 2
                                         anchors { left: parent.left; leftMargin: 4; verticalCenter: parent.verticalCenter }
-                                        color: Colors.grey600
+                                        color: PanelColors.textDim
                                     }
                                     Row {
                                         anchors { left: parent.left; leftMargin: 14; right: parent.right; rightMargin: 10; verticalCenter: parent.verticalCenter }
@@ -410,12 +410,12 @@ PanelWindow {
                                         Text {
                                             text: root.signalIcon(modelData.signal)
                                             font.pixelSize: 15; font.family: "JetBrainsMono Nerd Font"
-                                            color: Colors.grey200
+                                            color: PanelColors.textMain
                                         }
                                         Text {
                                             text: modelData.ssid
                                             font.pixelSize: 13; font.bold: true; font.family: "JetBrainsMono Nerd Font"
-                                            color: Colors.grey200
+                                            color: PanelColors.textMain
                                             elide: Text.ElideRight
                                             width: parent.width - 23 - 8 - lockIcon.width - 8
                                         }
@@ -423,7 +423,7 @@ PanelWindow {
                                             id: lockIcon
                                             text: root.isSecured(modelData.security) ? "󰌾" : ""
                                             font.pixelSize: 12; font.family: "JetBrainsMono Nerd Font"
-                                            color: Colors.grey500
+                                            color: PanelColors.textDim
                                         }
                                     }
                                     MouseArea {
@@ -450,12 +450,12 @@ PanelWindow {
                             Text {
                                 text: ""
                                 font.pixelSize: 12; font.family: "JetBrainsMono Nerd Font"
-                                color: Colors.grey500
+                                color: PanelColors.textDim
                             }
                             Text {
                                 text: "scroll up"
                                 font.pixelSize: 11; font.family: "JetBrainsMono Nerd Font"
-                                color: Colors.grey500
+                                color: PanelColors.textDim
                             }
                         }
                     }
@@ -472,12 +472,12 @@ PanelWindow {
                             Text {
                                 text: ""
                                 font.pixelSize: 12; font.family: "JetBrainsMono Nerd Font"
-                                color: Colors.grey500
+                                color: PanelColors.textDim
                             }
                             Text {
                                 text: "scroll for more"
                                 font.pixelSize: 11; font.family: "JetBrainsMono Nerd Font"
-                                color: Colors.grey500
+                                color: PanelColors.textDim
                             }
                         }
                     }
@@ -504,7 +504,7 @@ PanelWindow {
                     Rectangle {
                         width: 3; height: parent.height - 10; radius: 2
                         anchors { left: parent.left; leftMargin: 4; verticalCenter: parent.verticalCenter }
-                        color: Colors.grey500
+                        color: PanelColors.textDim
                     }
                     Row {
                         anchors { left: parent.left; leftMargin: 14; verticalCenter: parent.verticalCenter }
@@ -512,12 +512,12 @@ PanelWindow {
                         Text {
                             text: "󰁍"
                             font.pixelSize: 15; font.family: "JetBrainsMono Nerd Font"
-                            color: Colors.grey200
+                            color: PanelColors.textMain
                         }
                         Text {
                             text: "Back"
                             font.pixelSize: 13; font.bold: true; font.family: "JetBrainsMono Nerd Font"
-                            color: Colors.grey200
+                            color: PanelColors.textMain
                         }
                     }
                     MouseArea {
@@ -555,7 +555,7 @@ PanelWindow {
                 Rectangle {
                     width: parent.width; height: 34; radius: 6
                     color: pwInput.activeFocus ? Qt.lighter(PanelColors.rowBackground, 1.15) : PanelColors.rowBackground
-                    border.color: NetworkState.connectError !== "" ? Colors.red400 : (pwInput.activeFocus ? PanelColors.network : "transparent")
+                    border.color: NetworkState.connectError !== "" ? PanelColors.error : (pwInput.activeFocus ? PanelColors.network : "transparent")
                     border.width: pwInput.activeFocus || NetworkState.connectError !== "" ? 1 : 0
                     Row {
                         anchors { left: parent.left; leftMargin: 14; right: parent.right; rightMargin: 10; verticalCenter: parent.verticalCenter }
@@ -563,13 +563,13 @@ PanelWindow {
                         Text {
                             text: "󰌾"
                             font.pixelSize: 15; font.family: "JetBrainsMono Nerd Font"
-                            color: Colors.grey400
+                            color: PanelColors.textDim
                         }
                         TextInput {
                             id: pwInput
                             width: parent.width - 23 - 8 - toggleVis.width - 8
                             font.pixelSize: 13; font.bold: true; font.family: "JetBrainsMono Nerd Font"
-                            color: Colors.grey200
+                            color: PanelColors.textMain
                             selectionColor: PanelColors.network
                             selectedTextColor: PanelColors.pillForeground
                             echoMode: showPw.checked ? TextInput.Normal : TextInput.Password
@@ -590,7 +590,7 @@ PanelWindow {
                             id: toggleVis
                             text: showPw.checked ? "󰈈" : "󰈉"
                             font.pixelSize: 15; font.family: "JetBrainsMono Nerd Font"
-                            color: Colors.grey400
+                            color: PanelColors.textDim
                             MouseArea {
                                 anchors.fill: parent; hoverEnabled: true
                                 cursorShape: Qt.PointingHandCursor
@@ -607,7 +607,7 @@ PanelWindow {
                         anchors { left: parent.left; leftMargin: 37; verticalCenter: parent.verticalCenter }
                         text: "Password"
                         font.pixelSize: 13; font.family: "JetBrainsMono Nerd Font"
-                        color: Colors.grey600
+                        color: PanelColors.textDim
                     }
                 }
 
@@ -626,7 +626,7 @@ PanelWindow {
                         anchors.centerIn: parent
                         text: NetworkState.connectError
                         font.pixelSize: 11; font.bold: true; font.family: "JetBrainsMono Nerd Font"
-                        color: Colors.red400
+                        color: PanelColors.error
                     }
                 }
 
@@ -640,12 +640,12 @@ PanelWindow {
                         Text {
                             text: "󰤨"
                             font.pixelSize: 15; font.family: "JetBrainsMono Nerd Font"
-                            color: root.passwordText.length > 0 ? PanelColors.pillForeground : Colors.grey500
+                            color: root.passwordText.length > 0 ? PanelColors.pillForeground : PanelColors.textDim
                         }
                         Text {
                             text: "Connect"
                             font.pixelSize: 13; font.bold: true; font.family: "JetBrainsMono Nerd Font"
-                            color: root.passwordText.length > 0 ? PanelColors.pillForeground : Colors.grey500
+                            color: root.passwordText.length > 0 ? PanelColors.pillForeground : PanelColors.textDim
                         }
                     }
                     MouseArea {

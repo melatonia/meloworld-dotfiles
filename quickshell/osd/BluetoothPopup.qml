@@ -7,7 +7,7 @@ import "../theme"
 PopupBase {
     id: root
     implicitWidth:  240
-    borderColor:    root.btOn ? Colors.lightBlue200 : Colors.grey700
+    borderColor:    root.btOn ? PanelColors.bluetooth : PanelColors.border
     clipContent:    true
     contentHeight:  column.implicitHeight
 
@@ -49,13 +49,13 @@ PopupBase {
                 Text {
                     text: ""
                     font.pixelSize: 15; font.family: "JetBrainsMono Nerd Font"
-                    color: root.btOn ? PanelColors.pillForeground : Colors.grey200
+                    color: root.btOn ? PanelColors.pillForeground : PanelColors.textMain
                     anchors.verticalCenter: parent.verticalCenter
                 }
                 Text {
                     text: root.btOn ? "Bluetooth On" : "Bluetooth Off"
                     font.pixelSize: 13; font.bold: true; font.family: "JetBrainsMono Nerd Font"
-                    color: root.btOn ? PanelColors.pillForeground : Colors.grey200
+                    color: root.btOn ? PanelColors.pillForeground : PanelColors.textMain
                     anchors.verticalCenter: parent.verticalCenter
                 }
             }
@@ -89,13 +89,13 @@ PopupBase {
                     Text {
                         text: modelData.connected ? "" : ""
                         font.pixelSize: 15; font.family: "JetBrainsMono Nerd Font"
-                        color: modelData.connected ? PanelColors.pillForeground : Colors.grey200
+                        color: modelData.connected ? PanelColors.pillForeground : PanelColors.textMain
                         anchors.verticalCenter: parent.verticalCenter
                     }
                     Text {
                         text: modelData.name
                         font.pixelSize: 13; font.bold: true; font.family: "JetBrainsMono Nerd Font"
-                        color: modelData.connected ? PanelColors.pillForeground : Colors.grey200
+                        color: modelData.connected ? PanelColors.pillForeground : PanelColors.textMain
                         elide: Text.ElideRight
                         width: parent.width - 23 - 8
                                - (modelData.connected && modelData.batteryAvailable ? 36 : 0)
@@ -130,13 +130,13 @@ PopupBase {
         Rectangle {
             visible: root.btOn
             width: parent.width; height: visible ? 34 : 0; radius: 6
-            color: root.scanning ? Colors.teal400 : PanelColors.rowBackground
+            color: root.scanning ? PanelColors.scanning : PanelColors.rowBackground
 
             Rectangle {
                 visible: !root.scanning
                 width: 3; height: parent.height - 10; radius: 2
                 anchors { left: parent.left; leftMargin: 4; verticalCenter: parent.verticalCenter }
-                color: Colors.teal400
+                color: PanelColors.scanning
             }
             Row {
                 anchors { left: parent.left; verticalCenter: parent.verticalCenter; leftMargin: 14 }
@@ -144,7 +144,7 @@ PopupBase {
                 Text {
                     text: root.scanning ? "" : ""
                     font.pixelSize: 15; font.family: "JetBrainsMono Nerd Font"
-                    color: root.scanning ? PanelColors.pillForeground : Colors.grey200
+                    color: root.scanning ? PanelColors.pillForeground : PanelColors.textMain
                     anchors.verticalCenter: parent.verticalCenter
                     SequentialAnimation on opacity {
                         running: root.scanning
@@ -156,7 +156,7 @@ PopupBase {
                 Text {
                     text: root.scanning ? "Scanning..." : "Scan"
                     font.pixelSize: 13; font.bold: true; font.family: "JetBrainsMono Nerd Font"
-                    color: root.scanning ? PanelColors.pillForeground : Colors.grey200
+                    color: root.scanning ? PanelColors.pillForeground : PanelColors.textMain
                     anchors.verticalCenter: parent.verticalCenter
                 }
             }
@@ -178,7 +178,7 @@ PopupBase {
             Rectangle {
                 width: 3; height: parent.height - 10; radius: 2
                 anchors { left: parent.left; leftMargin: 4; verticalCenter: parent.verticalCenter }
-                color: Colors.grey500
+                color: PanelColors.textDim
             }
             Row {
                 anchors { left: parent.left; verticalCenter: parent.verticalCenter; leftMargin: 14 }
@@ -242,13 +242,13 @@ PopupBase {
                             width:   unpairedColumn.width
                             height:  show ? 34 : 0
                             radius: 6
-                            color:  modelData.pairing ? Colors.yellow600 : PanelColors.rowBackground
+                            color:  modelData.pairing ? PanelColors.pairing : PanelColors.rowBackground
 
                             Rectangle {
                                 visible: !modelData.pairing
                                 width: 3; height: parent.height - 10; radius: 2
                                 anchors { left: parent.left; leftMargin: 4; verticalCenter: parent.verticalCenter }
-                                color: Colors.yellow600
+                                color: PanelColors.pairing
                             }
                             Row {
                                 anchors { left: parent.left; verticalCenter: parent.verticalCenter; leftMargin: 14; right: parent.right; rightMargin: 10 }
@@ -256,13 +256,13 @@ PopupBase {
                                 Text {
                                     text: modelData.pairing ? "" : ""
                                     font.pixelSize: 15; font.family: "JetBrainsMono Nerd Font"
-                                    color: modelData.pairing ? PanelColors.pillForeground : Colors.grey200
+                                    color: modelData.pairing ? PanelColors.pillForeground : PanelColors.textMain
                                     anchors.verticalCenter: parent.verticalCenter
                                 }
                                 Text {
                                     text: modelData.name
                                     font.pixelSize: 13; font.bold: true; font.family: "JetBrainsMono Nerd Font"
-                                    color: modelData.pairing ? PanelColors.pillForeground : Colors.grey200
+                                    color: modelData.pairing ? PanelColors.pillForeground : PanelColors.textMain
                                     elide: Text.ElideRight
                                     width: parent.width - 23 - 8
                                     anchors.verticalCenter: parent.verticalCenter
@@ -288,8 +288,8 @@ PopupBase {
                 color: PanelColors.rowBackground
                 Row {
                     anchors.centerIn: parent; spacing: 6
-                    Text { text: ""; font.pixelSize: 12; font.family: "JetBrainsMono Nerd Font"; color: Colors.grey500; anchors.verticalCenter: parent.verticalCenter }
-                    Text { text: "scroll up"; font.pixelSize: 11; font.family: "JetBrainsMono Nerd Font"; color: Colors.grey500; anchors.verticalCenter: parent.verticalCenter }
+                    Text { text: ""; font.pixelSize: 12; font.family: "JetBrainsMono Nerd Font"; color: PanelColors.textDim; anchors.verticalCenter: parent.verticalCenter }
+                    Text { text: "scroll up"; font.pixelSize: 11; font.family: "JetBrainsMono Nerd Font"; color: PanelColors.textDim; anchors.verticalCenter: parent.verticalCenter }
                 }
             }
             Rectangle {
@@ -299,8 +299,8 @@ PopupBase {
                 color: PanelColors.rowBackground
                 Row {
                     anchors.centerIn: parent; spacing: 6
-                    Text { text: ""; font.pixelSize: 12; font.family: "JetBrainsMono Nerd Font"; color: Colors.grey500; anchors.verticalCenter: parent.verticalCenter }
-                    Text { text: "scroll for more"; font.pixelSize: 11; font.family: "JetBrainsMono Nerd Font"; color: Colors.grey500; anchors.verticalCenter: parent.verticalCenter }
+                    Text { text: ""; font.pixelSize: 12; font.family: "JetBrainsMono Nerd Font"; color: PanelColors.textDim; anchors.verticalCenter: parent.verticalCenter }
+                    Text { text: "scroll for more"; font.pixelSize: 11; font.family: "JetBrainsMono Nerd Font"; color: PanelColors.textDim; anchors.verticalCenter: parent.verticalCenter }
                 }
             }
         }

@@ -23,16 +23,16 @@ Pill {
 
     label: {
         var ico = getIcon()
-        if (!wifiEnabled) return ico + " Off"
+        if (!wifiEnabled && !NetworkState.ethernetConnected) return ico + " Off"
+        if (NetworkState.ethernetConnected) return "󰈀 ETH"
         if (!connected) return ico + " Dis"
-        if (ssid === "") return "󰈀 ETH"
         
-        // Back to the 'Bluetooth standard' of 8 characters
         var shortSSID = ssid.length > 8 ? ssid.substring(0, 8) + ".." : ssid
         return ico + " " + shortSSID
     }
 
-    pillColor: connected ? PanelColors.network : PanelColors.rowBackground
+    pillColor: (connected || NetworkState.ethernetConnected) ? PanelColors.network : PanelColors.rowBackground
+    textColor: (connected || NetworkState.ethernetConnected) ? PanelColors.pillForeground : PanelColors.textMain
 
     mouseArea.onClicked: function(mouse) {
         if (SessionState.wifiPopupVisible) {

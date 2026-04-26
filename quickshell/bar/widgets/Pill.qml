@@ -4,6 +4,7 @@ import "../../theme"
 Rectangle {
     id: root
     property color pillColor: PanelColors.audio
+    property color textColor: PanelColors.pillForeground
     property string label: ""
     property alias mouseArea: mouseArea
 
@@ -29,6 +30,6 @@ Rectangle {
         font.pixelSize: 16
         font.bold: true
         font.family: "JetBrainsMono Nerd Font"
-        color: PanelColors.pillForeground
+        color: root.textColor
     }
 }

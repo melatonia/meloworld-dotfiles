@@ -1,7 +1,8 @@
 PopupBase 1.0 PopupBase.qml
 SessionPopup 1.0 SessionPopup.qml
 AudioPopup 1.0 AudioPopup.qml
-AudioSlider 1.0 AudioSlider.qml
+PanelSlider 1.0 PanelSlider.qml
+BrightnessPopup 1.0 BrightnessPopup.qml
 PowerProfilePopup 1.0 PowerProfilePopup.qml
 BluetoothPopup 1.0 BluetoothPopup.qml
 WifiPopup 1.0 WifiPopup.qml

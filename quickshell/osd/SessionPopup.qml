@@ -62,12 +62,12 @@ PopupBase {
                         Text {
                             text: modelData.icon
                             font.pixelSize: 15; font.family: "JetBrainsMono Nerd Font"
-                            color: Colors.grey200; anchors.verticalCenter: parent.verticalCenter
+                            color: PanelColors.textMain; anchors.verticalCenter: parent.verticalCenter
                         }
                         Text {
                             text: modelData.label
                             font.pixelSize: 13; font.bold: true; font.family: "JetBrainsMono Nerd Font"
-                            color: Colors.grey200; anchors.verticalCenter: parent.verticalCenter
+                            color: PanelColors.textMain; anchors.verticalCenter: parent.verticalCenter
                         }
                     }
                     MouseArea {
@@ -107,7 +107,7 @@ PopupBase {
                     anchors.centerIn: parent
                     text: "Are you sure?"
                     font.pixelSize: 13; font.bold: true; font.family: "JetBrainsMono Nerd Font"
-                    color: Colors.white
+                    color: PanelColors.textAccent
                 }
             }
 
@@ -123,7 +123,7 @@ PopupBase {
                         anchors.centerIn: parent
                         text: "No"
                         font.pixelSize: 13; font.bold: true; font.family: "JetBrainsMono Nerd Font"
-                        color: Colors.grey200
+                        color: PanelColors.textMain
                     }
                     MouseArea {
                         anchors.fill: parent; hoverEnabled: true

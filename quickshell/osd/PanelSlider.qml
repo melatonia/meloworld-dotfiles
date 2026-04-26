@@ -7,7 +7,7 @@ Item {
     property real value: 0
     property real from: 0
     property real to: 100
-    property color accentColor: PanelColors.audio
+    property color accentColor: Colors.teal200
     signal moved(real value)
 
     property bool dragging: mouseArea.pressed

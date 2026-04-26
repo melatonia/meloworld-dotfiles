@@ -25,6 +25,16 @@ Singleton {
     readonly property color popupBackground:   Colors.grey900
     readonly property color rowBackground:     Colors.grey800
     readonly property color trackBackground:   Qt.rgba(1, 1, 1, 0.15)
+    readonly property color border:            Colors.grey700
+
+    readonly property color textMain:          Colors.grey200
+    readonly property color textDim:           Colors.grey500
+    readonly property color textAccent:        Colors.white
+
+    readonly property color scanning:          Colors.teal400
+    readonly property color networkScanning:   Colors.deepPurple200
+    readonly property color pairing:           Colors.yellow600
+    readonly property color error:             Colors.red400
 
     // Returns the accent color for a given PowerProfile value.
     // Used by BatteryWidget (pill) and PowerProfilePopup (border + row highlight)

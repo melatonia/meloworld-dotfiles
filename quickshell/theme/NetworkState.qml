@@ -12,6 +12,7 @@ Singleton {
     property int activeSignal: 0
     property var networks: []
     property var knownSSIDs: []
+    property bool ethernetConnected: false
 
     property bool connecting: false
     property string connectError: ""
@@ -126,19 +127,25 @@ Singleton {
                 var raw = text || ""
                 var lines = raw.trim().split("\n")
                 var hasWifi = false
+                var hasEthernet = false
                 var activeConn = ""
                 for (var i = 0; i < lines.length; i++) {
                     var parts = lines[i].split(":")
                     if (parts.length >= 2) {
                         var type = parts[0].trim()
                         var state = parts[1].trim()
-                        if (type === "wifi" && state.indexOf("connected") !== -1) {
-                            hasWifi = true
-                            activeConn = parts.length > 2 ? parts[2].trim() : ""
+                        if (state.indexOf("connected") !== -1) {
+                            if (type === "wifi") {
+                                hasWifi = true
+                                activeConn = parts.length > 2 ? parts[2].trim() : ""
+                            } else if (type === "ethernet") {
+                                hasEthernet = true
+                            }
                         }
                     }
                 }
                 root.connected = hasWifi
+                root.ethernetConnected = hasEthernet
                 root.activeSSID = activeConn
             }
         }

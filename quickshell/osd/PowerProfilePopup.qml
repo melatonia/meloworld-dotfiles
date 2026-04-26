@@ -50,13 +50,13 @@ PopupBase {
                     Text {
                         text: modelData.icon
                         font.pixelSize: 15; font.family: "JetBrainsMono Nerd Font"
-                        color: isActive ? PanelColors.pillForeground : Colors.grey200
+                        color: isActive ? PanelColors.pillForeground : PanelColors.textMain
                         anchors.verticalCenter: parent.verticalCenter
                     }
                     Text {
                         text: modelData.label
                         font.pixelSize: 13; font.bold: true; font.family: "JetBrainsMono Nerd Font"
-                        color: isActive ? PanelColors.pillForeground : Colors.grey200
+                        color: isActive ? PanelColors.pillForeground : PanelColors.textMain
                         anchors.verticalCenter: parent.verticalCenter
                     }
                 }
