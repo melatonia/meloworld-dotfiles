@@ -1,5 +1,6 @@
 import QtQuick
 import Quickshell
+import Quickshell.Wayland
 import "../theme"
 
 PanelWindow {
@@ -8,18 +9,17 @@ PanelWindow {
     implicitWidth: 260
     implicitHeight: 500
     color: "transparent"
-    
-    focusable: true
-    exclusiveZone: 0
-    
+
+    WlrLayershell.keyboardFocus: WlrKeyboardFocus.OnDemand
+
     property int xPos: 0
     property int yPos: 0
     property var screenObj: null
-    
+
     screen: screenObj
     anchors.top: true
     anchors.left: true
-    
+
     margins.top: 0
     margins.left: xPos
 
@@ -30,7 +30,7 @@ PanelWindow {
     property string targetSSID: ""
     property string targetSecurity: ""
     property string passwordText: ""
-    readonly property int maxListHeight: 300
+    readonly property int maxListHeight: 5 * 34 + 4 * 4
 
     Connections {
         target: SessionState
@@ -73,19 +73,10 @@ PanelWindow {
         id: innerRect
         width: parent.width
         height: Math.min(contentCol.implicitHeight + 20, 500)
-        radius: 10
-        color: Colors.grey900
-        border.color: NetworkState.wifiEnabled ? Colors.purple200 : Colors.grey700
-        border.width: 2
-        clip: true
-
         Behavior on height {
-            SmoothedAnimation {
-                velocity: 800
-                easing.type: Easing.OutExpo
-            }
+            SmoothedAnimation { velocity: 800; easing.type: Easing.OutExpo }
         }
-        
+
         y: 0
         opacity: 1.0
 
@@ -93,92 +84,65 @@ PanelWindow {
             State {
                 name: "open"
                 when: root.animState === "open"
-                PropertyChanges {
-                    target: innerRect
-                    y: 0
-                    opacity: 1.0
-                }
+                PropertyChanges { target: innerRect; y: 0; opacity: 1.0 }
             },
             State {
                 name: "closing"
                 when: root.animState === "closing"
-                PropertyChanges {
-                    target: innerRect
-                    y: -20
-                    opacity: 0.0
-                }
+                PropertyChanges { target: innerRect; y: -20; opacity: 0.0 }
             }
         ]
 
         transitions: [
             Transition {
-                from: "*"
-                to: "open"
+                from: "*"; to: "open"
                 SequentialAnimation {
-                    PropertyAction {
-                        target: innerRect
-                        property: "y"
-                        value: -20
-                    }
-                    PropertyAction {
-                        target: innerRect
-                        property: "opacity"
-                        value: 0.0
-                    }
+                    PropertyAction { target: innerRect; property: "y"; value: -20 }
+                    PropertyAction { target: innerRect; property: "opacity"; value: 0.0 }
                     ParallelAnimation {
                         NumberAnimation {
-                            target: innerRect
-                            property: "y"
-                            to: 0
-                            duration: 250
-                            easing.type: Easing.OutExpo
+                            target: innerRect; property: "y"
+                            to: 0; duration: 250; easing.type: Easing.OutExpo
                         }
                         NumberAnimation {
-                            target: innerRect
-                            property: "opacity"
-                            to: 1.0
-                            duration: 180
-                            easing.type: Easing.OutCubic
+                            target: innerRect; property: "opacity"
+                            to: 1.0; duration: 180; easing.type: Easing.OutCubic
                         }
                     }
                 }
             },
             Transition {
-                from: "*"
-                to: "closing"
+                from: "*"; to: "closing"
                 SequentialAnimation {
                     ParallelAnimation {
                         NumberAnimation {
-                            target: innerRect
-                            property: "y"
-                            to: -20
-                            duration: 180
-                            easing.type: Easing.InCubic
+                            target: innerRect; property: "y"
+                            to: -20; duration: 180; easing.type: Easing.InCubic
                         }
                         NumberAnimation {
-                            target: innerRect
-                            property: "opacity"
-                            to: 0.0
-                            duration: 150
-                            easing.type: Easing.InCubic
+                            target: innerRect; property: "opacity"
+                            to: 0.0; duration: 150; easing.type: Easing.InCubic
                         }
                     }
-                    ScriptAction {
-                        script: root.animState = "closed"
-                    }
+                    ScriptAction { script: root.animState = "closed" }
                 }
             }
         ]
 
+        radius: 10
+        color: Colors.grey900
+        border.color: NetworkState.wifiEnabled ? Colors.purple200 : Colors.grey700
+        border.width: 2
+        clip: true
+
         Column {
             id: contentCol
-            anchors.top: parent.top
-            anchors.left: parent.left
-            anchors.right: parent.right
-            anchors.topMargin: 10
-            anchors.leftMargin: 10
-            anchors.rightMargin: 10
-            anchors.bottomMargin: 10
+            anchors {
+                top: parent.top
+                left: parent.left
+                right: parent.right
+                margins: 10
+            }
             spacing: 4
 
             Column {
@@ -187,92 +151,57 @@ PanelWindow {
                 spacing: 4
                 visible: root.viewState === "list"
                 opacity: visible ? 1.0 : 0.0
-                Behavior on opacity {
-                    NumberAnimation {
-                        duration: 150
-                    }
-                }
+                Behavior on opacity { NumberAnimation { duration: 150 } }
 
                 // 1. WiFi Toggle
                 Rectangle {
-                    width: parent.width
-                    height: 34
-                    radius: 6
+                    width: parent.width; height: 34; radius: 6
                     color: NetworkState.wifiEnabled ? Colors.purple200 : Colors.grey800
                     Rectangle {
                         visible: !NetworkState.wifiEnabled
-                        width: 3
-                        height: parent.height - 10
-                        radius: 2
-                        anchors.left: parent.left
-                        anchors.leftMargin: 4
-                        anchors.verticalCenter: parent.verticalCenter
+                        width: 3; height: parent.height - 10; radius: 2
+                        anchors { left: parent.left; leftMargin: 4; verticalCenter: parent.verticalCenter }
                         color: Colors.purple200
                     }
                     Row {
-                        anchors.left: parent.left
-                        anchors.leftMargin: 14
-                        anchors.verticalCenter: parent.verticalCenter
+                        anchors { left: parent.left; leftMargin: 14; verticalCenter: parent.verticalCenter }
                         spacing: 8
                         Text {
                             text: NetworkState.wifiEnabled ? "󰤨" : "󰤭"
-                            font.pixelSize: 15
-                            font.family: "JetBrainsMono Nerd Font"
+                            font.pixelSize: 15; font.family: "JetBrainsMono Nerd Font"
                             color: NetworkState.wifiEnabled ? Colors.grey900 : Colors.grey200
                         }
                         Text {
                             text: NetworkState.wifiEnabled ? "WiFi On" : "WiFi Off"
-                            font.pixelSize: 13
-                            font.bold: true
-                            font.family: "JetBrainsMono Nerd Font"
+                            font.pixelSize: 13; font.bold: true; font.family: "JetBrainsMono Nerd Font"
                             color: NetworkState.wifiEnabled ? Colors.grey900 : Colors.grey200
                         }
                     }
                     MouseArea {
-                        anchors.fill: parent
-                        hoverEnabled: true
-                        onEntered: {
-                            parent.opacity = 0.8
-                        }
-                        onExited: {
-                            parent.opacity = 1.0
-                        }
-                        onClicked: {
-                            NetworkState.toggleWifi()
-                        }
+                        anchors.fill: parent; hoverEnabled: true
+                        onEntered: parent.opacity = 0.8
+                        onExited: parent.opacity = 1.0
+                        onClicked: NetworkState.toggleWifi()
                     }
-                    Behavior on opacity {
-                        NumberAnimation {
-                            duration: 150
-                        }
-                    }
+                    Behavior on opacity { NumberAnimation { duration: 150 } }
                 }
 
                 // 2. Active Connection
                 Rectangle {
                     visible: NetworkState.wifiEnabled && NetworkState.activeSSID !== ""
-                    width: parent.width
-                    height: visible ? 34 : 0
-                    radius: 6
+                    width: parent.width; height: visible ? 34 : 0; radius: 6
                     color: Colors.purple200
                     Row {
-                        anchors.left: parent.left
-                        anchors.leftMargin: 14
-                        anchors.right: parent.right
-                        anchors.rightMargin: 10
-                        anchors.verticalCenter: parent.verticalCenter
+                        anchors { left: parent.left; leftMargin: 14; right: parent.right; rightMargin: 10; verticalCenter: parent.verticalCenter }
                         spacing: 8
                         Text {
                             text: root.signalIcon(NetworkState.activeSignal)
-                            font.pixelSize: 15
-                            font.family: "JetBrainsMono Nerd Font"
+                            font.pixelSize: 15; font.family: "JetBrainsMono Nerd Font"
                             color: Colors.grey900
                         }
                         Text {
                             text: NetworkState.activeSSID
-                            font.pixelSize: 13
-                            font.bold: true
-                            font.family: "JetBrainsMono Nerd Font"
+                            font.pixelSize: 13; font.bold: true; font.family: "JetBrainsMono Nerd Font"
                             color: Colors.grey900
                             elide: Text.ElideRight
                             width: parent.width - 23 - 8 - activeSigText.width - 8
@@ -280,8 +209,7 @@ PanelWindow {
                         Text {
                             id: activeSigText
                             text: NetworkState.activeSignal + "%"
-                            font.pixelSize: 12
-                            font.family: "JetBrainsMono Nerd Font"
+                            font.pixelSize: 12; font.family: "JetBrainsMono Nerd Font"
                             color: Colors.grey900
                         }
                     }
@@ -289,8 +217,7 @@ PanelWindow {
 
                 Rectangle {
                     visible: NetworkState.wifiEnabled
-                    width: parent.width
-                    height: visible ? 1 : 0
+                    width: parent.width; height: visible ? 1 : 0
                     color: Colors.grey800
                 }
 
@@ -300,37 +227,24 @@ PanelWindow {
                     delegate: Rectangle {
                         required property var modelData
                         visible: modelData.known && modelData.ssid !== NetworkState.activeSSID
-                        width: parent.width
-                        height: visible ? 34 : 0
-                        radius: 6
+                        width: parent.width; height: visible ? 34 : 0; radius: 6
                         color: Colors.grey800
                         Rectangle {
-                            width: 3
-                            height: parent.height - 10
-                            radius: 2
-                            anchors.left: parent.left
-                            anchors.leftMargin: 4
-                            anchors.verticalCenter: parent.verticalCenter
+                            width: 3; height: parent.height - 10; radius: 2
+                            anchors { left: parent.left; leftMargin: 4; verticalCenter: parent.verticalCenter }
                             color: Colors.purple200
                         }
                         Row {
-                            anchors.left: parent.left
-                            anchors.leftMargin: 14
-                            anchors.right: parent.right
-                            anchors.rightMargin: 10
-                            anchors.verticalCenter: parent.verticalCenter
+                            anchors { left: parent.left; leftMargin: 14; right: parent.right; rightMargin: 10; verticalCenter: parent.verticalCenter }
                             spacing: 8
                             Text {
                                 text: root.signalIcon(modelData.signal)
-                                font.pixelSize: 15
-                                font.family: "JetBrainsMono Nerd Font"
+                                font.pixelSize: 15; font.family: "JetBrainsMono Nerd Font"
                                 color: Colors.grey200
                             }
                             Text {
                                 text: modelData.ssid
-                                font.pixelSize: 13
-                                font.bold: true
-                                font.family: "JetBrainsMono Nerd Font"
+                                font.pixelSize: 13; font.bold: true; font.family: "JetBrainsMono Nerd Font"
                                 color: Colors.grey200
                                 elide: Text.ElideRight
                                 width: parent.width - 23 - 8 - knownKeyIcon.width - 8
@@ -338,54 +252,43 @@ PanelWindow {
                             Text {
                                 id: knownKeyIcon
                                 text: "󰌆"
-                                font.pixelSize: 12
-                                font.family: "JetBrainsMono Nerd Font"
+                                font.pixelSize: 12; font.family: "JetBrainsMono Nerd Font"
                                 color: Colors.purple200
                             }
                         }
                         MouseArea {
-                            anchors.fill: parent
-                            hoverEnabled: true
-                            onEntered: {
-                                parent.opacity = 0.8
-                            }
-                            onExited: {
-                                parent.opacity = 1.0
-                            }
-                            onClicked: {
-                                root.handleNetworkClick(modelData.ssid, modelData.security, true)
-                            }
+                            anchors.fill: parent; hoverEnabled: true
+                            onEntered: parent.opacity = 0.8
+                            onExited: parent.opacity = 1.0
+                            onClicked: root.handleNetworkClick(modelData.ssid, modelData.security, true)
                         }
+                        Behavior on opacity { NumberAnimation { duration: 150 } }
                     }
                 }
 
                 Rectangle {
                     visible: NetworkState.wifiEnabled && NetworkState.networks.some(function(n){ return n.known && n.ssid !== NetworkState.activeSSID })
-                    width: parent.width
-                    height: visible ? 1 : 0
+                    width: parent.width; height: visible ? 1 : 0
                     color: Colors.grey800
                 }
-                
-                // 4. Scan Button (DeepPurple200 Theme)
+
+                // 4. Scan Button
                 Rectangle {
                     visible: NetworkState.wifiEnabled
-                    width: parent.width
-                    height: visible ? 34 : 0
-                    radius: 6
+                    width: parent.width; height: visible ? 34 : 0; radius: 6
                     color: NetworkState.isScanning ? Colors.deepPurple200 : Colors.grey800
                     Rectangle {
                         visible: !NetworkState.isScanning
                         width: 3; height: parent.height - 10; radius: 2
-                        anchors.left: parent.left; anchors.leftMargin: 4; anchors.verticalCenter: parent.verticalCenter
+                        anchors { left: parent.left; leftMargin: 4; verticalCenter: parent.verticalCenter }
                         color: Colors.deepPurple200
                     }
                     Row {
-                        anchors.left: parent.left; anchors.leftMargin: 14; anchors.verticalCenter: parent.verticalCenter
+                        anchors { left: parent.left; leftMargin: 14; verticalCenter: parent.verticalCenter }
                         spacing: 8
                         Text {
                             text: "󰑐"
-                            font.pixelSize: 15
-                            font.family: "JetBrainsMono Nerd Font"
+                            font.pixelSize: 15; font.family: "JetBrainsMono Nerd Font"
                             color: NetworkState.isScanning ? Colors.grey900 : Colors.grey200
                             SequentialAnimation on opacity {
                                 running: NetworkState.isScanning
@@ -402,114 +305,89 @@ PanelWindow {
                     }
                     MouseArea {
                         anchors.fill: parent; hoverEnabled: true
-                        onEntered: { parent.opacity = 0.8 }
-                        onExited: { parent.opacity = 1.0 }
-                        onClicked: { NetworkState.rescan() }
+                        onEntered: parent.opacity = 0.8
+                        onExited: parent.opacity = 1.0
+                        onClicked: NetworkState.rescan()
                     }
+                    Behavior on opacity { NumberAnimation { duration: 150 } }
                 }
 
                 // 5. Connecting State
                 Rectangle {
                     visible: NetworkState.connecting
-                    width: parent.width
-                    height: visible ? 34 : 0
-                    radius: 6
+                    width: parent.width; height: visible ? 34 : 0; radius: 6
                     color: Colors.grey800
                     Row {
                         anchors.centerIn: parent
                         spacing: 8
                         Text {
                             text: "󰤨"
-                            font.pixelSize: 15
-                            font.family: "JetBrainsMono Nerd Font"
+                            font.pixelSize: 15; font.family: "JetBrainsMono Nerd Font"
                             color: Colors.purple200
                             SequentialAnimation on opacity {
                                 running: NetworkState.connecting
                                 loops: Animation.Infinite
-                                NumberAnimation {
-                                    to: 0.3
-                                    duration: 500
-                                    easing.type: Easing.InOutSine
-                                }
-                                NumberAnimation {
-                                    to: 1.0
-                                    duration: 500
-                                    easing.type: Easing.InOutSine
-                                }
+                                NumberAnimation { to: 0.3; duration: 500; easing.type: Easing.InOutSine }
+                                NumberAnimation { to: 1.0; duration: 500; easing.type: Easing.InOutSine }
                             }
                         }
                         Text {
                             text: "Connecting..."
-                            font.pixelSize: 13
-                            font.bold: true
-                            font.family: "JetBrainsMono Nerd Font"
+                            font.pixelSize: 13; font.bold: true; font.family: "JetBrainsMono Nerd Font"
                             color: Colors.grey200
                         }
                     }
                 }
 
-                // 6. Action Buttons (nmtui)
+                // 6. nmtui
                 Rectangle {
                     visible: NetworkState.wifiEnabled
-                    width: parent.width
-                    height: visible ? 34 : 0
-                    radius: 6
+                    width: parent.width; height: visible ? 34 : 0; radius: 6
                     color: Colors.grey800
                     Rectangle {
-                        width: 3
-                        height: parent.height - 10
-                        radius: 2
-                        anchors.left: parent.left
-                        anchors.leftMargin: 4
-                        anchors.verticalCenter: parent.verticalCenter
+                        width: 3; height: parent.height - 10; radius: 2
+                        anchors { left: parent.left; leftMargin: 4; verticalCenter: parent.verticalCenter }
                         color: Colors.grey500
                     }
                     Row {
-                        anchors.left: parent.left
-                        anchors.leftMargin: 14
-                        anchors.verticalCenter: parent.verticalCenter
+                        anchors { left: parent.left; leftMargin: 14; verticalCenter: parent.verticalCenter }
                         spacing: 8
                         Text {
                             text: "󰈀"
-                            font.pixelSize: 15
-                            font.family: "JetBrainsMono Nerd Font"
+                            font.pixelSize: 15; font.family: "JetBrainsMono Nerd Font"
                             color: Colors.grey400
                         }
                         Text {
                             text: "Open nmtui..."
-                            font.pixelSize: 13
-                            font.bold: true
-                            font.family: "JetBrainsMono Nerd Font"
+                            font.pixelSize: 13; font.bold: true; font.family: "JetBrainsMono Nerd Font"
                             color: Colors.grey400
                         }
                     }
                     MouseArea {
-                        anchors.fill: parent
-                        hoverEnabled: true
-                        onEntered: {
-                            parent.opacity = 0.8
-                        }
-                        onExited: {
-                            parent.opacity = 1.0
-                        }
+                        anchors.fill: parent; hoverEnabled: true
+                        onEntered: parent.opacity = 0.8
+                        onExited: parent.opacity = 1.0
                         onClicked: {
                             Quickshell.execDetached(["ghostty", "--title=nmtui", "-e", "nmtui"])
                             SessionState.wifiPopupVisible = false
                         }
                     }
+                    Behavior on opacity { NumberAnimation { duration: 150 } }
                 }
 
                 // 7. Other Networks
                 Item {
                     visible: NetworkState.wifiEnabled && NetworkState.networks.some(function(n){ return !n.known })
                     width: parent.width
-                    height: visible ? Math.min(otherNetCol.implicitHeight, root.maxListHeight) : 0
+                    height: visible ? root.maxListHeight : 0
+
                     Flickable {
                         id: netFlick
                         anchors.fill: parent
                         contentHeight: otherNetCol.implicitHeight
                         clip: true
                         interactive: contentHeight > height
+
                         Column {
                             id: otherNetCol
                             width: parent.width
@@ -519,37 +397,24 @@ PanelWindow {
                                 delegate: Rectangle {
                                     required property var modelData
                                     visible: !modelData.known
-                                    width: otherNetCol.width
-                                    height: visible ? 34 : 0
-                                    radius: 6
+                                    width: otherNetCol.width; height: visible ? 34 : 0; radius: 6
                                     color: Colors.grey800
                                     Rectangle {
-                                        width: 3
-                                        height: parent.height - 10
-                                        radius: 2
-                                        anchors.left: parent.left
-                                        anchors.leftMargin: 4
-                                        anchors.verticalCenter: parent.verticalCenter
+                                        width: 3; height: parent.height - 10; radius: 2
+                                        anchors { left: parent.left; leftMargin: 4; verticalCenter: parent.verticalCenter }
                                         color: Colors.grey600
                                     }
                                     Row {
-                                        anchors.left: parent.left
-                                        anchors.leftMargin: 14
-                                        anchors.right: parent.right
-                                        anchors.rightMargin: 10
-                                        anchors.verticalCenter: parent.verticalCenter
+                                        anchors { left: parent.left; leftMargin: 14; right: parent.right; rightMargin: 10; verticalCenter: parent.verticalCenter }
                                         spacing: 8
                                         Text {
                                             text: root.signalIcon(modelData.signal)
-                                            font.pixelSize: 15
-                                            font.family: "JetBrainsMono Nerd Font"
+                                            font.pixelSize: 15; font.family: "JetBrainsMono Nerd Font"
                                             color: Colors.grey200
                                         }
                                         Text {
                                             text: modelData.ssid
-                                            font.pixelSize: 13
-                                            font.bold: true
-                                            font.family: "JetBrainsMono Nerd Font"
+                                            font.pixelSize: 13; font.bold: true; font.family: "JetBrainsMono Nerd Font"
                                             color: Colors.grey200
                                             elide: Text.ElideRight
                                             width: parent.width - 23 - 8 - lockIcon.width - 8
@@ -557,76 +422,61 @@ PanelWindow {
                                         Text {
                                             id: lockIcon
                                             text: root.isSecured(modelData.security) ? "󰌾" : ""
-                                            font.pixelSize: 12
-                                            font.family: "JetBrainsMono Nerd Font"
+                                            font.pixelSize: 12; font.family: "JetBrainsMono Nerd Font"
                                             color: Colors.grey500
                                         }
                                     }
                                     MouseArea {
-                                        anchors.fill: parent
-                                        hoverEnabled: true
-                                        onEntered: {
-                                            parent.opacity = 0.8
-                                        }
-                                        onExited: {
-                                            parent.opacity = 1.0
-                                        }
-                                        onClicked: {
-                                            root.handleNetworkClick(modelData.ssid, modelData.security, false)
-                                        }
+                                        anchors.fill: parent; hoverEnabled: true
+                                        onEntered: parent.opacity = 0.8
+                                        onExited: parent.opacity = 1.0
+                                        onClicked: root.handleNetworkClick(modelData.ssid, modelData.security, false)
                                     }
+                                    Behavior on opacity { NumberAnimation { duration: 150 } }
                                 }
                             }
                         }
                     }
 
+                    // Scroll up hint
                     Rectangle {
                         visible: !netFlick.atYBeginning
-                        anchors.top: parent.top
-                        anchors.left: parent.left
-                        anchors.right: parent.right
-                        height: 22
-                        radius: 6
+                        anchors { top: parent.top; left: parent.left; right: parent.right }
+                        height: 22; radius: 6
                         color: Colors.grey800
                         Row {
                             anchors.centerIn: parent
                             spacing: 6
                             Text {
-                                text: "󰁄"
-                                font.pixelSize: 12
-                                font.family: "JetBrainsMono Nerd Font"
+                                text: ""
+                                font.pixelSize: 12; font.family: "JetBrainsMono Nerd Font"
                                 color: Colors.grey500
                             }
                             Text {
                                 text: "scroll up"
-                                font.pixelSize: 11
-                                font.family: "JetBrainsMono Nerd Font"
+                                font.pixelSize: 11; font.family: "JetBrainsMono Nerd Font"
                                 color: Colors.grey500
                             }
                         }
                     }
 
+                    // Scroll down hint
                     Rectangle {
                         visible: !netFlick.atYEnd
-                        anchors.bottom: parent.bottom
-                        anchors.left: parent.left
-                        anchors.right: parent.right
-                        height: 22
-                        radius: 6
+                        anchors { bottom: parent.bottom; left: parent.left; right: parent.right }
+                        height: 22; radius: 6
                         color: Colors.grey800
                         Row {
                             anchors.centerIn: parent
                             spacing: 6
                             Text {
-                                text: "󰁆"
-                                font.pixelSize: 12
-                                font.family: "JetBrainsMono Nerd Font"
+                                text: ""
+                                font.pixelSize: 12; font.family: "JetBrainsMono Nerd Font"
                                 color: Colors.grey500
                             }
                             Text {
                                 text: "scroll for more"
-                                font.pixelSize: 11
-                                font.family: "JetBrainsMono Nerd Font"
+                                font.pixelSize: 11; font.family: "JetBrainsMono Nerd Font"
                                 color: Colors.grey500
                             }
                         }
@@ -634,119 +484,91 @@ PanelWindow {
                 }
             }
 
+            // ── Password View ─────────────────────────────
             Column {
                 id: passwordView
                 width: parent.width
                 spacing: 4
                 visible: root.viewState === "password"
                 opacity: visible ? 1.0 : 0.0
-                Behavior on opacity {
-                    NumberAnimation {
-                        duration: 150
-                    }
+                Behavior on opacity { NumberAnimation { duration: 150 } }
+
+                onVisibleChanged: {
+                    if (visible) pwInput.forceActiveFocus()
                 }
+
+                // Back
                 Rectangle {
-                    width: parent.width
-                    height: 34
-                    radius: 6
+                    width: parent.width; height: 34; radius: 6
                     color: Colors.grey800
                     Rectangle {
-                        width: 3
-                        height: parent.height - 10
-                        radius: 2
-                        anchors.left: parent.left
-                        anchors.leftMargin: 4
-                        anchors.verticalCenter: parent.verticalCenter
+                        width: 3; height: parent.height - 10; radius: 2
+                        anchors { left: parent.left; leftMargin: 4; verticalCenter: parent.verticalCenter }
                         color: Colors.grey500
                     }
                     Row {
-                        anchors.left: parent.left
-                        anchors.leftMargin: 14
-                        anchors.verticalCenter: parent.verticalCenter
+                        anchors { left: parent.left; leftMargin: 14; verticalCenter: parent.verticalCenter }
                         spacing: 8
                         Text {
                             text: "󰁍"
-                            font.pixelSize: 15
-                            font.family: "JetBrainsMono Nerd Font"
+                            font.pixelSize: 15; font.family: "JetBrainsMono Nerd Font"
                             color: Colors.grey200
                         }
                         Text {
                             text: "Back"
-                            font.pixelSize: 13
-                            font.bold: true
-                            font.family: "JetBrainsMono Nerd Font"
+                            font.pixelSize: 13; font.bold: true; font.family: "JetBrainsMono Nerd Font"
                             color: Colors.grey200
                         }
                     }
                     MouseArea {
-                        anchors.fill: parent
-                        hoverEnabled: true
-                        onEntered: {
-                            parent.opacity = 0.8
-                        }
-                        onExited: {
-                            parent.opacity = 1.0
-                        }
-                        onClicked: {
-                            root.viewState = "list"
-                        }
+                        anchors.fill: parent; hoverEnabled: true
+                        onEntered: parent.opacity = 0.8
+                        onExited: parent.opacity = 1.0
+                        onClicked: root.viewState = "list"
                     }
+                    Behavior on opacity { NumberAnimation { duration: 150 } }
                 }
+
+                // Target SSID
                 Rectangle {
-                    width: parent.width
-                    height: 34
-                    radius: 6
+                    width: parent.width; height: 34; radius: 6
                     color: Colors.purple200
                     Row {
-                        anchors.left: parent.left
-                        anchors.leftMargin: 14
-                        anchors.right: parent.right
-                        anchors.rightMargin: 10
-                        anchors.verticalCenter: parent.verticalCenter
+                        anchors { left: parent.left; leftMargin: 14; right: parent.right; rightMargin: 10; verticalCenter: parent.verticalCenter }
                         spacing: 8
                         Text {
                             text: "󰤨"
-                            font.pixelSize: 15
-                            font.family: "JetBrainsMono Nerd Font"
+                            font.pixelSize: 15; font.family: "JetBrainsMono Nerd Font"
                             color: Colors.grey900
                         }
                         Text {
                             text: root.targetSSID
-                            font.pixelSize: 13
-                            font.bold: true
-                            font.family: "JetBrainsMono Nerd Font"
+                            font.pixelSize: 13; font.bold: true; font.family: "JetBrainsMono Nerd Font"
                             color: Colors.grey900
                             elide: Text.ElideRight
                             width: parent.width - 31
                         }
                     }
                 }
+
+                // Password Input
                 Rectangle {
-                    width: parent.width
-                    height: 34
-                    radius: 6
+                    width: parent.width; height: 34; radius: 6
                     color: pwInput.activeFocus ? Qt.lighter(Colors.grey800, 1.15) : Colors.grey800
                     border.color: NetworkState.connectError !== "" ? Colors.red400 : (pwInput.activeFocus ? Colors.purple200 : "transparent")
                     border.width: pwInput.activeFocus || NetworkState.connectError !== "" ? 1 : 0
                     Row {
-                        anchors.left: parent.left
-                        anchors.leftMargin: 14
-                        anchors.right: parent.right
-                        anchors.rightMargin: 10
-                        anchors.verticalCenter: parent.verticalCenter
+                        anchors { left: parent.left; leftMargin: 14; right: parent.right; rightMargin: 10; verticalCenter: parent.verticalCenter }
                         spacing: 8
                         Text {
                             text: "󰌾"
-                            font.pixelSize: 15
-                            font.family: "JetBrainsMono Nerd Font"
+                            font.pixelSize: 15; font.family: "JetBrainsMono Nerd Font"
                             color: Colors.grey400
                         }
                         TextInput {
                             id: pwInput
                             width: parent.width - 23 - 8 - toggleVis.width - 8
-                            font.pixelSize: 13
-                            font.bold: true
-                            font.family: "JetBrainsMono Nerd Font"
+                            font.pixelSize: 13; font.bold: true; font.family: "JetBrainsMono Nerd Font"
                             color: Colors.grey200
                             selectionColor: Colors.purple200
                             selectedTextColor: Colors.grey900
@@ -767,90 +589,69 @@ PanelWindow {
                         Text {
                             id: toggleVis
                             text: showPw.checked ? "󰈈" : "󰈉"
-                            font.pixelSize: 15
-                            font.family: "JetBrainsMono Nerd Font"
+                            font.pixelSize: 15; font.family: "JetBrainsMono Nerd Font"
                             color: Colors.grey400
                             MouseArea {
-                                anchors.fill: parent
-                                onClicked: {
-                                    showPw.checked = !showPw.checked
-                                }
-                                hoverEnabled: true
+                                anchors.fill: parent; hoverEnabled: true
                                 cursorShape: Qt.PointingHandCursor
+                                onClicked: showPw.checked = !showPw.checked
                             }
                         }
                     }
                     MouseArea {
-                        anchors.fill: parent
-                        onClicked: {
-                            pwInput.forceActiveFocus()
-                        }
-                        z: -1
+                        anchors.fill: parent; z: -1
+                        onClicked: pwInput.forceActiveFocus()
                     }
                     Text {
                         visible: pwInput.text === "" && !pwInput.activeFocus
-                        anchors.left: parent.left
-                        anchors.leftMargin: 37
-                        anchors.verticalCenter: parent.verticalCenter
+                        anchors { left: parent.left; leftMargin: 37; verticalCenter: parent.verticalCenter }
                         text: "Password"
-                        font.pixelSize: 13
-                        font.family: "JetBrainsMono Nerd Font"
+                        font.pixelSize: 13; font.family: "JetBrainsMono Nerd Font"
                         color: Colors.grey600
                     }
                 }
+
                 Item {
                     id: showPw
                     property bool checked: false
                     visible: false
                 }
+
+                // Error
                 Rectangle {
                     visible: NetworkState.connectError !== ""
-                    width: parent.width
-                    height: visible ? 26 : 0
-                    radius: 6
+                    width: parent.width; height: visible ? 26 : 0; radius: 6
                     color: "transparent"
                     Text {
                         anchors.centerIn: parent
                         text: NetworkState.connectError
-                        font.pixelSize: 11
-                        font.bold: true
-                        font.family: "JetBrainsMono Nerd Font"
+                        font.pixelSize: 11; font.bold: true; font.family: "JetBrainsMono Nerd Font"
                         color: Colors.red400
                     }
                 }
+
+                // Connect Button
                 Rectangle {
-                    width: parent.width
-                    height: 34
-                    radius: 6
+                    width: parent.width; height: 34; radius: 6
                     color: root.passwordText.length > 0 ? Colors.purple200 : Colors.grey800
                     Row {
                         anchors.centerIn: parent
                         spacing: 8
                         Text {
                             text: "󰤨"
-                            font.pixelSize: 15
-                            font.family: "JetBrainsMono Nerd Font"
+                            font.pixelSize: 15; font.family: "JetBrainsMono Nerd Font"
                             color: root.passwordText.length > 0 ? Colors.grey900 : Colors.grey500
                         }
                         Text {
                             text: "Connect"
-                            font.pixelSize: 13
-                            font.bold: true
-                            font.family: "JetBrainsMono Nerd Font"
+                            font.pixelSize: 13; font.bold: true; font.family: "JetBrainsMono Nerd Font"
                             color: root.passwordText.length > 0 ? Colors.grey900 : Colors.grey500
                         }
                     }
                     MouseArea {
-                        anchors.fill: parent
-                        hoverEnabled: true
-                        onEntered: {
-                            if (root.passwordText.length > 0) {
-                                parent.opacity = 0.8
-                            }
-                        }
-                        onExited: {
-                            parent.opacity = 1.0
-                        }
+                        anchors.fill: parent; hoverEnabled: true
+                        onEntered: if (root.passwordText.length > 0) parent.opacity = 0.8
+                        onExited: parent.opacity = 1.0
                         onClicked: {
                             if (root.passwordText.length > 0) {
                                 NetworkState.connect(root.targetSSID, root.passwordText)
@@ -858,13 +659,9 @@ PanelWindow {
                             }
                         }
                     }
+                    Behavior on opacity { NumberAnimation { duration: 150 } }
                 }
             }
-        }
-    }
-    onViewStateChanged: {
-        if (viewState === "password") {
-            pwInput.forceActiveFocus()
         }
     }
 }

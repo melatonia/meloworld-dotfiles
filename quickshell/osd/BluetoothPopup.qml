@@ -382,7 +382,7 @@ PopupWindow {
                         anchors.centerIn: parent
                         spacing: 6
                         Text {
-                            text: "󰁄"
+                            text: ""
                             font.pixelSize: 12; font.family: "JetBrainsMono Nerd Font"
                             color: Colors.grey500
                             anchors.verticalCenter: parent.verticalCenter
@@ -406,7 +406,7 @@ PopupWindow {
                         anchors.centerIn: parent
                         spacing: 6
                         Text {
-                            text: "󰁆"
+                            text: ""
                             font.pixelSize: 12; font.family: "JetBrainsMono Nerd Font"
                             color: Colors.grey500
                             anchors.verticalCenter: parent.verticalCenter
