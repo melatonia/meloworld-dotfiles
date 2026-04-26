@@ -1,14 +1,19 @@
-import QtQuick 2.15
+import QtQuick
 
-Rectangle {
+Item {
     id: container
     property alias spacing: innerRow.spacing
+    property color bgColor: "#212121"
     default property alias children: innerRow.children
 
     height: 40
-    radius: 8
-    color: "#212121"
     width: innerRow.implicitWidth + 12
+
+    Rectangle {
+        anchors.fill: parent
+        radius: 8
+        color: container.bgColor
+    }
 
     Row {
         id: innerRow

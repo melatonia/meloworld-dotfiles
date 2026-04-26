@@ -1,54 +1,40 @@
-import QtQuick 2.15
-import QtQuick.Controls 2.15
-import QtQuick.Layouts 1.15
-import QtQuick.Window 2.15
+import QtQuick
+import QtQuick.Layouts
 
 Rectangle {
     id: root
     anchors.fill: parent
     color: root.clrBg
     visible: true
-    opacity: 0
+    opacity: 1
 
-    
-    NumberAnimation on opacity {
-        from: 0
-        to: 1
-        duration: 800
-        easing.type: Easing.OutCubic
-    }
+    // ── Design System ──────────────────────────────────────────
+    property color clrBg:      (typeof config !== 'undefined' && config.background_color) ? config.background_color : "#212121"
+    property color clrBgAlt:   "#2d2d2d"
+    property color clrFg:      "#ffffffdd"
+    property color clrFgDim:   "#616161"
+    property color clrAccent:  (typeof config !== 'undefined' && config.accent_color)     ? config.accent_color     : "#80cbc4"
+    property color clrBorder:  "#424242"
+    property color clrUrgent:  (typeof config !== 'undefined' && config.urgent_color)     ? config.urgent_color     : "#ef9a9a"
+    property color clrReboot:  "#ffcc80"
+    property color clrSession: "#a5d6a7"
 
-    // ── Design System ─────────────────────────────────────────
-    property color clrBg:       (typeof config !== 'undefined' && config.background_color) ? config.background_color : "#212121"
-    property color clrBgAlt:    "#2d2d2d"
-    property color clrFg:       "#ffffffdd"
-    property color clrFgDim:    "#616161"
-    property color clrAccent:   (typeof config !== 'undefined' && config.accent_color) ? config.accent_color : "#80cbc4"
-    property color clrBorder:   "#424242"
-    property color clrUrgent:   (typeof config !== 'undefined' && config.urgent_color) ? config.urgent_color : "#ef9a9a"
-    property color clrReboot:   "#ffcc80"
-    property color clrSession:  "#a5d6a7"
-    property color clrClock:    "#ffffffdd"
-    property color clrPillFg:   "#212121"
+    property string fontMain:  (typeof config !== 'undefined' && config.font) ? config.font : "JetBrainsMono Nerd Font"
+    property int radiusLarge:  12
+    property int radiusMed:    8
 
-    property string fontMain: (typeof config !== 'undefined' && config.font) ? config.font : "JetBrainsMono Nerd Font"
-    property int radiusLarge: 12
-    property int radiusMed:   8
-    property int radiusSmall: 5
+    // ── State ──────────────────────────────────────────────────
+    property int    selectedIndex:   (typeof userModel !== 'undefined' && userModel) ? Math.max(0, userModel.lastIndex) : 0
+    property int    sessionIndex:    (typeof sessionModel !== 'undefined' && sessionModel) ? Math.max(0, sessionModel.lastIndex) : 0
+    property string sessionLabel:    "session"
+    property string currentUsername: (typeof sddm !== 'undefined') ? sddm.lastUser : ""  // FIX: store username directly
 
-    property int    selectedIndex: typeof userModel !== 'undefined' && userModel ? Math.max(0, userModel.lastIndex) : 0
-    property int    sessionIndex:  typeof sessionModel !== 'undefined' && sessionModel ? Math.max(0, sessionModel.lastIndex) : 0
-    property string sessionLabel:  "session"
+    onSelectedIndexChanged: updateSessionLabel()
 
     // ── Background ────────────────────────────────────────────
     Image {
         anchors.fill: parent
-        source: {
-            if (typeof config === 'undefined' || !config.background) return "assets/wallpaper.jpeg";
-            var bg = config.background;
-            if (bg.indexOf(":/") === -1 && bg.indexOf("/") === 0) return "file://" + bg;
-            return bg;
-        }
+        source: (typeof config !== 'undefined' && config.background) ? config.background : "assets/wallpaper.jpeg"
         fillMode: Image.PreserveAspectCrop
 
         Rectangle {
@@ -60,38 +46,41 @@ Rectangle {
 
     // ── Top Bar (Clock) ───────────────────────────────────────
     BarContainer {
-        anchors {
-            top: parent.top
-            horizontalCenter: parent.horizontalCenter
-            topMargin: 12
-        }
+        anchors.top: parent.top
+        anchors.horizontalCenter: parent.horizontalCenter
+        anchors.topMargin: 8
+        bgColor: root.clrBgAlt
         visible: typeof primaryScreen !== 'undefined' ? primaryScreen : true
 
         PillButton {
-            pillColor: root.clrClock
+            id: topClock
+            pillColor: root.clrFg
+            textColor: root.clrBg
             fontMain: root.fontMain
-            label: " " + timeLabel
-            
+            label: " " + timeLabel
+            activeFocusOnTab: false
+
             property string timeLabel: Qt.formatDateTime(new Date(), "HH:mm")
 
             Timer {
-                interval: 1000; running: true; repeat: true; triggeredOnStart: true
-                onTriggered: parent.timeLabel = Qt.formatDateTime(new Date(), "HH:mm")
+                interval: 10000
+                running: true
+                repeat: true
+                onTriggered: topClock.timeLabel = Qt.formatDateTime(new Date(), "HH:mm")
             }
         }
     }
 
-    // ── Center Login Card ─────────────────────────────────────
+    // ── Auth Card ─────────────────────────────────────────────
     Rectangle {
         id: card
         anchors.centerIn: parent
-        width: 380
-        height: cardLayout.implicitHeight + 32
+        width: 360
+        height: cardLayout.implicitHeight + 48
         radius: root.radiusLarge
         color: root.clrBg
         border.width: 4
-        border.color: passwordField.activeFocus ? root.clrAccent : root.clrBorder
-        visible: typeof primaryScreen !== 'undefined' ? primaryScreen : true
+        border.color: passwordField.activeFocus && !shakeAnim.running ? root.clrAccent : root.clrBorder
 
         Behavior on border.color { ColorAnimation { duration: 150 } }
 
@@ -105,38 +94,37 @@ Rectangle {
 
         ColumnLayout {
             id: cardLayout
-            anchors {
-                fill: parent
-                margins: 16
-            }
+            anchors.centerIn: parent
+            width: parent.width - 48
             spacing: 12
 
-            // User Selection
+            // ── User List ──────────────────────────────────────
             ColumnLayout {
                 Layout.fillWidth: true
-                spacing: 2
+                spacing: 6
 
                 Repeater {
                     id: userRepeater
-                    model: userModel
+                    model: (typeof userModel !== 'undefined') ? userModel : null
+
                     delegate: Rectangle {
+                        id: userDelegate
                         readonly property bool isActive: index === root.selectedIndex
                         Layout.fillWidth: true
                         height: 38
                         radius: root.radiusMed
-                        color: isActive ? root.clrBorder : (userMa.containsMouse || delegateItem.activeFocus ? root.clrBgAlt : "transparent")
-
-                        Behavior on color { ColorAnimation { duration: 150 } }
-                        
+                        color: isActive ? root.clrBorder : (userMa.containsMouse || userDelegate.activeFocus ? root.clrBgAlt : "transparent")
+                        antialiasing: true
+                        scale: (userMa.containsMouse || userDelegate.activeFocus) ? 1.03 : 1.0
+                        transformOrigin: Item.Center
+                        border.width: userDelegate.activeFocus ? 3 : 0
+                        border.color: root.clrAccent
                         activeFocusOnTab: true
-                        id: delegateItem
-                        
-                        KeyNavigation.tab: (index === userRepeater.count - 1) ? passwordField : undefined
-                        KeyNavigation.backtab: (index === 0) ? sessionPill : undefined
 
-                        Keys.onPressed: {
+                        Keys.onPressed: function(event) {
                             if (event.key === Qt.Key_Return || event.key === Qt.Key_Enter) {
                                 root.selectedIndex = index
+                                root.currentUsername = model.name  // FIX: save username from delegate
                                 passwordField.forceActiveFocus()
                                 event.accepted = true
                             }
@@ -145,25 +133,15 @@ Rectangle {
                         RowLayout {
                             anchors.fill: parent
                             anchors.leftMargin: 12
-                            anchors.rightMargin: 12
                             spacing: 12
-
-                            Text {
-                                text: ""
-                                font.family: root.fontMain
-                                font.pixelSize: 16
-                                color: isActive ? root.clrAccent : root.clrFg
-                                Behavior on color { ColorAnimation { duration: 150 } }
-                            }
-
+                            Text { text: ""; font.family: root.fontMain; font.pixelSize: 16; color: isActive ? root.clrAccent : root.clrFg }
                             Text {
                                 Layout.fillWidth: true
-                                text: (model.name || model.realName || "user")
+                                text: model.name || model.realName || "user"
                                 font.pixelSize: 14
                                 font.bold: isActive
                                 font.family: root.fontMain
                                 color: isActive ? root.clrAccent : root.clrFg
-                                Behavior on color { ColorAnimation { duration: 150 } }
                             }
                         }
 
@@ -171,108 +149,73 @@ Rectangle {
                             id: userMa
                             anchors.fill: parent
                             hoverEnabled: true
-                            cursorShape: Qt.PointingHandCursor
-                            onClicked: {
+                            onClicked: function(mouse) {
                                 root.selectedIndex = index
+                                root.currentUsername = model.name  // FIX: save username from delegate
                                 passwordField.forceActiveFocus()
                             }
                         }
+
+                        Behavior on color { ColorAnimation { duration: 150 } }
+                        Behavior on scale { NumberAnimation { duration: 150; easing.type: Easing.OutSine } }
                     }
                 }
             }
 
+            // ── Password Field ─────────────────────────────────
             Rectangle {
                 Layout.fillWidth: true
                 height: 40
                 radius: root.radiusMed
                 color: root.clrBgAlt
+                border.width: passwordField.activeFocus ? 3 : 0
+                border.color: root.clrAccent
 
-                    RowLayout {
-                        anchors.fill: parent
-                        anchors.leftMargin: 12
-                        anchors.rightMargin: 12
-                        spacing: 12
+                RowLayout {
+                    anchors.fill: parent
+                    anchors.leftMargin: 12
+                    anchors.rightMargin: 12
+                    spacing: 12
+                    Text { text: ""; font.family: root.fontMain; font.pixelSize: 16; color: passwordField.activeFocus ? root.clrAccent : root.clrFgDim }
+                    TextInput {
+                        id: passwordField
+                        Layout.fillWidth: true
+                        verticalAlignment: TextInput.AlignVCenter
+                        echoMode: TextInput.Password
+                        passwordCharacter: "•"
+                        font.pixelSize: 14
+                        font.family: root.fontMain
+                        color: root.clrFg
+                        activeFocusOnTab: true
+                        onAccepted: loginAction()
 
                         Text {
-                            text: ""
-                            font.family: root.fontMain
-                            font.pixelSize: 16
-                            color: passwordField.activeFocus ? root.clrAccent : root.clrFgDim
-                            Behavior on color { ColorAnimation { duration: 150 } }
-                        }
-
-                        TextInput {
-                            id: passwordField
-                            Layout.fillWidth: true
-                            Layout.fillHeight: true
-                            verticalAlignment: TextInput.AlignVCenter
-                            echoMode: TextInput.Password
-                            passwordCharacter: "•"
+                            anchors.fill: parent
+                            text: "Password..."
+                            verticalAlignment: Text.AlignVCenter
                             font.pixelSize: 14
                             font.family: root.fontMain
-                            color: root.clrFg
-                            selectionColor: root.clrAccent
-                            clip: true
-                            
-                            KeyNavigation.tab: loginButton
-                            KeyNavigation.backtab: userRepeater
-
-                            onAccepted: loginAction()
-
-                            Text {
-                                anchors.fill: parent
-                                text: "Password..."
-                                verticalAlignment: Text.AlignVCenter
-                                font.pixelSize: 14
-                                font.family: root.fontMain
-                                color: root.clrFgDim
-                                visible: passwordField.text.length === 0 && !passwordField.activeFocus
-                            }
-                            
-                            Text {
-                                anchors.right: parent.right
-                                anchors.verticalCenter: parent.verticalCenter
-                                text: "󰪛"
-                                font.family: root.fontMain
-                                color: root.clrUrgent
-                                visible: (passwordField.modifiers & Qt.CapsLockModifier)
-                                ToolTip.visible: maCaps.containsMouse
-                                ToolTip.text: "Caps Lock is ON"
-                                MouseArea { id: maCaps; anchors.fill: parent; hoverEnabled: true }
-                            }
+                            color: root.clrFgDim
+                            visible: passwordField.text.length === 0 && !passwordField.activeFocus
                         }
                     }
                 }
-
-            // Error Message
-            Text {
-                id: errorText
-                Layout.fillWidth: true
-                horizontalAlignment: Text.AlignHCenter
-                text: ""
-                font.pixelSize: 12
-                font.family: root.fontMain
-                color: root.clrUrgent
-                wrapMode: Text.WordWrap
-                visible: text.length > 0
             }
 
+            // ── Login Button ───────────────────────────────────
             Rectangle {
                 id: loginButton
                 Layout.fillWidth: true
                 Layout.preferredHeight: 38
                 radius: root.radiusMed
-                color: loginMa.containsMouse ? Qt.lighter(root.clrAccent, 1.15) : root.clrAccent
-                scale: loginMa.containsMouse ? 1.02 : 1.0
-
-                Behavior on color { ColorAnimation { duration: 150 } }
-                Behavior on scale { NumberAnimation { duration: 150; easing.type: Easing.OutSine } }
-                
                 activeFocusOnTab: true
-                KeyNavigation.tab: rebootButton
-                KeyNavigation.backtab: passwordField
-                
-                Keys.onPressed: {
+                antialiasing: true
+                color: (loginMa.containsMouse || loginButton.activeFocus) ? Qt.lighter(root.clrAccent, 1.15) : root.clrAccent
+                scale: (loginMa.containsMouse || loginButton.activeFocus) ? 1.03 : 1.0
+                border.width: loginButton.activeFocus ? 3 : 0
+                border.color: Qt.lighter(root.clrAccent, 1.3)
+
+                Keys.onPressed: function(event) {
                     if (event.key === Qt.Key_Return || event.key === Qt.Key_Enter) {
                         loginAction()
                         event.accepted = true
@@ -282,95 +225,94 @@ Rectangle {
                 RowLayout {
                     anchors.centerIn: parent
                     spacing: 12
-                    Text {
-                        text: "󰍂"
-                        font.family: root.fontMain
-                        font.pixelSize: 16
-                        color: root.clrBg
-                    }
-                    Text {
-                        text: "Login"
-                        font.family: root.fontMain
-                        font.bold: true
-                        font.pixelSize: 14
-                        color: root.clrBg
-                    }
+                    Text { text: "󰍂"; font.family: root.fontMain; font.pixelSize: 16; color: root.clrBg }
+                    Text { text: "Login"; font.family: root.fontMain; font.bold: true; font.pixelSize: 14; color: root.clrBg }
                 }
 
                 MouseArea {
                     id: loginMa
                     anchors.fill: parent
                     hoverEnabled: true
-                    onClicked: loginAction()
+                    onClicked: function(mouse) { loginAction() }
                 }
+
+                Behavior on color { ColorAnimation { duration: 150 } }
+                Behavior on scale { NumberAnimation { duration: 150; easing.type: Easing.OutSine } }
             }
         }
     }
 
-    // ── Bottom Left (Session) ─────────────────────────────────
+    // ── Bottom Bars ───────────────────────────────────────────
     BarContainer {
         id: bottomLeftBar
-        anchors {
-            bottom: parent.bottom
-            left: parent.left
-            margins: 12
-        }
-        visible: typeof primaryScreen !== 'undefined' ? primaryScreen : true
+        anchors.bottom: parent.bottom
+        anchors.left: parent.left
+        anchors.margins: 12
+        bgColor: root.clrBgAlt
 
         PillButton {
             id: sessionPill
-            label: " " + root.sessionLabel
+            label: " " + root.sessionLabel
             pillColor: root.clrSession
+            textColor: root.clrBg
             fontMain: root.fontMain
-            onClicked: {
-                sessionMenuContainer.toggle()
-            }
-            KeyNavigation.tab: userRepeater.count > 0 ? userRepeater.itemAt(0) : passwordField
-            KeyNavigation.backtab: shutdownButton
+            onClicked: sessionMenuContainer.toggle()
         }
     }
 
-    Item {
-        id: sessionMenuContainer
-        visible: animState !== "closed"
-        width: 180
-        height: sessionColumn.implicitHeight + 20
-        anchors {
-            bottom: bottomLeftBar.top
-            left: bottomLeftBar.left
-            bottomMargin: 10
+    BarContainer {
+        anchors.bottom: parent.bottom
+        anchors.right: parent.right
+        anchors.margins: 12
+        spacing: 6
+        bgColor: root.clrBgAlt
+
+        PillButton {
+            id: rebootButton
+            label: " Reboot"
+            pillColor: root.clrReboot
+            textColor: root.clrBg
+            fontMain: root.fontMain
+            onClicked: sddm.reboot()
         }
 
-        property string animState: "closed"
+        PillButton {
+            id: shutdownButton
+            label: "⏻ Shutdown"
+            pillColor: root.clrUrgent
+            textColor: root.clrBg
+            fontMain: root.fontMain
+            onClicked: sddm.powerOff()
+        }
+    }
 
-        function open() { animState = "open" }
-        function close() { animState = "closing" }
-        function toggle() { if (animState === "open") close(); else open(); }
+    // ── Session Flyout ────────────────────────────────────────
+    Item {
+        id: sessionMenuContainer
+        width: 180
+        height: sessionColumn.implicitHeight + 20
+        anchors.bottom: bottomLeftBar.top
+        anchors.left: bottomLeftBar.left
+        anchors.bottomMargin: 10
+        visible: animState !== "closed"
+        enabled: animState !== "closed"
+        property string animState: "closed"
+        function open()   { animState = "open"    }
+        function close()  { animState = "closing" }
+        function toggle() { animState === "open" ? close() : open() }
 
         Rectangle {
             id: innerSessionRect
-            width: parent.width
-            height: parent.height
+            anchors.fill: parent
             radius: root.radiusLarge
             color: root.clrBg
             border.color: root.clrSession
             border.width: 2
             clip: true
 
-            y: 0
-            opacity: 1.0
-
             states: [
-                State {
-                    name: "open"
-                    when: sessionMenuContainer.animState === "open"
-                    PropertyChanges { target: innerSessionRect; y: 0; opacity: 1.0 }
-                },
-                State {
-                    name: "closing"
-                    when: sessionMenuContainer.animState === "closing"
-                    PropertyChanges { target: innerSessionRect; y: 20; opacity: 0.0 }
-                }
+                State { name: "open"; when: sessionMenuContainer.animState === "open"; PropertyChanges { target: innerSessionRect; y: 0; opacity: 1.0 } },
+                State { name: "closing"; when: sessionMenuContainer.animState === "closing"; PropertyChanges { target: innerSessionRect; y: 20; opacity: 0.0 } }
             ]
 
             transitions: [
@@ -399,140 +341,86 @@ Rectangle {
 
             Column {
                 id: sessionColumn
-                anchors {
-                    top: parent.top
-                    left: parent.left
-                    right: parent.right
-                    margins: 10
-                }
+                anchors.top: parent.top
+                anchors.left: parent.left
+                anchors.right: parent.right
+                anchors.margins: 10
                 spacing: 4
 
                 Repeater {
-                    model: typeof sessionModel !== 'undefined' ? sessionModel : null
+                    model: (typeof sessionModel !== 'undefined') ? sessionModel : null
                     delegate: Rectangle {
                         readonly property bool isActive: root.sessionIndex === index
                         width: sessionColumn.width
                         height: 34
                         radius: 6
                         color: isActive ? root.clrSession : root.clrBgAlt
-
                         Rectangle {
                             visible: !isActive
-                            width: 3
-                            height: parent.height - 10
-                            radius: 2
-                            anchors { left: parent.left; leftMargin: 4; verticalCenter: parent.verticalCenter }
-                            color: root.clrSession
+                            width: 3; height: parent.height - 12; radius: 2; color: root.clrSession
+                            anchors.left: parent.left; anchors.leftMargin: 4; anchors.verticalCenter: parent.verticalCenter
                         }
-
                         Text {
-                            anchors { left: parent.left; leftMargin: 14; right: parent.right; rightMargin: 10; verticalCenter: parent.verticalCenter }
-                            text: model.name || model.display || "Session"
+                            anchors.left: parent.left; anchors.leftMargin: 14; anchors.verticalCenter: parent.verticalCenter
+                            text: model.name || "Session"
                             color: isActive ? root.clrBg : root.clrFg
-                            font.pixelSize: 13
-                            font.bold: true
-                            font.family: root.fontMain
-                            elide: Text.ElideRight
+                            font.pixelSize: 13; font.bold: true; font.family: root.fontMain
                         }
-
                         MouseArea {
-                            id: itemMa
                             anchors.fill: parent
-                            hoverEnabled: true
-                            onEntered: if (!isActive) parent.opacity = 0.8
-                            onExited: parent.opacity = 1.0
-                            onClicked: {
+                            onClicked: function(mouse) {
                                 root.sessionIndex = index
-                                updateSession()
+                                updateSessionLabel()
                                 sessionMenuContainer.close()
                             }
                         }
-
-                        Behavior on opacity { NumberAnimation { duration: 150 } }
                     }
                 }
             }
         }
     }
 
-    // ── Bottom Right (Power) ──────────────────────────────────
-    BarContainer {
-        anchors {
-            bottom: parent.bottom
-            right: parent.right
-            margins: 12
-        }
-        visible: typeof primaryScreen !== 'undefined' ? primaryScreen : true
+    // ── Logic ─────────────────────────────────────────────────
+    function sessionCount() { return (typeof sessionModel !== 'undefined' && sessionModel) ? sessionModel.count : 0 }
 
-        PillButton {
-            id: rebootButton
-            label: " Reboot"
-            pillColor: root.clrReboot
-            fontMain: root.fontMain
-            onClicked: sddm.reboot()
-            KeyNavigation.tab: shutdownButton
-            KeyNavigation.backtab: loginButton
-        }
-
-        PillButton {
-            id: shutdownButton
-            label: "⏻ Shutdown"
-            pillColor: root.clrUrgent
-            fontMain: root.fontMain
-            onClicked: sddm.powerOff()
-            KeyNavigation.tab: sessionPill
-            KeyNavigation.backtab: rebootButton
-        }
+    // FIX: loginAction now uses currentUsername (set directly from model.name in delegates)
+    // instead of the broken userModel.data(idx, Qt.UserRole) call which used the wrong role ID.
+    function loginAction() {
+        if (typeof sddm === 'undefined') return
+        if (typeof userModel === 'undefined' || !userModel || userModel.count === 0) return
+        var username = root.currentUsername || sddm.lastUser
+        if (username) sddm.login(username, passwordField.text, root.sessionIndex)
     }
 
-    // ── Logic ─────────────────────────────────────────────────
-    function updateSession() {
-        if (typeof sessionModel === 'undefined' || !sessionModel) return;
-        var count = (typeof sessionModel.count !== 'undefined') ? sessionModel.count : (typeof sessionModel.rowCount === 'function' ? sessionModel.rowCount() : 0)
+    function updateSessionLabel() {
+        var count = sessionCount()
         if (count > 0 && root.sessionIndex < count) {
             var idx = sessionModel.index(root.sessionIndex, 0)
-            var name = sessionModel.data(idx, Qt.DisplayRole)
-            root.sessionLabel = name || "Session"
+            root.sessionLabel = sessionModel.data(idx, Qt.UserRole) || "Session"
         }
     }
 
-    function loginAction() {
-        if (typeof userModel === 'undefined' || !userModel || userModel.count === 0) return
-        errorText.text = ""
-
-        var idx = userModel.index(root.selectedIndex, 0)
-        var username = userModel.data(idx, "name") || userModel.data(idx, 0x0101) || userModel.data(idx, Qt.DisplayRole) || userModel.lastUser
-
-        sddm.login(username, passwordField.text, root.sessionIndex)
-    }
+    NumberAnimation { id: fadeOutAnim; target: root; property: "opacity"; to: 0; duration: 400; running: false; easing.type: Easing.InCubic }
 
     Connections {
         target: sddm
         function onLoginFailed() {
-            errorText.text = "incorrect password"
+            shakeAnim.start()
             passwordField.text = ""
             passwordField.forceActiveFocus()
-            shakeAnim.start()
         }
         function onLoginSucceeded() {
-            errorText.color = root.clrAccent
-            errorText.text = "logging in..."
             fadeOutAnim.start()
         }
     }
 
-    NumberAnimation {
-        id: fadeOutAnim
-        target: root
-        property: "opacity"
-        to: 0
-        duration: 400
-        easing.type: Easing.InCubic
-    }
-
+    // FIX: initialize currentUsername from userModel using the correct role (Qt.UserRole + 1)
     Component.onCompleted: {
-        updateSession()
+        updateSessionLabel()
+        if (typeof userModel !== 'undefined' && userModel && userModel.count > 0) {
+            var idx = userModel.index(root.selectedIndex, 0)
+            root.currentUsername = userModel.data(idx, Qt.UserRole + 1) || sddm.lastUser
+        }
         passwordField.forceActiveFocus()
     }
 }
-
