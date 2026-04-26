@@ -41,10 +41,10 @@ PopupBase {
             Repeater {
                 model: [
                     { label: "Shutdown", icon: "󰐥", action: "confirm_shutdown" },
-                    { label: "Reboot",   icon: "", action: "confirm_reboot"   },
+                    { label: "Reboot",   icon: "󰜉", action: "confirm_reboot"   },
                     { label: "Logout",   icon: "󰍃", action: "confirm_logout"  },
                     { label: "Suspend",  icon: "󰒲", action: "suspend"         },
-                    { label: "Lock",     icon: "", action: "lock"             }
+                    { label: "Lock",     icon: "󰌾", action: "lock"             }
                 ]
                 delegate: Rectangle {
                     required property var modelData

@@ -12,9 +12,15 @@ Item {
 
     property bool dragging: mouseArea.pressed
     property real internalValue: 0
+    
+    // Timer to track active wheeling
+    Timer {
+        id: wheelTimer
+        interval: 600
+    }
 
-    // The raw target value (either from system or user drag)
-    readonly property real targetValue: dragging ? internalValue : value
+    // The raw target value (optimistic during interaction)
+    readonly property real targetValue: (dragging || wheelTimer.running) ? internalValue : value
 
     // The animated value used for ALL visual components
     property real animValue: targetValue
@@ -72,9 +78,17 @@ Item {
             root.moved(newVal)
         }
         onWheel: (wheel) => {
-            var step = (root.to - root.from) / 20 // 5% steps
-            var delta = wheel.angleDelta.y > 0 ? step : -step
-            var newVal = Math.round(Math.max(root.from, Math.min(root.to, root.value + delta)))
+            // Sensitivity math: 1 notch (120 delta) = 5% of range
+            var step = (root.to - root.from) / 20
+            var notches = wheel.angleDelta.y / 120
+            var delta = notches * step
+            
+            // Use internalValue as base if we are already wheeling to maintain momentum
+            var base = (dragging || wheelTimer.running) ? root.internalValue : root.value
+            var newVal = Math.round(Math.max(root.from, Math.min(root.to, base + delta)))
+            
+            root.internalValue = newVal
+            wheelTimer.restart()
             root.moved(newVal)
         }
     }
