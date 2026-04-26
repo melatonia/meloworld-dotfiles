@@ -517,7 +517,17 @@ Rectangle {
         function onLoginSucceeded() {
             errorText.color = root.clrAccent
             errorText.text = "logging in..."
+            fadeOutAnim.start()
         }
+    }
+
+    NumberAnimation {
+        id: fadeOutAnim
+        target: root
+        property: "opacity"
+        to: 0
+        duration: 400
+        easing.type: Easing.InCubic
     }
 
     Component.onCompleted: {
