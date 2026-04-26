@@ -1,6 +1,7 @@
 pragma Singleton
 import QtQuick
 import Quickshell
+import Quickshell.Services.UPower
 import "."
 
 Singleton {
@@ -20,4 +21,17 @@ Singleton {
     readonly property color workspaceInactive: Colors.grey800
     readonly property color titleBackground:   Colors.grey800
     readonly property color titleForeground:   Colors.white
+
+    readonly property color popupBackground:   Colors.grey900
+    readonly property color rowBackground:     Colors.grey800
+    readonly property color trackBackground:   Qt.rgba(1, 1, 1, 0.15)
+
+    // Returns the accent color for a given PowerProfile value.
+    // Used by BatteryWidget (pill) and PowerProfilePopup (border + row highlight)
+    // so both always stay in sync.
+    function profileColor(profile) {
+        if (profile === PowerProfile.PowerSaver)  return Colors.green200
+        if (profile === PowerProfile.Performance) return Colors.red200
+        return Colors.orange200
+    }
 }

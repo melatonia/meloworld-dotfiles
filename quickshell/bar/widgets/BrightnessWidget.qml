@@ -49,7 +49,7 @@ Pill {
     }
 
     mouseArea.onWheel: (wheel) => {
-        let step = wheel.angleDelta.y > 0 ? "+5%" : "5%-"
+        let step = wheel.angleDelta.y > 0 ? "+5%" : "-5%"
         Quickshell.execDetached(["brightnessctl", "set", step])
         brightnessProc.running = true
     }

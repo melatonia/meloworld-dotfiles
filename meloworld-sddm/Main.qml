@@ -319,7 +319,7 @@ Rectangle {
 
         PillButton {
             id: sessionPill
-            label: " " + root.sessionLabel
+            label: " " + root.sessionLabel
             pillColor: root.clrSession
             fontMain: root.fontMain
             onClicked: {

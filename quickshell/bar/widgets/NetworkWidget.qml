@@ -32,7 +32,7 @@ Pill {
         return ico + " " + shortSSID
     }
 
-    pillColor: connected ? Colors.purple200 : Colors.grey800
+    pillColor: connected ? PanelColors.network : PanelColors.rowBackground
 
     mouseArea.onClicked: function(mouse) {
         if (SessionState.wifiPopupVisible) {

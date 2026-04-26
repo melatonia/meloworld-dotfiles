@@ -217,6 +217,4 @@ Singleton {
             }
         }
     }
-
-    // Set mic mute process removed
 }

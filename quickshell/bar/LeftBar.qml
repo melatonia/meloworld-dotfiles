@@ -17,7 +17,6 @@ Row {
 
         Text {
             anchors.centerIn: parent
-            // text: ""
             text: ""
             font.pixelSize: 16
             color: Colors.white

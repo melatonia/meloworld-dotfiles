@@ -149,7 +149,7 @@ Singleton {
     readonly property color purple900:  "#4A148C"
     readonly property color purpleA100: "#EA80FC"
     readonly property color purpleA200: "#E040FB"
-    readonly property color purpleA500: "#D500F9"
+    readonly property color purpleA400: "#D500F9"
     readonly property color purpleA700: "#AA00FF"
 
     readonly property color deepPurple50:   "#EDE7F6"

@@ -18,7 +18,7 @@ Item {
         width: parent.width
         height: dragging ? 8 : 6
         radius: height / 2
-        color: Qt.rgba(1, 1, 1, 0.15)
+        color: PanelColors.trackBackground
         Behavior on height { NumberAnimation { duration: 100; easing.type: Easing.OutCubic } }
 
         Rectangle {
@@ -32,16 +32,18 @@ Item {
 
     Rectangle {
         id: handle
-        property real targetX: (root.value - root.from) / (root.to - root.from) * (track.width - 16)
         width: dragging ? 22 : 16
         height: dragging ? 22 : 16
         radius: width / 2
         color: root.accentColor
         anchors.verticalCenter: track.verticalCenter
-        x: targetX - (width - 16) / 2
+        x: (root.value - root.from) / (root.to - root.from) * (track.width) - (width / 2)
         Behavior on width { NumberAnimation { duration: 100; easing.type: Easing.OutCubic } }
         Behavior on height { NumberAnimation { duration: 100; easing.type: Easing.OutCubic } }
-        Behavior on x { NumberAnimation { duration: 80 } }
+        Behavior on x {
+            enabled: !root.dragging
+            NumberAnimation { duration: 80 }
+        }
     }
 
     MouseArea {

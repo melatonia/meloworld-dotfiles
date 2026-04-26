@@ -3,7 +3,7 @@ import "../../theme"
 
 Pill {
     pillColor: PanelColors.session
-    label: "⏻"
+    label: ""
 
     mouseArea.onClicked: {
         if (SessionState.visible) {

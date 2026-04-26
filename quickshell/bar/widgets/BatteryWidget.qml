@@ -15,11 +15,8 @@ Pill {
         battery.state === UPowerDeviceState.FullyCharged
     )
 
-    pillColor: {
-        if (PowerProfiles.profile === PowerProfile.PowerSaver)  return Colors.green200
-        if (PowerProfiles.profile === PowerProfile.Performance) return Colors.red200
-        return Colors.orange200
-    }
+    pillColor: PanelColors.profileColor(PowerProfiles.profile)
+
 
     onPctChanged: {
         if (hasBattery && prevPct > 20 && pct <= 20 && !charging) {

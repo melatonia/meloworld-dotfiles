@@ -14,7 +14,6 @@ Row {
             pillColor: PanelColors.tray
             
             implicitWidth: 32
-            // implicitHeight: 28 (default)
 
             Image {
                 anchors.centerIn: parent

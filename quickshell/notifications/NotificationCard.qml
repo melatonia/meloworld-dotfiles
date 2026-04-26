@@ -14,7 +14,7 @@ Rectangle {
     width:  cardWidth
     height: cardContent.implicitHeight + 32
     radius: 10
-    color:  Colors.grey900
+    color:  PanelColors.popupBackground
     border.color: accentColor
     border.width: 2
 
@@ -203,7 +203,7 @@ Rectangle {
         Rectangle {
             width:   parent.width
             height:  1
-            color:   Colors.grey800
+            color:   PanelColors.rowBackground
             opacity: 0.6
         }
 

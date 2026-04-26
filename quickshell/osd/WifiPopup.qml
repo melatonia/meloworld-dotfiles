@@ -130,8 +130,8 @@ PanelWindow {
         ]
 
         radius: 10
-        color: Colors.grey900
-        border.color: NetworkState.wifiEnabled ? Colors.purple200 : Colors.grey700
+        color: PanelColors.popupBackground
+        border.color: NetworkState.wifiEnabled ? PanelColors.network : Colors.grey700
         border.width: 2
         clip: true
 
@@ -156,12 +156,12 @@ PanelWindow {
                 // 1. WiFi Toggle
                 Rectangle {
                     width: parent.width; height: 34; radius: 6
-                    color: NetworkState.wifiEnabled ? Colors.purple200 : Colors.grey800
+                    color: NetworkState.wifiEnabled ? PanelColors.network : PanelColors.rowBackground
                     Rectangle {
                         visible: !NetworkState.wifiEnabled
                         width: 3; height: parent.height - 10; radius: 2
                         anchors { left: parent.left; leftMargin: 4; verticalCenter: parent.verticalCenter }
-                        color: Colors.purple200
+                        color: PanelColors.network
                     }
                     Row {
                         anchors { left: parent.left; leftMargin: 14; verticalCenter: parent.verticalCenter }
@@ -169,12 +169,12 @@ PanelWindow {
                         Text {
                             text: NetworkState.wifiEnabled ? "󰤨" : "󰤭"
                             font.pixelSize: 15; font.family: "JetBrainsMono Nerd Font"
-                            color: NetworkState.wifiEnabled ? Colors.grey900 : Colors.grey200
+                            color: NetworkState.wifiEnabled ? PanelColors.pillForeground : Colors.grey200
                         }
                         Text {
                             text: NetworkState.wifiEnabled ? "WiFi On" : "WiFi Off"
                             font.pixelSize: 13; font.bold: true; font.family: "JetBrainsMono Nerd Font"
-                            color: NetworkState.wifiEnabled ? Colors.grey900 : Colors.grey200
+                            color: NetworkState.wifiEnabled ? PanelColors.pillForeground : Colors.grey200
                         }
                     }
                     MouseArea {
@@ -190,19 +190,19 @@ PanelWindow {
                 Rectangle {
                     visible: NetworkState.wifiEnabled && NetworkState.activeSSID !== ""
                     width: parent.width; height: visible ? 34 : 0; radius: 6
-                    color: Colors.purple200
+                    color: PanelColors.network
                     Row {
                         anchors { left: parent.left; leftMargin: 14; right: parent.right; rightMargin: 10; verticalCenter: parent.verticalCenter }
                         spacing: 8
                         Text {
                             text: root.signalIcon(NetworkState.activeSignal)
                             font.pixelSize: 15; font.family: "JetBrainsMono Nerd Font"
-                            color: Colors.grey900
+                            color: PanelColors.pillForeground
                         }
                         Text {
                             text: NetworkState.activeSSID
                             font.pixelSize: 13; font.bold: true; font.family: "JetBrainsMono Nerd Font"
-                            color: Colors.grey900
+                            color: PanelColors.pillForeground
                             elide: Text.ElideRight
                             width: parent.width - 23 - 8 - activeSigText.width - 8
                         }
@@ -210,7 +210,7 @@ PanelWindow {
                             id: activeSigText
                             text: NetworkState.activeSignal + "%"
                             font.pixelSize: 12; font.family: "JetBrainsMono Nerd Font"
-                            color: Colors.grey900
+                            color: PanelColors.pillForeground
                         }
                     }
                 }
@@ -218,7 +218,7 @@ PanelWindow {
                 Rectangle {
                     visible: NetworkState.wifiEnabled
                     width: parent.width; height: visible ? 1 : 0
-                    color: Colors.grey800
+                    color: PanelColors.rowBackground
                 }
 
                 // 3. Known Networks
@@ -228,11 +228,11 @@ PanelWindow {
                         required property var modelData
                         visible: modelData.known && modelData.ssid !== NetworkState.activeSSID
                         width: parent.width; height: visible ? 34 : 0; radius: 6
-                        color: Colors.grey800
+                        color: PanelColors.rowBackground
                         Rectangle {
                             width: 3; height: parent.height - 10; radius: 2
                             anchors { left: parent.left; leftMargin: 4; verticalCenter: parent.verticalCenter }
-                            color: Colors.purple200
+                            color: PanelColors.network
                         }
                         Row {
                             anchors { left: parent.left; leftMargin: 14; right: parent.right; rightMargin: 10; verticalCenter: parent.verticalCenter }
@@ -253,7 +253,7 @@ PanelWindow {
                                 id: knownKeyIcon
                                 text: "󰌆"
                                 font.pixelSize: 12; font.family: "JetBrainsMono Nerd Font"
-                                color: Colors.purple200
+                                color: PanelColors.network
                             }
                         }
                         MouseArea {
@@ -269,14 +269,14 @@ PanelWindow {
                 Rectangle {
                     visible: NetworkState.wifiEnabled && NetworkState.networks.some(function(n){ return n.known && n.ssid !== NetworkState.activeSSID })
                     width: parent.width; height: visible ? 1 : 0
-                    color: Colors.grey800
+                    color: PanelColors.rowBackground
                 }
 
                 // 4. Scan Button
                 Rectangle {
                     visible: NetworkState.wifiEnabled
                     width: parent.width; height: visible ? 34 : 0; radius: 6
-                    color: NetworkState.isScanning ? Colors.deepPurple200 : Colors.grey800
+                    color: NetworkState.isScanning ? Colors.deepPurple200 : PanelColors.rowBackground
                     Rectangle {
                         visible: !NetworkState.isScanning
                         width: 3; height: parent.height - 10; radius: 2
@@ -289,7 +289,7 @@ PanelWindow {
                         Text {
                             text: "󰑐"
                             font.pixelSize: 15; font.family: "JetBrainsMono Nerd Font"
-                            color: NetworkState.isScanning ? Colors.grey900 : Colors.grey200
+                            color: NetworkState.isScanning ? PanelColors.pillForeground : Colors.grey200
                             SequentialAnimation on opacity {
                                 running: NetworkState.isScanning
                                 loops: Animation.Infinite
@@ -300,7 +300,7 @@ PanelWindow {
                         Text {
                             text: NetworkState.isScanning ? "Scanning..." : "Scan"
                             font.pixelSize: 13; font.bold: true; font.family: "JetBrainsMono Nerd Font"
-                            color: NetworkState.isScanning ? Colors.grey900 : Colors.grey200
+                            color: NetworkState.isScanning ? PanelColors.pillForeground : Colors.grey200
                         }
                     }
                     MouseArea {
@@ -316,14 +316,14 @@ PanelWindow {
                 Rectangle {
                     visible: NetworkState.connecting
                     width: parent.width; height: visible ? 34 : 0; radius: 6
-                    color: Colors.grey800
+                    color: PanelColors.rowBackground
                     Row {
                         anchors.centerIn: parent
                         spacing: 8
                         Text {
                             text: "󰤨"
                             font.pixelSize: 15; font.family: "JetBrainsMono Nerd Font"
-                            color: Colors.purple200
+                            color: PanelColors.network
                             SequentialAnimation on opacity {
                                 running: NetworkState.connecting
                                 loops: Animation.Infinite
@@ -343,7 +343,7 @@ PanelWindow {
                 Rectangle {
                     visible: NetworkState.wifiEnabled
                     width: parent.width; height: visible ? 34 : 0; radius: 6
-                    color: Colors.grey800
+                    color: PanelColors.rowBackground
                     Rectangle {
                         width: 3; height: parent.height - 10; radius: 2
                         anchors { left: parent.left; leftMargin: 4; verticalCenter: parent.verticalCenter }
@@ -398,7 +398,7 @@ PanelWindow {
                                     required property var modelData
                                     visible: !modelData.known
                                     width: otherNetCol.width; height: visible ? 34 : 0; radius: 6
-                                    color: Colors.grey800
+                                    color: PanelColors.rowBackground
                                     Rectangle {
                                         width: 3; height: parent.height - 10; radius: 2
                                         anchors { left: parent.left; leftMargin: 4; verticalCenter: parent.verticalCenter }
@@ -443,7 +443,7 @@ PanelWindow {
                         visible: !netFlick.atYBeginning
                         anchors { top: parent.top; left: parent.left; right: parent.right }
                         height: 22; radius: 6
-                        color: Colors.grey800
+                        color: PanelColors.rowBackground
                         Row {
                             anchors.centerIn: parent
                             spacing: 6
@@ -465,7 +465,7 @@ PanelWindow {
                         visible: !netFlick.atYEnd
                         anchors { bottom: parent.bottom; left: parent.left; right: parent.right }
                         height: 22; radius: 6
-                        color: Colors.grey800
+                        color: PanelColors.rowBackground
                         Row {
                             anchors.centerIn: parent
                             spacing: 6
@@ -500,7 +500,7 @@ PanelWindow {
                 // Back
                 Rectangle {
                     width: parent.width; height: 34; radius: 6
-                    color: Colors.grey800
+                    color: PanelColors.rowBackground
                     Rectangle {
                         width: 3; height: parent.height - 10; radius: 2
                         anchors { left: parent.left; leftMargin: 4; verticalCenter: parent.verticalCenter }
@@ -532,19 +532,19 @@ PanelWindow {
                 // Target SSID
                 Rectangle {
                     width: parent.width; height: 34; radius: 6
-                    color: Colors.purple200
+                    color: PanelColors.network
                     Row {
                         anchors { left: parent.left; leftMargin: 14; right: parent.right; rightMargin: 10; verticalCenter: parent.verticalCenter }
                         spacing: 8
                         Text {
                             text: "󰤨"
                             font.pixelSize: 15; font.family: "JetBrainsMono Nerd Font"
-                            color: Colors.grey900
+                            color: PanelColors.pillForeground
                         }
                         Text {
                             text: root.targetSSID
                             font.pixelSize: 13; font.bold: true; font.family: "JetBrainsMono Nerd Font"
-                            color: Colors.grey900
+                            color: PanelColors.pillForeground
                             elide: Text.ElideRight
                             width: parent.width - 31
                         }
@@ -554,8 +554,8 @@ PanelWindow {
                 // Password Input
                 Rectangle {
                     width: parent.width; height: 34; radius: 6
-                    color: pwInput.activeFocus ? Qt.lighter(Colors.grey800, 1.15) : Colors.grey800
-                    border.color: NetworkState.connectError !== "" ? Colors.red400 : (pwInput.activeFocus ? Colors.purple200 : "transparent")
+                    color: pwInput.activeFocus ? Qt.lighter(PanelColors.rowBackground, 1.15) : PanelColors.rowBackground
+                    border.color: NetworkState.connectError !== "" ? Colors.red400 : (pwInput.activeFocus ? PanelColors.network : "transparent")
                     border.width: pwInput.activeFocus || NetworkState.connectError !== "" ? 1 : 0
                     Row {
                         anchors { left: parent.left; leftMargin: 14; right: parent.right; rightMargin: 10; verticalCenter: parent.verticalCenter }
@@ -570,8 +570,8 @@ PanelWindow {
                             width: parent.width - 23 - 8 - toggleVis.width - 8
                             font.pixelSize: 13; font.bold: true; font.family: "JetBrainsMono Nerd Font"
                             color: Colors.grey200
-                            selectionColor: Colors.purple200
-                            selectedTextColor: Colors.grey900
+                            selectionColor: PanelColors.network
+                            selectedTextColor: PanelColors.pillForeground
                             echoMode: showPw.checked ? TextInput.Normal : TextInput.Password
                             clip: true
                             text: root.passwordText
@@ -633,19 +633,19 @@ PanelWindow {
                 // Connect Button
                 Rectangle {
                     width: parent.width; height: 34; radius: 6
-                    color: root.passwordText.length > 0 ? Colors.purple200 : Colors.grey800
+                    color: root.passwordText.length > 0 ? PanelColors.network : PanelColors.rowBackground
                     Row {
                         anchors.centerIn: parent
                         spacing: 8
                         Text {
                             text: "󰤨"
                             font.pixelSize: 15; font.family: "JetBrainsMono Nerd Font"
-                            color: root.passwordText.length > 0 ? Colors.grey900 : Colors.grey500
+                            color: root.passwordText.length > 0 ? PanelColors.pillForeground : Colors.grey500
                         }
                         Text {
                             text: "Connect"
                             font.pixelSize: 13; font.bold: true; font.family: "JetBrainsMono Nerd Font"
-                            color: root.passwordText.length > 0 ? Colors.grey900 : Colors.grey500
+                            color: root.passwordText.length > 0 ? PanelColors.pillForeground : Colors.grey500
                         }
                     }
                     MouseArea {
