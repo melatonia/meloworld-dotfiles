@@ -32,10 +32,14 @@ Rectangle {
     onSelectedIndexChanged: updateSessionLabel()
 
     // ── Background ────────────────────────────────────────────
+    // FIX: asynchronous:true prevents the image from blocking the render thread on first boot.
+    // The solid clrBg rectangle behind it acts as a fallback if the image is slow or missing.
     Image {
         anchors.fill: parent
         source: (typeof config !== 'undefined' && config.background) ? config.background : "assets/wallpaper.jpeg"
         fillMode: Image.PreserveAspectCrop
+        asynchronous: true
+        visible: status === Image.Ready
 
         Rectangle {
             anchors.fill: parent
@@ -414,13 +418,22 @@ Rectangle {
         }
     }
 
-    // FIX: initialize currentUsername from userModel using the correct role (Qt.UserRole + 1)
+    // FIX: defer initialization by one event-loop tick so all SDDM context properties
+    // (sddm, userModel, sessionModel) are guaranteed to be fully bound before we touch them.
+    // This is the theme-level equivalent of "wait for the system to settle" — no system sleep needed.
     Component.onCompleted: {
-        updateSessionLabel()
-        if (typeof userModel !== 'undefined' && userModel && userModel.count > 0) {
-            var idx = userModel.index(root.selectedIndex, 0)
-            root.currentUsername = userModel.data(idx, Qt.UserRole + 1) || sddm.lastUser
-        }
-        passwordField.forceActiveFocus()
+        Qt.callLater(function() {
+            try {
+                updateSessionLabel()
+                if (typeof userModel !== 'undefined' && userModel && userModel.count > 0) {
+                    var idx = userModel.index(root.selectedIndex, 0)
+                    root.currentUsername = userModel.data(idx, Qt.UserRole + 1) || (typeof sddm !== 'undefined' ? sddm.lastUser : "")
+                }
+                passwordField.forceActiveFocus()
+            } catch (e) {
+                // If anything above fails, at minimum show the UI and let the user type
+                passwordField.forceActiveFocus()
+            }
+        })
     }
 }
