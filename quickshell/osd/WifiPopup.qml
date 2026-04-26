@@ -39,7 +39,7 @@ PanelWindow {
                 viewState = "list"
                 passwordText = ""
                 animState = "open"
-                NetworkState.refresh()
+                NetworkState.rescan()
             } else {
                 animState = "closing"
             }
@@ -193,6 +193,7 @@ PanelWindow {
                     }
                 }
 
+                // 1. WiFi Toggle
                 Rectangle {
                     width: parent.width
                     height: 34
@@ -247,6 +248,7 @@ PanelWindow {
                     }
                 }
 
+                // 2. Active Connection
                 Rectangle {
                     visible: NetworkState.wifiEnabled && NetworkState.activeSSID !== ""
                     width: parent.width
@@ -292,6 +294,121 @@ PanelWindow {
                     color: Colors.grey800
                 }
 
+                // 3. Known Networks
+                Repeater {
+                    model: NetworkState.networks
+                    delegate: Rectangle {
+                        required property var modelData
+                        visible: modelData.known && modelData.ssid !== NetworkState.activeSSID
+                        width: parent.width
+                        height: visible ? 34 : 0
+                        radius: 6
+                        color: Colors.grey800
+                        Rectangle {
+                            width: 3
+                            height: parent.height - 10
+                            radius: 2
+                            anchors.left: parent.left
+                            anchors.leftMargin: 4
+                            anchors.verticalCenter: parent.verticalCenter
+                            color: Colors.purple200
+                        }
+                        Row {
+                            anchors.left: parent.left
+                            anchors.leftMargin: 14
+                            anchors.right: parent.right
+                            anchors.rightMargin: 10
+                            anchors.verticalCenter: parent.verticalCenter
+                            spacing: 8
+                            Text {
+                                text: root.signalIcon(modelData.signal)
+                                font.pixelSize: 15
+                                font.family: "JetBrainsMono Nerd Font"
+                                color: Colors.grey200
+                            }
+                            Text {
+                                text: modelData.ssid
+                                font.pixelSize: 13
+                                font.bold: true
+                                font.family: "JetBrainsMono Nerd Font"
+                                color: Colors.grey200
+                                elide: Text.ElideRight
+                                width: parent.width - 23 - 8 - knownKeyIcon.width - 8
+                            }
+                            Text {
+                                id: knownKeyIcon
+                                text: "󰌆"
+                                font.pixelSize: 12
+                                font.family: "JetBrainsMono Nerd Font"
+                                color: Colors.purple200
+                            }
+                        }
+                        MouseArea {
+                            anchors.fill: parent
+                            hoverEnabled: true
+                            onEntered: {
+                                parent.opacity = 0.8
+                            }
+                            onExited: {
+                                parent.opacity = 1.0
+                            }
+                            onClicked: {
+                                root.handleNetworkClick(modelData.ssid, modelData.security, true)
+                            }
+                        }
+                    }
+                }
+
+                Rectangle {
+                    visible: NetworkState.wifiEnabled && NetworkState.networks.some(function(n){ return n.known && n.ssid !== NetworkState.activeSSID })
+                    width: parent.width
+                    height: visible ? 1 : 0
+                    color: Colors.grey800
+                }
+                
+                // 4. Scan Button (DeepPurple200 Theme)
+                Rectangle {
+                    visible: NetworkState.wifiEnabled
+                    width: parent.width
+                    height: visible ? 34 : 0
+                    radius: 6
+                    color: NetworkState.isScanning ? Colors.deepPurple200 : Colors.grey800
+                    Rectangle {
+                        visible: !NetworkState.isScanning
+                        width: 3; height: parent.height - 10; radius: 2
+                        anchors.left: parent.left; anchors.leftMargin: 4; anchors.verticalCenter: parent.verticalCenter
+                        color: Colors.deepPurple200
+                    }
+                    Row {
+                        anchors.left: parent.left; anchors.leftMargin: 14; anchors.verticalCenter: parent.verticalCenter
+                        spacing: 8
+                        Text {
+                            text: "󰑐"
+                            font.pixelSize: 15
+                            font.family: "JetBrainsMono Nerd Font"
+                            color: NetworkState.isScanning ? Colors.grey900 : Colors.grey200
+                            SequentialAnimation on opacity {
+                                running: NetworkState.isScanning
+                                loops: Animation.Infinite
+                                NumberAnimation { to: 0.3; duration: 600; easing.type: Easing.InOutSine }
+                                NumberAnimation { to: 1.0; duration: 600; easing.type: Easing.InOutSine }
+                            }
+                        }
+                        Text {
+                            text: NetworkState.isScanning ? "Scanning..." : "Scan"
+                            font.pixelSize: 13; font.bold: true; font.family: "JetBrainsMono Nerd Font"
+                            color: NetworkState.isScanning ? Colors.grey900 : Colors.grey200
+                        }
+                    }
+                    MouseArea {
+                        anchors.fill: parent; hoverEnabled: true
+                        onEntered: { parent.opacity = 0.8 }
+                        onExited: { parent.opacity = 1.0 }
+                        onClicked: { NetworkState.rescan() }
+                    }
+                }
+
+                // 5. Connecting State
                 Rectangle {
                     visible: NetworkState.connecting
                     width: parent.width
@@ -331,6 +448,7 @@ PanelWindow {
                     }
                 }
 
+                // 6. Action Buttons (nmtui)
                 Rectangle {
                     visible: NetworkState.wifiEnabled
                     width: parent.width
@@ -379,33 +497,30 @@ PanelWindow {
                             SessionState.wifiPopupVisible = false
                         }
                     }
-                    Behavior on opacity {
-                        NumberAnimation {
-                            duration: 150
-                        }
-                    }
                 }
 
+                // 7. Other Networks
                 Item {
-                    visible: NetworkState.wifiEnabled && NetworkState.networks.length > 0
+                    visible: NetworkState.wifiEnabled && NetworkState.networks.some(function(n){ return !n.known })
                     width: parent.width
-                    height: visible ? Math.min(netCol.implicitHeight, root.maxListHeight) : 0
+                    height: visible ? Math.min(otherNetCol.implicitHeight, root.maxListHeight) : 0
                     Flickable {
                         id: netFlick
                         anchors.fill: parent
-                        contentHeight: netCol.implicitHeight
+                        contentHeight: otherNetCol.implicitHeight
                         clip: true
                         interactive: contentHeight > height
                         Column {
-                            id: netCol
+                            id: otherNetCol
                             width: parent.width
                             spacing: 4
                             Repeater {
                                 model: NetworkState.networks
                                 delegate: Rectangle {
                                     required property var modelData
-                                    width: netCol.width
-                                    height: 34
+                                    visible: !modelData.known
+                                    width: otherNetCol.width
+                                    height: visible ? 34 : 0
                                     radius: 6
                                     color: Colors.grey800
                                     Rectangle {
@@ -415,7 +530,7 @@ PanelWindow {
                                         anchors.left: parent.left
                                         anchors.leftMargin: 4
                                         anchors.verticalCenter: parent.verticalCenter
-                                        color: modelData.known ? Colors.purple200 : (modelData.signal >= 60 ? Colors.purple300 : Colors.grey600)
+                                        color: Colors.grey600
                                     }
                                     Row {
                                         anchors.left: parent.left
@@ -437,14 +552,14 @@ PanelWindow {
                                             font.family: "JetBrainsMono Nerd Font"
                                             color: Colors.grey200
                                             elide: Text.ElideRight
-                                            width: parent.width - 23 - 8 - netLockIcon.width - 8
+                                            width: parent.width - 23 - 8 - lockIcon.width - 8
                                         }
                                         Text {
-                                            id: netLockIcon
-                                            text: modelData.known ? "󰌆" : (root.isSecured(modelData.security) ? "󰌾" : "")
+                                            id: lockIcon
+                                            text: root.isSecured(modelData.security) ? "󰌾" : ""
                                             font.pixelSize: 12
                                             font.family: "JetBrainsMono Nerd Font"
-                                            color: modelData.known ? Colors.purple200 : Colors.grey500
+                                            color: Colors.grey500
                                         }
                                     }
                                     MouseArea {
@@ -457,12 +572,7 @@ PanelWindow {
                                             parent.opacity = 1.0
                                         }
                                         onClicked: {
-                                            root.handleNetworkClick(modelData.ssid, modelData.security, modelData.known)
-                                        }
-                                    }
-                                    Behavior on opacity {
-                                        NumberAnimation {
-                                            duration: 150
+                                            root.handleNetworkClick(modelData.ssid, modelData.security, false)
                                         }
                                     }
                                 }
