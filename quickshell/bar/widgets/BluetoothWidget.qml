@@ -15,6 +15,7 @@ Pill {
         if (connected.length === 0) return "󰂯"
         return "󰂱 " + connected[0].name.substring(0, 8)
     }
+
     mouseArea.propagateComposedEvents: true
     mouseArea.onClicked: (mouse) => {
         if (SessionState.bluetoothPopupVisible) {

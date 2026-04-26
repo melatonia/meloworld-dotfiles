@@ -183,19 +183,6 @@ Rectangle {
                         )
                     }
                 }
-
-                // Small X icon inside the ring — click to dismiss
-                Text {
-                    anchors.centerIn: timerRing
-                    text: ""
-                    font.pixelSize: 11
-                    font.family:    "JetBrainsMono Nerd Font"
-                    color: PanelColors.textDim
-                    MouseArea {
-                        anchors.fill: parent
-                        onClicked: root.dismiss()
-                    }
-                }
             }
         }
 

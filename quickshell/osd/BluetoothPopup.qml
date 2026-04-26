@@ -47,7 +47,7 @@ PopupBase {
                 anchors { left: parent.left; verticalCenter: parent.verticalCenter; leftMargin: 14 }
                 spacing: 8
                 Text {
-                    text: ""
+                    text: root.btOn ? "󰂯" : "󰂲"
                     font.pixelSize: 15; font.family: "JetBrainsMono Nerd Font"
                     color: root.btOn ? PanelColors.pillForeground : PanelColors.textMain
                     anchors.verticalCenter: parent.verticalCenter
@@ -87,7 +87,7 @@ PopupBase {
                     anchors { left: parent.left; verticalCenter: parent.verticalCenter; leftMargin: 14; right: parent.right; rightMargin: 10 }
                     spacing: 8
                     Text {
-                        text: modelData.connected ? "" : ""
+                        text: modelData.connected ? "󰂱" : "󰂯"
                         font.pixelSize: 15; font.family: "JetBrainsMono Nerd Font"
                         color: modelData.connected ? PanelColors.pillForeground : PanelColors.textMain
                         anchors.verticalCenter: parent.verticalCenter
@@ -142,7 +142,7 @@ PopupBase {
                 anchors { left: parent.left; verticalCenter: parent.verticalCenter; leftMargin: 14 }
                 spacing: 8
                 Text {
-                    text: root.scanning ? "" : ""
+                    text: "󰑐"
                     font.pixelSize: 15; font.family: "JetBrainsMono Nerd Font"
                     color: root.scanning ? PanelColors.pillForeground : PanelColors.textMain
                     anchors.verticalCenter: parent.verticalCenter
@@ -184,7 +184,7 @@ PopupBase {
                 anchors { left: parent.left; verticalCenter: parent.verticalCenter; leftMargin: 14 }
                 spacing: 8
                 Text {
-                    text: ""
+                    text: "󰌆"
                     font.pixelSize: 15; font.family: "JetBrainsMono Nerd Font"
                     color: Colors.grey400
                     anchors.verticalCenter: parent.verticalCenter
@@ -254,7 +254,7 @@ PopupBase {
                                 anchors { left: parent.left; verticalCenter: parent.verticalCenter; leftMargin: 14; right: parent.right; rightMargin: 10 }
                                 spacing: 8
                                 Text {
-                                    text: modelData.pairing ? "" : ""
+                                    text: modelData.pairing ? "󰑐" : "󰂯"
                                     font.pixelSize: 15; font.family: "JetBrainsMono Nerd Font"
                                     color: modelData.pairing ? PanelColors.pillForeground : PanelColors.textMain
                                     anchors.verticalCenter: parent.verticalCenter
