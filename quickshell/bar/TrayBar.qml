@@ -12,7 +12,7 @@ Row {
             id: trayDelegate
             required property var modelData
             pillColor: PanelColors.tray
-            
+
             implicitWidth: 32
 
             Image {
