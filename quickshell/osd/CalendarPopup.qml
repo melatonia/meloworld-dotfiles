@@ -43,63 +43,57 @@ PopupBase {
         spacing: 8
 
         // ── Month nav row ─────────────────────────
-        Rectangle {
+        Row {
             width: parent.width
             height: 34
-            radius: 6
-            color: PanelColors.rowBackground
 
-            Row {
-                anchors.fill: parent
-
-                // Prev
-                Rectangle {
-                    width: 34; height: parent.height; radius: 6
-                    color: prevArea.containsMouse ? Qt.lighter(PanelColors.rowBackground, 1.4) : "transparent"
-                    Behavior on color { ColorAnimation { duration: 120 } }
-                    Text {
-                        anchors.centerIn: parent
-                        text: ""
-                        font.pixelSize: 16; font.family: "JetBrainsMono Nerd Font"
-                        color: PanelColors.textDim
-                    }
-                    MouseArea {
-                        id: prevArea; anchors.fill: parent; hoverEnabled: true
-                        onClicked: {
-                            if (root._viewMonth === 0) { root._viewMonth = 11; root._viewYear-- }
-                            else root._viewMonth--
-                        }
-                    }
-                }
-
-                // Month + Year
+            // Prev
+            Rectangle {
+                width: 34; height: 34; radius: 6
+                color: prevArea.containsMouse ? Qt.lighter(PanelColors.rowBackground, 1.4) : PanelColors.rowBackground
+                Behavior on color { ColorAnimation { duration: 120 } }
                 Text {
-                    width: parent.width - 68
-                    height: parent.height
-                    horizontalAlignment: Text.AlignHCenter
-                    verticalAlignment:   Text.AlignVCenter
-                    text: root._monthName(root._viewMonth) + " " + root._viewYear
-                    font.pixelSize: 13; font.bold: true; font.family: "JetBrainsMono Nerd Font"
-                    color: PanelColors.textAccent
+                    anchors.centerIn: parent
+                    text: ""
+                    font.pixelSize: 16; font.family: "JetBrainsMono Nerd Font"
+                    color: PanelColors.textDim
                 }
-
-                // Next
-                Rectangle {
-                    width: 34; height: parent.height; radius: 6
-                    color: nextArea.containsMouse ? Qt.lighter(PanelColors.rowBackground, 1.4) : "transparent"
-                    Behavior on color { ColorAnimation { duration: 120 } }
-                    Text {
-                        anchors.centerIn: parent
-                        text: ""
-                        font.pixelSize: 16; font.family: "JetBrainsMono Nerd Font"
-                        color: PanelColors.textDim
+                MouseArea {
+                    id: prevArea; anchors.fill: parent; hoverEnabled: true
+                    onClicked: {
+                        if (root._viewMonth === 0) { root._viewMonth = 11; root._viewYear-- }
+                        else root._viewMonth--
                     }
-                    MouseArea {
-                        id: nextArea; anchors.fill: parent; hoverEnabled: true
-                        onClicked: {
-                            if (root._viewMonth === 11) { root._viewMonth = 0; root._viewYear++ }
-                            else root._viewMonth++
-                        }
+                }
+            }
+
+            // Month + Year
+            Text {
+                width: parent.width - 68
+                height: 34
+                horizontalAlignment: Text.AlignHCenter
+                verticalAlignment:   Text.AlignVCenter
+                text: root._monthName(root._viewMonth) + " " + root._viewYear
+                font.pixelSize: 13; font.bold: true; font.family: "JetBrainsMono Nerd Font"
+                color: PanelColors.textAccent
+            }
+
+            // Next
+            Rectangle {
+                width: 34; height: 34; radius: 6
+                color: nextArea.containsMouse ? Qt.lighter(PanelColors.rowBackground, 1.4) : PanelColors.rowBackground
+                Behavior on color { ColorAnimation { duration: 120 } }
+                Text {
+                    anchors.centerIn: parent
+                    text: ""
+                    font.pixelSize: 16; font.family: "JetBrainsMono Nerd Font"
+                    color: PanelColors.textDim
+                }
+                MouseArea {
+                    id: nextArea; anchors.fill: parent; hoverEnabled: true
+                    onClicked: {
+                        if (root._viewMonth === 11) { root._viewMonth = 0; root._viewYear++ }
+                        else root._viewMonth++
                     }
                 }
             }
