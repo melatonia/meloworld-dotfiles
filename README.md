@@ -31,14 +31,13 @@ every popup, widget, and notification is part of the same visual system. same ro
 | | |
 |---|---|
 | **os** | Arch Linux |
-| **wm** | MangoWM |
-| **shell layer** | Quickshell |
-| **terminal** | Ghostty |
-| **shell** | zsh |
-| **editor** | Zed |
+| **wm** | [MangoWM](https://github.com/mangowm/mango) |
+| **shell layer** | [Quickshell](https://quickshell.org/) |
 | **launcher** | Rofi |
-| **font** | JetBrainsMono Nerd Font |
-| **screenshots** | grim + slurp |
+| **terminal** | [Ghostty](https://ghostty.org/) |
+| **shell** | zsh |
+| **editor** | [Zed](https://zed.dev/) |
+| **font** | [JetBrainsMono Nerd Font](https://www.nerdfonts.com/)|
 
 ---
 
