@@ -63,6 +63,12 @@ device selection for output and input. volume and mic sliders side by side. clic
 
 paired devices, scan button, and a filtered scan list that hides raw MAC addresses so you're not staring at noise. the list caps at five entries and scrolls. tells you when there's more above or below.
 
+### 🛜 wifi
+
+![wifi popup](assets/wifi.png)
+
+previously connected networks, autoscan, password enter field. similar to bluetooth the list caps and scrolls.
+
 ### ⚡ power profile
 
 ![power popup](assets/power.png)
@@ -81,6 +87,8 @@ slide in from the right. each app gets its own accent color, derived from the ap
 
 ## 🌾 install
 
+# Still work in progress, trying to create an installer script!
+
 ```bash
 git clone https://github.com/melatonia/meloworld-dotfiles
 cd meloworld-dotfiles
@@ -88,7 +96,11 @@ cd meloworld-dotfiles
 cp -r quickshell ~/.config/
 cp -r mango ~/.config/
 cp -r ghostty ~/.config/
+cp -r hypr ~/.config/
 cp -r rofi ~/.config/
+cp -r zed ~/.config/
+cp -r .zshrc ~/.zshrc
+sudo cp -r meloworld-sddm /usr/share/sddm/themes/
 ```
 
 you can use this code to remove window buttons from apps.
@@ -99,11 +111,7 @@ gsettings set org.gnome.desktop.wm.preferences button-layout ":"
 ### dependencies
 
 ```bash
-sudo pacman -S quickshell pipewire pipewire-pulse wireplumber
-sudo pacman -S bluez bluez-utils
-sudo pacman -S power-profiles-daemon
-sudo pacman -S ttf-jetbrains-mono-nerd rofi grim slurp
-paru -S awww
+paru -S mangowm quickshell pipewire pipewire-pulse wireplumber bluez bluez-utils brightnessctl ghostty power-profiles-daemon polkit-gnome ttf-jetbrains-mono-nerd rofi rofi-emoji grim slurp awww bibata-cursor-theme-bin papirus-icon-theme zed zsh zsh-autosuggestions zsh-syntax-highlighting
 
 sudo systemctl enable --now bluetooth power-profiles-daemon
 ```
