@@ -85,10 +85,18 @@ slide in from the right. each app gets its own accent color, derived from the ap
 
 ---
 
-## 🌾 install
+## 🍁 install
 
-# Still work in progress, trying to create an installer script!
+# Automatic Install for Arch Linux
 
+```bash
+git clone https://github.com/melatonia/meloworld-dotfiles
+cd meloworld-dotfiles
+chmod +x install.sh
+./install.sh
+```
+
+# Manual Install
 ```bash
 git clone https://github.com/melatonia/meloworld-dotfiles
 cd meloworld-dotfiles
@@ -101,6 +109,12 @@ cp -r rofi ~/.config/
 cp -r zed ~/.config/
 cp -r .zshrc ~/.zshrc
 sudo cp -r meloworld-sddm /usr/share/sddm/themes/
+```
+
+then add these lines to `/etc/sddm.conf.d/theme.conf` for sddm theme
+```
+[Theme]
+Current=meloworld-sddm
 ```
 
 you can use this code to remove window buttons from apps.
