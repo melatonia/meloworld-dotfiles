@@ -1,6 +1,3 @@
-# theme = dark: Gruvbox Material Dark, light: Gruvbox Material Light
-# theme = Atom One Dark
 theme = Material
 # theme = Poimandres
 font-family = "JetbrainsMono Nerd Font"
-# background-opacity = 0.85
