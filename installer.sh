@@ -27,7 +27,7 @@ ZZZzz /,`.-'`'    -.  ;-;;,_
      |,4-  ) )-,_. ,\ (  `'-'
     '---''(_/--'  `-'\_)  melo-installer.
 EOF
-echo -e "${BLUE}Deploying Meloworld rice...${RESET}\n"
+echo -e "${BLUE}Installing Meloworld rice...${RESET}\n"
 
 # ── 1. Repository Migration ───────────────────────────────────────────────────
 echo -e "${PURPLE}Step 1: Permanent Placement${RESET}"
@@ -87,7 +87,7 @@ fi
 if ask_permission "Install SDDM theme files?"; then
     sudo mkdir -p /usr/share/sddm/themes/
     sudo cp -r "$INSTALL_LOC/meloworld-sddm" /usr/share/sddm/themes/
-    echo -e "\n${YELLOW}MANUAL STEP:${RESET} Add ${PURPLE}Current=meloworld-sddm${RESET} to ${BLUE}/etc/sddm.conf.d/theme.conf${RESET}\n"
+    echo -e "\n${YELLOW}MANUAL STEP:${RESET} Add\n${PURPLE}[Theme]\nCurrent=meloworld-sddm${RESET}\nto ${BLUE}/etc/sddm.conf.d/theme.conf${RESET}\n"
 fi
 
 if ask_permission "Apply final preferences & set Zsh?"; then
