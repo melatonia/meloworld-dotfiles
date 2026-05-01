@@ -79,7 +79,8 @@ it uses power-profiles-daemon. the border changes color with whatever's active.
 
 things that arent significant but worth noting. nothing fancy but they are good for consistency.
 
-![system tray](assets/tray.png?v=2) ![brightness](assets/brightness.png) ![calendar](assets/calendar.png) ![session](assets/session.png)
+![system tray](assets/tray.png?v=2) ![brightness](assets/brightness.png) 
+![calendar](assets/calendar.png) ![session](assets/session.png)
 
 ---
 
