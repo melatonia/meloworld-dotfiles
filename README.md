@@ -18,7 +18,7 @@
 
 ## 🌱 about
 
-Meloworld is my personal Arch Linux desktop. built around MangoWM and Quickshell, written in QML. the wallpapers are ghibli landscapes and the whole thing is meant to feel warm, colorful, and alive — not cold and minimal.
+Meloworld is my personal Arch Linux desktop. built around MangoWM and Quickshell. the wallpapers are ghibli landscapes and the whole thing is meant to feel warm, colorful, and alive.
 
 every popup, widget, and notification is part of the same visual system. same row height, same font, same spacing throughout. things slide in, things slide out.
 
@@ -30,10 +30,10 @@ every popup, widget, and notification is part of the same visual system. same ro
 |---|---|
 | **os** | Arch Linux |
 | **wm** | MangoWM |
-| **shell layer** | Quickshell 0.2.1 |
+| **shell layer** | Quickshell |
 | **terminal** | Ghostty |
 | **shell** | zsh |
-| **editor** | Helix |
+| **editor** | Zed |
 | **launcher** | Rofi |
 | **font** | JetBrainsMono Nerd Font |
 | **wallpaper** | Ghibli landscapes |
@@ -43,13 +43,13 @@ every popup, widget, and notification is part of the same visual system. same ro
 
 ## 🌸 the bar
 
-workspace pills that slide in when you open something and slide out when you close it. scroll the mouse wheel to switch workspaces. a clock in the center. audio, bluetooth, power profile, network, battery, date, and session on the right.
+workspace pills that slide in when you open something and slide out when you close it. scroll the mouse wheel to switch workspaces.
 
 ---
 
 ## 🪴 the popups
 
-three popups. all animated — slide down from the top when they open, slide back up when they close. all share the same design language so they feel like they belong together.
+all animated — slide down from the top when they open, slide back up when they close. all share the same design language so they feel like they belong together.
 
 ### 🔊 audio
 
