@@ -75,6 +75,12 @@ previously connected networks, autoscan, password enter field. similar to blueto
 
 it uses power-profiles-daemon. the border changes color with whatever's active.
 
+### 🧩 others
+
+things that arent significant but worth noting. nothing fancy but they are good for consistency.
+
+![system tray](assets/tray.png) ![brightness](assets/brightness.png) ![calendar](assets/calendar.png) ![session](assets/session.png)
+
 ---
 
 ## 🌻 notifications
