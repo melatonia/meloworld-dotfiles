@@ -85,6 +85,14 @@ slide in from the right. each app gets its own accent color, derived from the ap
 
 ---
 
+## 🔑 SDDM
+
+![sddm theme](assets/sddm.png)
+
+i also created a sddm theme based on the same aesthetic. so it smoothly gets to desktop
+
+---
+
 ## 🍁 install
 
 # Automatic Install for Arch Linux
