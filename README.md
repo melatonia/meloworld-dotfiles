@@ -164,7 +164,7 @@ i'm currently using google chrome but if you want to use firefox i recommend usi
 - [x] fix: smoother scrolling for sliders 
 - [x] battery saver mode
 - [x] fix: adding right click context menu to the tray
-- [ ] feature: not sure but a simple date widget
+- [x] feature: not sure but a simple date widget
 - [ ] improvement: a more consistent lockscreen theme
 - [ ] feature: more sounds (currently limited to notification and screenshots)
 

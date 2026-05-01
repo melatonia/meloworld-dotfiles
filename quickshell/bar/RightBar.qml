@@ -11,6 +11,7 @@ Row {
     property alias networkWidget: networkWidget
     property alias brightnessWidget: brightnessWidget
     property alias trayBar: trayBar
+    property alias dateWidget: dateWidget
 
     TrayBar          { id: trayBar; anchors.verticalCenter: parent.verticalCenter }
     BrightnessWidget { id: brightnessWidget; anchors.verticalCenter: parent.verticalCenter }
@@ -18,6 +19,6 @@ Row {
     BluetoothWidget  { id: bluetoothWidget; anchors.verticalCenter: parent.verticalCenter }
     NetworkWidget    { id: networkWidget; anchors.verticalCenter: parent.verticalCenter }
     BatteryWidget    { id: batteryWidget; anchors.verticalCenter: parent.verticalCenter }
-    DateWidget       { anchors.verticalCenter: parent.verticalCenter }
+    DateWidget       { id: dateWidget; anchors.verticalCenter: parent.verticalCenter }
     SessionWidget    { id: sessionWidget; anchors.verticalCenter: parent.verticalCenter }
 }

@@ -53,6 +53,11 @@ ShellRoot {
                 anchor.rect.x: Math.min(bar.rightContainer.x + bar.rightBar.x + bar.rightBar.trayBar.x + (bar.rightBar.trayBar.width / 2) - (implicitWidth / 2), bar.rightContainer.x + bar.rightContainer.width - implicitWidth)
                 anchor.rect.y: panelWin.height
             }
+            CalendarPopup {
+                anchor.window: panelWin
+                anchor.rect.x: Math.min(bar.rightContainer.x + bar.rightBar.x + bar.rightBar.dateWidget.x + (bar.rightBar.dateWidget.width / 2) - (implicitWidth / 2), bar.rightContainer.x + bar.rightContainer.width - implicitWidth)
+                anchor.rect.y: panelWin.height
+            }
         }
     }
     Variants {

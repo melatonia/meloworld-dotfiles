@@ -5,3 +5,4 @@ singleton AudioState 1.0 AudioState.qml
 singleton NetworkState 1.0 NetworkState.qml
 singleton BrightnessState 1.0 BrightnessState.qml
 singleton TrayState 1.0 TrayState.qml
+singleton CalendarState 1.0 CalendarState.qml

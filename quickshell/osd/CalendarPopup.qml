@@ -1,0 +1,199 @@
+import QtQuick
+import "../theme"
+
+PopupBase {
+    id: root
+    implicitWidth:  240
+    borderColor:    PanelColors.date
+    clipContent:    false
+    contentHeight:  contentCol.implicitHeight
+
+    // ── State ─────────────────────────────────────
+    property int _viewYear:  new Date().getFullYear()
+    property int _viewMonth: new Date().getMonth()
+
+    readonly property int _todayDay:   new Date().getDate()
+    readonly property int _todayMonth: new Date().getMonth()
+    readonly property int _todayYear:  new Date().getFullYear()
+
+    Connections {
+        target: SessionState
+        function onCalendarVisibleChanged() {
+            if (SessionState.calendarVisible) {
+                root._viewYear  = new Date().getFullYear()
+                root._viewMonth = new Date().getMonth()
+                root.animState  = "open"
+            } else {
+                root.animState = "closing"
+            }
+        }
+    }
+
+    function _monthName(m) {
+        return ["January","February","March","April","May","June",
+                "July","August","September","October","November","December"][m]
+    }
+    function _daysInMonth(y, m) { return new Date(y, m + 1, 0).getDate() }
+    function _firstWeekday(y, m) { return (new Date(y, m, 1).getDay() + 6) % 7 }
+
+    // ── Content ───────────────────────────────────
+    Column {
+        id: contentCol
+        anchors { top: parent.top; left: parent.left; right: parent.right; margins: root.padding }
+        spacing: 8
+
+        // ── Month nav row ─────────────────────────
+        Rectangle {
+            width: parent.width
+            height: 34
+            radius: 6
+            color: PanelColors.rowBackground
+
+            Row {
+                anchors.fill: parent
+
+                // Prev
+                Rectangle {
+                    width: 34; height: parent.height; radius: 6
+                    color: prevArea.containsMouse ? Qt.lighter(PanelColors.rowBackground, 1.4) : "transparent"
+                    Behavior on color { ColorAnimation { duration: 120 } }
+                    Text {
+                        anchors.centerIn: parent
+                        text: ""
+                        font.pixelSize: 16; font.family: "JetBrainsMono Nerd Font"
+                        color: PanelColors.textDim
+                    }
+                    MouseArea {
+                        id: prevArea; anchors.fill: parent; hoverEnabled: true
+                        onClicked: {
+                            if (root._viewMonth === 0) { root._viewMonth = 11; root._viewYear-- }
+                            else root._viewMonth--
+                        }
+                    }
+                }
+
+                // Month + Year
+                Text {
+                    width: parent.width - 68
+                    height: parent.height
+                    horizontalAlignment: Text.AlignHCenter
+                    verticalAlignment:   Text.AlignVCenter
+                    text: root._monthName(root._viewMonth) + " " + root._viewYear
+                    font.pixelSize: 13; font.bold: true; font.family: "JetBrainsMono Nerd Font"
+                    color: PanelColors.textAccent
+                }
+
+                // Next
+                Rectangle {
+                    width: 34; height: parent.height; radius: 6
+                    color: nextArea.containsMouse ? Qt.lighter(PanelColors.rowBackground, 1.4) : "transparent"
+                    Behavior on color { ColorAnimation { duration: 120 } }
+                    Text {
+                        anchors.centerIn: parent
+                        text: ""
+                        font.pixelSize: 16; font.family: "JetBrainsMono Nerd Font"
+                        color: PanelColors.textDim
+                    }
+                    MouseArea {
+                        id: nextArea; anchors.fill: parent; hoverEnabled: true
+                        onClicked: {
+                            if (root._viewMonth === 11) { root._viewMonth = 0; root._viewYear++ }
+                            else root._viewMonth++
+                        }
+                    }
+                }
+            }
+        }
+
+        // ── Day-of-week headers ───────────────────
+        Row {
+            width: parent.width
+            Repeater {
+                model: ["Mo","Tu","We","Th","Fr","Sa","Su"]
+                delegate: Text {
+                    width: contentCol.width / 7
+                    horizontalAlignment: Text.AlignHCenter
+                    text: modelData
+                    font.pixelSize: 11; font.bold: true; font.family: "JetBrainsMono Nerd Font"
+                    color: index >= 5 ? PanelColors.date : PanelColors.textDim
+                }
+            }
+        }
+
+        // ── Divider ───────────────────────────────
+        Rectangle {
+            width: parent.width; height: 1
+            color: PanelColors.border
+        }
+
+        // ── Day grid ─────────────────────────────
+        Column {
+            width: parent.width
+            spacing: 2
+
+            Repeater {
+                model: Math.ceil((_firstWeekday(root._viewYear, root._viewMonth)
+                        + _daysInMonth(root._viewYear, root._viewMonth)) / 7)
+
+                delegate: Rectangle {
+                    required property int index
+                    readonly property int weekIndex: index
+
+                    readonly property bool isCurrentWeek: {
+                        var todayTotal = root._todayDay + _firstWeekday(root._todayYear, root._todayMonth) - 1
+                        return root._viewMonth === root._todayMonth
+                            && root._viewYear  === root._todayYear
+                            && Math.floor(todayTotal / 7) === weekIndex
+                    }
+
+                    width: parent.width
+                    height: 28
+                    radius: 6
+                    color: isCurrentWeek ? PanelColors.rowBackground : "transparent"
+
+                    // Left strip — only on current week
+                    Rectangle {
+                        visible: isCurrentWeek
+                        width: 3; height: parent.height - 10; radius: 2
+                        anchors { left: parent.left; leftMargin: 4; verticalCenter: parent.verticalCenter }
+                        color: PanelColors.date
+                    }
+
+                    Row {
+                        anchors.fill: parent
+
+                        Repeater {
+                            model: 7
+                            delegate: Item {
+                                required property int index
+                                readonly property int cellIndex: weekIndex * 7 + index
+                                readonly property int dayNum:    cellIndex - _firstWeekday(root._viewYear, root._viewMonth) + 1
+                                readonly property bool isEmpty:  dayNum < 1 || dayNum > _daysInMonth(root._viewYear, root._viewMonth)
+                                readonly property bool isToday:  !isEmpty
+                                                                && dayNum === root._todayDay
+                                                                && root._viewMonth === root._todayMonth
+                                                                && root._viewYear  === root._todayYear
+
+                                width:  contentCol.width / 7
+                                height: parent.height
+
+                                Rectangle {
+                                    anchors.centerIn: parent
+                                    width: 24; height: 24; radius: 6
+                                    color: isToday ? PanelColors.date : "transparent"
+
+                                    Text {
+                                        anchors.centerIn: parent
+                                        text: isEmpty ? "" : dayNum
+                                        font.pixelSize: 12; font.bold: isToday; font.family: "JetBrainsMono Nerd Font"
+                                        color: isToday ? PanelColors.pillForeground : PanelColors.textMain
+                                    }
+                                }
+                            }
+                        }
+                    }
+                }
+            }
+        }
+    }
+}
