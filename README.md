@@ -94,6 +94,14 @@ i also created a sddm theme based on the same aesthetic. so it smoothly gets to 
 
 ---
 
+## 🧑🏼‍💻 zed
+
+![zed theme](assets/zed.png)
+
+the zed theme is based on the same color palette. there is both blurred and non-blurred variants in the theme. i prefer the blur variant.
+
+---
+
 ## 🍁 install
 
 # Automatic Install for Arch Linux
