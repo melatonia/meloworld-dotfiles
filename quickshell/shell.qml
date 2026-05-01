@@ -48,6 +48,11 @@ ShellRoot {
                 anchor.rect.x: Math.min(bar.rightContainer.x + bar.rightBar.x + bar.rightBar.sessionWidget.x + (bar.rightBar.sessionWidget.width / 2) - (implicitWidth / 2), bar.rightContainer.x + bar.rightContainer.width - implicitWidth)
                 anchor.rect.y: panelWin.height
             }
+            TrayPopup {
+                anchor.window: panelWin
+                anchor.rect.x: Math.min(bar.rightContainer.x + bar.rightBar.x + bar.rightBar.trayBar.x + (bar.rightBar.trayBar.width / 2) - (implicitWidth / 2), bar.rightContainer.x + bar.rightContainer.width - implicitWidth)
+                anchor.rect.y: panelWin.height
+            }
         }
     }
     Variants {

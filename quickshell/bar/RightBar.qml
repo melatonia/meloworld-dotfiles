@@ -10,8 +10,9 @@ Row {
     property alias sessionWidget: sessionWidget
     property alias networkWidget: networkWidget
     property alias brightnessWidget: brightnessWidget
+    property alias trayBar: trayBar
 
-    TrayBar          { anchors.verticalCenter: parent.verticalCenter }
+    TrayBar          { id: trayBar; anchors.verticalCenter: parent.verticalCenter }
     BrightnessWidget { id: brightnessWidget; anchors.verticalCenter: parent.verticalCenter }
     AudioWidget      { id: audioWidget; anchors.verticalCenter: parent.verticalCenter }
     BluetoothWidget  { id: bluetoothWidget; anchors.verticalCenter: parent.verticalCenter }
