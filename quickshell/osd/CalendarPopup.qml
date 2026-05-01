@@ -40,23 +40,26 @@ PopupBase {
     Column {
         id: contentCol
         anchors { top: parent.top; left: parent.left; right: parent.right; margins: root.padding }
-        spacing: 8
+        spacing: 6
 
         // ── Month nav row ─────────────────────────
-        Row {
+        Item {
             width: parent.width
-            height: 34
+            height: 28
 
             // Prev
             Rectangle {
-                width: 34; height: 34; radius: 6
-                color: prevArea.containsMouse ? Qt.lighter(PanelColors.rowBackground, 1.4) : PanelColors.rowBackground
+                id: prevBtn
+                width: 24; height: 24; radius: 5
+                anchors { left: parent.left; verticalCenter: parent.verticalCenter }
+                color: prevArea.containsMouse ? PanelColors.border : PanelColors.rowBackground
                 Behavior on color { ColorAnimation { duration: 120 } }
                 Text {
                     anchors.centerIn: parent
                     text: ""
-                    font.pixelSize: 16; font.family: "JetBrainsMono Nerd Font"
+                    font.pixelSize: 13; font.family: "JetBrainsMono Nerd Font"
                     color: PanelColors.textDim
+                    Behavior on color { ColorAnimation { duration: 120 } }
                 }
                 MouseArea {
                     id: prevArea; anchors.fill: parent; hoverEnabled: true
@@ -69,10 +72,7 @@ PopupBase {
 
             // Month + Year
             Text {
-                width: parent.width - 68
-                height: 34
-                horizontalAlignment: Text.AlignHCenter
-                verticalAlignment:   Text.AlignVCenter
+                anchors.centerIn: parent
                 text: root._monthName(root._viewMonth) + " " + root._viewYear
                 font.pixelSize: 13; font.bold: true; font.family: "JetBrainsMono Nerd Font"
                 color: PanelColors.textAccent
@@ -80,14 +80,17 @@ PopupBase {
 
             // Next
             Rectangle {
-                width: 34; height: 34; radius: 6
-                color: nextArea.containsMouse ? Qt.lighter(PanelColors.rowBackground, 1.4) : PanelColors.rowBackground
+                id: nextBtn
+                width: 24; height: 24; radius: 5
+                anchors { right: parent.right; verticalCenter: parent.verticalCenter }
+                color: nextArea.containsMouse ? PanelColors.border : PanelColors.rowBackground
                 Behavior on color { ColorAnimation { duration: 120 } }
                 Text {
                     anchors.centerIn: parent
                     text: ""
-                    font.pixelSize: 16; font.family: "JetBrainsMono Nerd Font"
-                    color: PanelColors.textDim
+                    font.pixelSize: 13; font.family: "JetBrainsMono Nerd Font"
+                    color: nextArea.containsMouse ? PanelColors.textAccent : PanelColors.textDim
+                    Behavior on color { ColorAnimation { duration: 120 } }
                 }
                 MouseArea {
                     id: nextArea; anchors.fill: parent; hoverEnabled: true
@@ -108,7 +111,7 @@ PopupBase {
                     width: contentCol.width / 7
                     horizontalAlignment: Text.AlignHCenter
                     text: modelData
-                    font.pixelSize: 11; font.bold: true; font.family: "JetBrainsMono Nerd Font"
+                    font.pixelSize: 12; font.bold: true; font.family: "JetBrainsMono Nerd Font"
                     color: index >= 5 ? PanelColors.date : PanelColors.textDim
                 }
             }
@@ -149,7 +152,7 @@ PopupBase {
                     Rectangle {
                         visible: isCurrentWeek
                         width: 3; height: parent.height - 10; radius: 2
-                        anchors { left: parent.left; leftMargin: 4; verticalCenter: parent.verticalCenter }
+                        anchors { left: parent.left; leftMargin: 0; verticalCenter: parent.verticalCenter }
                         color: PanelColors.date
                     }
 
@@ -179,7 +182,7 @@ PopupBase {
                                     Text {
                                         anchors.centerIn: parent
                                         text: isEmpty ? "" : dayNum
-                                        font.pixelSize: 12; font.bold: isToday; font.family: "JetBrainsMono Nerd Font"
+                                        font.pixelSize: 13; font.bold: isToday; font.family: "JetBrainsMono Nerd Font"
                                         color: isToday ? PanelColors.pillForeground : PanelColors.textMain
                                     }
                                 }
