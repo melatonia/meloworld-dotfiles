@@ -28,9 +28,6 @@ Row {
             hoverEnabled: true
             onClicked: {
                 Quickshell.execDetached(["rofi", "-show", "drun"])
-                const home = Quickshell.env("HOME")
-                const path = home + "/.config/quickshell/assets/sounds/launcher.flac"
-                Quickshell.execDetached(["pw-play", path])
             }
         }
     }

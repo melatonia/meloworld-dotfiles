@@ -156,6 +156,20 @@ i'm currently using google chrome but if you want to use firefox i recommend usi
 
 ---
 
+## ✅ to-do list
+
+- [x] consistent design system and color palette
+- [x] fixing the widget overlap
+- [x] removing the hardcoded values 
+- [x] fix: smoother scrolling for sliders 
+- [x] battery saver mode
+- [ ] feature: not sure but a simple date widget
+- [ ] improvement: a more consistent lockscreen theme
+- [ ] feature: more sounds (currently limited to notification and screenshots)
+- [ ] fix: adding right click context menu to the tray
+
+---
+
 ## 🍀 credits
 
 the popup design language — the row style, the accent stripes, the device selectors — was heavily inspired by [crylia-theme](https://github.com/Crylia/crylia-theme) by [Crylia](https://github.com/Crylia). a beautiful AwesomeWM rice that made the whole thing feel possible. everything here is reimplemented from scratch in QML, but the soul came from there.
