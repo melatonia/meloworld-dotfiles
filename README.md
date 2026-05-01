@@ -18,6 +18,8 @@
 
 ## 🌱 about
 
+# this rice is still work in progress but its mostly done
+
 Meloworld is my personal Arch Linux desktop. built around MangoWM and Quickshell. the wallpapers are ghibli landscapes and the whole thing is meant to feel warm, colorful, and alive.
 
 every popup, widget, and notification is part of the same visual system. same row height, same font, same spacing throughout. things slide in, things slide out.
@@ -36,7 +38,6 @@ every popup, widget, and notification is part of the same visual system. same ro
 | **editor** | Zed |
 | **launcher** | Rofi |
 | **font** | JetBrainsMono Nerd Font |
-| **wallpaper** | Ghibli landscapes |
 | **screenshots** | grim + slurp |
 
 ---
@@ -133,12 +134,18 @@ gsettings set org.gnome.desktop.wm.preferences button-layout ":"
 ### dependencies
 
 ```bash
-paru -S mangowm quickshell pipewire pipewire-pulse wireplumber bluez bluez-utils brightnessctl ghostty power-profiles-daemon polkit-gnome ttf-jetbrains-mono-nerd rofi rofi-emoji grim slurp awww bibata-cursor-theme-bin papirus-icon-theme zed zsh zsh-autosuggestions zsh-syntax-highlighting
+paru -S mangowm quickshell pipewire pipewire-pulse wireplumber bluez bluez-utils brightnessctl ghostty power-profiles-daemon polkit-gnome ttf-jetbrains-mono-nerd rofi rofi-emoji grim slurp awww bibata-cursor-theme-bin papirus-icon-theme zed zsh zsh-autosuggestions zsh-syntax-highlighting adw-gtk-theme
 
 sudo systemctl enable --now bluetooth power-profiles-daemon
 ```
 
 > ⚠️ use Quickshell **0.2.1 from the extra repo** — not the git version. the API is different and things will break.
+
+---
+
+## 📦 extras
+
+i'm currently using google chrome but if you want to use firefox i recommend using the [Firefox Gnome Theme](https://github.com/rafaelmardojai/firefox-gnome-theme)
 
 ---
 

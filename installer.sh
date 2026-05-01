@@ -51,7 +51,7 @@ if ask_permission "Install required packages?"; then
     wireplumber bluez bluez-utils brightnessctl ghostty power-profiles-daemon \
     polkit-gnome ttf-jetbrains-mono-nerd rofi rofi-emoji grim slurp awww \
     bibata-cursor-theme-bin papirus-icon-theme zed zsh zsh-autosuggestions \
-    zsh-syntax-highlighting eza sddm
+    zsh-syntax-highlighting eza sddm adw-gtk-theme
 fi
 
 # ── 3. Targeted Symlinking ────────────────────────────────────────────────────
@@ -93,6 +93,7 @@ fi
 if ask_permission "Apply final preferences & set Zsh?"; then
     sudo systemctl enable --now bluetooth power-profiles-daemon
     gsettings set org.gnome.desktop.wm.preferences button-layout ":"
+    gsettings set org.gnome.desktop.interface gtk-theme 'adw-gtk3-dark' && gsettings set org.gnome.desktop.interface color-scheme 'prefer-dark'
     # Switch shell to Zsh to activate history and plugin settings
     [[ "$SHELL" != */zsh ]] && chsh -s "$(which zsh)"[cite: 1]
 fi
