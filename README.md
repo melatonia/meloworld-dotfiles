@@ -150,6 +150,7 @@ sudo systemctl enable --now bluetooth power-profiles-daemon
 
 ## 📦 extras
 
+all the current sound files are created by me using bitwig studio. you can use them however you want but i would appreciate a credit :3 
 i'm currently using google chrome but if you want to use firefox i recommend using the [Firefox Gnome Theme](https://github.com/rafaelmardojai/firefox-gnome-theme)
 
 ---
@@ -165,7 +166,7 @@ i'm currently using google chrome but if you want to use firefox i recommend usi
 - [x] feature: not sure but a simple date widget
 - [x] improvement: a more consistent lockscreen theme
 - [x] improvement: a better rofi theme
-- [ ] feature: more sounds (currently limited to notification and screenshots)
+- [x] feature: more sounds (currently login chime, notification and screenshot sound exists)
 
 
 ---
