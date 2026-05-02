@@ -13,13 +13,10 @@
 ---
 
 ![desktop preview](assets/desktop.png)
-![lockscreen](assets/lockscreen.png)
 
 ---
 
 ## 🌱 about
-
-# this rice is still work in progress but its mostly done
 
 Meloworld is my personal Arch Linux desktop. built around MangoWM and Quickshell. the wallpapers are ghibli landscapes and the whole thing is meant to feel warm, colorful, and alive.
 
