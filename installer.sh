@@ -49,7 +49,7 @@ if ask_permission "Install required packages?"; then
     [ -x "$(command -v paru)" ] && PKGER="paru" || PKGER="yay"
     $PKGER -S --needed --noconfirm mangowm quickshell pipewire pipewire-pulse \
     wireplumber bluez bluez-utils brightnessctl ghostty power-profiles-daemon \
-    polkit-gnome ttf-jetbrains-mono-nerd rofi rofi-emoji grim slurp awww \
+    polkit-gnome ttf-jetbrains-mono-nerd rofi rofimoji grim slurp awww \
     bibata-cursor-theme-bin papirus-icon-theme zed zsh zsh-autosuggestions \
     zsh-syntax-highlighting eza sddm adw-gtk-theme
 fi

@@ -5,7 +5,6 @@
     fg-dim:    #616161;
     accent:    #80cbc4;
     accent-fg: #212121;
-    urgent:    #ef9a9a;
 
     background-color: transparent;
     text-color:       @fg;
@@ -20,7 +19,7 @@ window {
     border-radius:    12px;
     border:           4px;
     border-color:     #424242;
-    width:            600px;
+    width:            400px;
     padding:          10px;
 }
 
@@ -33,7 +32,6 @@ inputbar {
     background-color: @bg-alt;
     border-radius:    8px;
     padding:          10px 12px;
-    spacing:          8px;
     children:         [entry];
 }
 
@@ -41,59 +39,41 @@ entry {
     background-color:  transparent;
     text-color:        @fg;
     placeholder-color: @fg-dim;
-    placeholder:       " Search...";
+    placeholder:       "󰞅  search emoji...";
     cursor:            text;
     font:              "JetBrainsMono Nerd Font Bold 13";
 }
 
 listview {
     background-color: transparent;
-    columns:          1;
-    lines:            6;
-    spacing:          2px;
+    columns:          8;
+    lines:            5;
+    spacing:          4px;
     scrollbar:        false;
+    fixed-height:     true;
 }
 
 element {
     background-color: transparent;
     border-radius:    8px;
-    padding:          9px 12px;
-    spacing:          12px;
-    children:         [element-icon, element-text];
+    padding:          6px;
+    children:         [element-icon];
+    orientation:      vertical;
 }
 
 element normal normal {
     background-color: transparent;
-    text-color:       @fg;
 }
 
 element alternate normal {
     background-color: transparent;
-    text-color:       @fg;
 }
 
 element selected normal {
     background-color: @accent;
-    text-color:       @accent-fg;
-}
-
-element normal urgent {
-    text-color: @urgent;
-}
-
-element selected urgent {
-    background-color: @urgent;
-    text-color:       @accent-fg;
 }
 
 element-icon {
     background-color: transparent;
-    size:             22px;
-}
-
-element-text {
-    background-color: transparent;
-    text-color:       inherit;
-    vertical-align:   0.5;
-    font:             "JetBrainsMono Nerd Font Bold 13";
+    size:             32px;
 }

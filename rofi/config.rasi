@@ -1,9 +1,10 @@
 configuration {
-    modi:                "drun";
+    modi:                "drun,emoji";
     font:                "JetBrainsMono Nerd Font Bold 13";
     show-icons:          true;
     icon-theme:          "Papirus";
     drun-display-format: "{name}";
+    emoji-display-format: "{emoji}";
 }
 
 @theme "~/.config/rofi/themes/meloworld.rasi"

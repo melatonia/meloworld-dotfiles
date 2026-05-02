@@ -164,6 +164,7 @@ i'm currently using google chrome but if you want to use firefox i recommend usi
 - [x] fix: adding right click context menu to the tray
 - [x] feature: not sure but a simple date widget
 - [x] improvement: a more consistent lockscreen theme
+- [x] improvement: a better rofi theme
 - [ ] feature: more sounds (currently limited to notification and screenshots)
 
 
