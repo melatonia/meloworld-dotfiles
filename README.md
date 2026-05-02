@@ -150,7 +150,8 @@ sudo systemctl enable --now bluetooth power-profiles-daemon
 
 ## 📦 extras
 
-all the current sound files are created by me using bitwig studio. you can use them however you want but i would appreciate a credit :3 
+all the current sound files are created by me using bitwig studio. you can use them however you want but i would appreciate a credit :3
+
 i'm currently using google chrome but if you want to use firefox i recommend using the [Firefox Gnome Theme](https://github.com/rafaelmardojai/firefox-gnome-theme)
 
 ---
