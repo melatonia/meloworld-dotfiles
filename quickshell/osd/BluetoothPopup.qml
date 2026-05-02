@@ -103,7 +103,7 @@ PopupBase {
                     }
                     Text {
                         visible: modelData.connected && modelData.batteryAvailable
-                        text: visible ? modelData.battery + "%" : ""
+                        text: visible ? Math.round(modelData.battery * 100) + "%" : ""
                         font.pixelSize: 12; font.family: "JetBrainsMono Nerd Font"
                         color: PanelColors.pillForeground
                         anchors.verticalCenter: parent.verticalCenter
