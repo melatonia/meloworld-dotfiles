@@ -168,6 +168,7 @@ i'm currently using google chrome but if you want to use firefox i recommend usi
 - [x] improvement: a more consistent lockscreen theme
 - [x] improvement: a better rofi theme
 - [x] feature: more sounds (currently login chime, notification, screenshot and usb connect-remove sound exists)
+- [x] feature: osd's for brightness and audio 
 
 
 ---
