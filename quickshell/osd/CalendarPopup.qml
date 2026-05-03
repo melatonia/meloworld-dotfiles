@@ -22,7 +22,6 @@ PopupBase {
         target: CalendarState
         function onVisibleChanged() {
             if (CalendarState.visible) {
-                // Refresh "today" so the highlight moves at midnight
                 var now = new Date()
                 root._todayDay   = now.getDate()
                 root._todayMonth = now.getMonth()
@@ -35,6 +34,37 @@ PopupBase {
             } else {
                 root.animState = "closing"
             }
+        }
+    }
+
+    function updateMonth(delta) {
+        monthAnim.direction = delta
+        monthAnim.restart()
+    }
+
+    SequentialAnimation {
+        id: monthAnim
+        property int direction: 0
+        ParallelAnimation {
+            NumberAnimation { target: dayGrid; property: "opacity"; to: 0; duration: 80; easing.type: Easing.OutCubic }
+            NumberAnimation { target: gridTrans; property: "x"; to: direction > 0 ? -30 : 30; duration: 80; easing.type: Easing.OutCubic }
+        }
+        ScriptAction {
+            script: {
+                root._selectedDay = -1
+                if (monthAnim.direction > 0) {
+                    if (root._viewMonth === 11) { root._viewMonth = 0; root._viewYear++ }
+                    else root._viewMonth++
+                } else {
+                    if (root._viewMonth === 0) { root._viewMonth = 11; root._viewYear-- }
+                    else root._viewMonth--
+                }
+            }
+        }
+        PropertyAction { target: gridTrans; property: "x"; value: monthAnim.direction > 0 ? 30 : -30 }
+        ParallelAnimation {
+            NumberAnimation { target: dayGrid; property: "opacity"; to: 1; duration: 200; easing.type: Easing.OutExpo }
+            NumberAnimation { target: gridTrans; property: "x"; to: 0; duration: 200; easing.type: Easing.OutExpo }
         }
     }
 
@@ -72,11 +102,7 @@ PopupBase {
                 }
                 MouseArea {
                     id: prevArea; anchors.fill: parent; hoverEnabled: true
-                    onClicked: {
-                        root._selectedDay = -1
-                        if (root._viewMonth === 0) { root._viewMonth = 11; root._viewYear-- }
-                        else root._viewMonth--
-                    }
+                    onClicked: root.updateMonth(-1)
                 }
             }
 
@@ -104,11 +130,7 @@ PopupBase {
                 }
                 MouseArea {
                     id: nextArea; anchors.fill: parent; hoverEnabled: true
-                    onClicked: {
-                        root._selectedDay = -1
-                        if (root._viewMonth === 11) { root._viewMonth = 0; root._viewYear++ }
-                        else root._viewMonth++
-                    }
+                    onClicked: root.updateMonth(1)
                 }
             }
         }
@@ -136,8 +158,10 @@ PopupBase {
 
         // ── Day grid ─────────────────────────────
         Column {
+            id: dayGrid
             width: parent.width
             spacing: 2
+            transform: Translate { id: gridTrans; x: 0 }
 
             Repeater {
                 model: Math.ceil((_firstWeekday(root._viewYear, root._viewMonth)
