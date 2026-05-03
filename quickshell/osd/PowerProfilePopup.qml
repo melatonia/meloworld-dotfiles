@@ -27,7 +27,7 @@ PopupBase {
         Repeater {
             model: [
                 { profile: PowerProfile.PowerSaver,  icon: "󰌪", label: "Power Saver" },
-                { profile: PowerProfile.Balanced,    icon: "",  label: "Balanced"    },
+                { profile: PowerProfile.Balanced,    icon: "󰗑",  label: "Balanced"    },
                 { profile: PowerProfile.Performance, icon: "󰓅", label: "Performance" }
             ]
             delegate: Rectangle {

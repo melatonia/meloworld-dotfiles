@@ -288,7 +288,7 @@ PopupBase {
                 color: PanelColors.rowBackground
                 Row {
                     anchors.centerIn: parent; spacing: 6
-                    Text { text: ""; font.pixelSize: 12; font.family: "JetBrainsMono Nerd Font"; color: PanelColors.textDim; anchors.verticalCenter: parent.verticalCenter }
+                    Text { text: "󰁞"; font.pixelSize: 12; font.family: "JetBrainsMono Nerd Font"; color: PanelColors.textDim; anchors.verticalCenter: parent.verticalCenter }
                     Text { text: "scroll up"; font.pixelSize: 11; font.family: "JetBrainsMono Nerd Font"; color: PanelColors.textDim; anchors.verticalCenter: parent.verticalCenter }
                 }
             }
@@ -299,7 +299,7 @@ PopupBase {
                 color: PanelColors.rowBackground
                 Row {
                     anchors.centerIn: parent; spacing: 6
-                    Text { text: ""; font.pixelSize: 12; font.family: "JetBrainsMono Nerd Font"; color: PanelColors.textDim; anchors.verticalCenter: parent.verticalCenter }
+                    Text { text: "󰁆"; font.pixelSize: 12; font.family: "JetBrainsMono Nerd Font"; color: PanelColors.textDim; anchors.verticalCenter: parent.verticalCenter }
                     Text { text: "scroll for more"; font.pixelSize: 11; font.family: "JetBrainsMono Nerd Font"; color: PanelColors.textDim; anchors.verticalCenter: parent.verticalCenter }
                 }
             }

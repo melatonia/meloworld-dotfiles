@@ -455,7 +455,7 @@ PanelWindow {
                     Row {
                         anchors.centerIn: parent
                         spacing: 6
-                        Text { text: ""; font.pixelSize: 12; font.family: "JetBrainsMono Nerd Font"; color: PanelColors.textDim }
+                        Text { text: "󰁞"; font.pixelSize: 12; font.family: "JetBrainsMono Nerd Font"; color: PanelColors.textDim }
                         Text { text: "scroll up"; font.pixelSize: 11; font.family: "JetBrainsMono Nerd Font"; color: PanelColors.textDim }
                     }
                 }
@@ -469,7 +469,7 @@ PanelWindow {
                     Row {
                         anchors.centerIn: parent
                         spacing: 6
-                        Text { text: ""; font.pixelSize: 12; font.family: "JetBrainsMono Nerd Font"; color: PanelColors.textDim }
+                        Text { text: "󰁆"; font.pixelSize: 12; font.family: "JetBrainsMono Nerd Font"; color: PanelColors.textDim }
                         Text { text: "scroll for more"; font.pixelSize: 11; font.family: "JetBrainsMono Nerd Font"; color: PanelColors.textDim }
                     }
                 }
