@@ -11,19 +11,26 @@ PopupBase {
     // ── State ─────────────────────────────────────
     property int _viewYear:  new Date().getFullYear()
     property int _viewMonth: new Date().getMonth()
+    property int _selectedDay: -1
 
-    // Single snapshot for "today" — all three fields must agree on the same instant.
-    readonly property var _now:        new Date()
-    readonly property int _todayDay:   _now.getDate()
-    readonly property int _todayMonth: _now.getMonth()
-    readonly property int _todayYear:  _now.getFullYear()
+    // Tracks "today" — updated on open to stay accurate over long sessions.
+    property int _todayDay:   new Date().getDate()
+    property int _todayMonth: new Date().getMonth()
+    property int _todayYear:  new Date().getFullYear()
 
     Connections {
         target: CalendarState
         function onVisibleChanged() {
             if (CalendarState.visible) {
-                root._viewYear  = new Date().getFullYear()
-                root._viewMonth = new Date().getMonth()
+                // Refresh "today" so the highlight moves at midnight
+                var now = new Date()
+                root._todayDay   = now.getDate()
+                root._todayMonth = now.getMonth()
+                root._todayYear  = now.getFullYear()
+
+                root._selectedDay = -1
+                root._viewYear  = root._todayYear
+                root._viewMonth = root._todayMonth
                 root.animState  = "open"
             } else {
                 root.animState = "closing"
@@ -66,6 +73,7 @@ PopupBase {
                 MouseArea {
                     id: prevArea; anchors.fill: parent; hoverEnabled: true
                     onClicked: {
+                        root._selectedDay = -1
                         if (root._viewMonth === 0) { root._viewMonth = 11; root._viewYear-- }
                         else root._viewMonth--
                     }
@@ -97,6 +105,7 @@ PopupBase {
                 MouseArea {
                     id: nextArea; anchors.fill: parent; hoverEnabled: true
                     onClicked: {
+                        root._selectedDay = -1
                         if (root._viewMonth === 11) { root._viewMonth = 0; root._viewYear++ }
                         else root._viewMonth++
                     }
@@ -172,6 +181,7 @@ PopupBase {
                                                                 && dayNum === root._todayDay
                                                                 && root._viewMonth === root._todayMonth
                                                                 && root._viewYear  === root._todayYear
+                                readonly property bool isSelected: !isEmpty && dayNum === root._selectedDay
 
                                 width:  contentCol.width / 7
                                 height: parent.height
@@ -179,13 +189,26 @@ PopupBase {
                                 Rectangle {
                                     anchors.centerIn: parent
                                     width: 24; height: 24; radius: 6
-                                    color: isToday ? PanelColors.date : "transparent"
+                                    color: isToday ? PanelColors.date : (dayArea.containsMouse && !isEmpty ? PanelColors.rowBackground : (isSelected ? PanelColors.border : "transparent"))
+
+                                    Behavior on color { ColorAnimation { duration: 120 } }
 
                                     Text {
                                         anchors.centerIn: parent
                                         text: isEmpty ? "" : dayNum
-                                        font.pixelSize: 13; font.bold: isToday; font.family: "JetBrainsMono Nerd Font"
-                                        color: isToday ? PanelColors.pillForeground : PanelColors.textMain
+                                        font.pixelSize: 13; font.bold: isToday || isSelected; font.family: "JetBrainsMono Nerd Font"
+                                        color: isToday ? PanelColors.pillForeground : (isSelected ? PanelColors.textAccent : PanelColors.textMain)
+                                        Behavior on color { ColorAnimation { duration: 120 } }
+                                    }
+                                }
+
+                                MouseArea {
+                                    id: dayArea
+                                    anchors.fill: parent
+                                    hoverEnabled: !isEmpty
+                                    cursorShape: !isEmpty ? Qt.PointingHandCursor : Qt.ArrowCursor
+                                    onClicked: {
+                                        if (!isEmpty) root._selectedDay = dayNum
                                     }
                                 }
                             }
