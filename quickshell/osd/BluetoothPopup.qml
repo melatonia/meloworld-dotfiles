@@ -35,13 +35,13 @@ PopupBase {
         // ── Adapter toggle ────────────────────────
         Rectangle {
             width: parent.width; height: 34; radius: 6
-            color: root.btOn ? Colors.lightBlue200 : PanelColors.rowBackground
+            color: root.btOn ? PanelColors.bluetooth : PanelColors.rowBackground
 
             Rectangle {
                 visible: !root.btOn
                 width: 3; height: parent.height - 10; radius: 2
                 anchors { left: parent.left; leftMargin: 4; verticalCenter: parent.verticalCenter }
-                color: Colors.lightBlue200
+                color: PanelColors.bluetooth
             }
             Row {
                 anchors { left: parent.left; verticalCenter: parent.verticalCenter; leftMargin: 14 }
@@ -75,13 +75,13 @@ PopupBase {
                 required property var modelData
                 visible: modelData.paired
                 width: parent.width; height: visible ? 34 : 0; radius: 6
-                color: modelData.connected ? Colors.lightBlue200 : PanelColors.rowBackground
+                color: modelData.connected ? PanelColors.bluetooth : PanelColors.rowBackground
 
                 Rectangle {
                     visible: !modelData.connected
                     width: 3; height: parent.height - 10; radius: 2
                     anchors { left: parent.left; leftMargin: 4; verticalCenter: parent.verticalCenter }
-                    color: Colors.lightBlue200
+                    color: PanelColors.bluetooth
                 }
                 Row {
                     anchors { left: parent.left; verticalCenter: parent.verticalCenter; leftMargin: 14; right: parent.right; rightMargin: 10 }
@@ -186,13 +186,13 @@ PopupBase {
                 Text {
                     text: "󰌆"
                     font.pixelSize: 15; font.family: "JetBrainsMono Nerd Font"
-                    color: Colors.grey400
+                    color: PanelColors.textDim
                     anchors.verticalCenter: parent.verticalCenter
                 }
                 Text {
                     text: "Pair with PIN..."
                     font.pixelSize: 13; font.bold: true; font.family: "JetBrainsMono Nerd Font"
-                    color: Colors.grey400
+                    color: PanelColors.textDim
                     anchors.verticalCenter: parent.verticalCenter
                 }
             }

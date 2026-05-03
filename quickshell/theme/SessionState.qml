@@ -3,12 +3,13 @@ import QtQuick
 import Quickshell
 
 Singleton {
+    // Popups managed here are those without a dedicated singleton.
+    // Audio, brightness, tray, and calendar are owned by their own singletons.
     property bool visible: false
     property bool powerPopupVisible: false
     property bool bluetoothPopupVisible: false
     property bool wifiPopupVisible: false
-    property bool trayBarVisible: false
-    property bool calendarVisible: false
+
     function show() { visible = true }
     function hide() { closeAllPopups() }
 
@@ -16,8 +17,6 @@ Singleton {
         powerPopupVisible = false
         bluetoothPopupVisible = false
         wifiPopupVisible = false
-        trayBarVisible = false
-        calendarVisible = false
         visible = false
         AudioState.hide()
         BrightnessState.hide()

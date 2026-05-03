@@ -34,7 +34,7 @@ Singleton {
     readonly property color scanning:          Colors.teal400
     readonly property color networkScanning:   Colors.deepPurple200
     readonly property color pairing:           Colors.yellow600
-    readonly property color error:             Colors.red400
+    readonly property color error:             Colors.red200
 
     // Returns the accent color for a given PowerProfile value.
     // Used by BatteryWidget (pill) and PowerProfilePopup (border + row highlight)

@@ -12,14 +12,16 @@ PopupBase {
     property int _viewYear:  new Date().getFullYear()
     property int _viewMonth: new Date().getMonth()
 
-    readonly property int _todayDay:   new Date().getDate()
-    readonly property int _todayMonth: new Date().getMonth()
-    readonly property int _todayYear:  new Date().getFullYear()
+    // Single snapshot for "today" — all three fields must agree on the same instant.
+    readonly property var _now:        new Date()
+    readonly property int _todayDay:   _now.getDate()
+    readonly property int _todayMonth: _now.getMonth()
+    readonly property int _todayYear:  _now.getFullYear()
 
     Connections {
-        target: SessionState
-        function onCalendarVisibleChanged() {
-            if (SessionState.calendarVisible) {
+        target: CalendarState
+        function onVisibleChanged() {
+            if (CalendarState.visible) {
                 root._viewYear  = new Date().getFullYear()
                 root._viewMonth = new Date().getMonth()
                 root.animState  = "open"

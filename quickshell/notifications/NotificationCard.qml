@@ -10,6 +10,7 @@ Rectangle {
     readonly property int cardWidth:   400
     readonly property int dismissMs:   4000
     readonly property int animSlideMs: 250
+    readonly property int offscreenX:  cardWidth + 20  // park position for slide-in/out
 
     width:  cardWidth
     height: cardContent.implicitHeight + 32
@@ -42,7 +43,7 @@ Rectangle {
 
     // ── Entry animation ───────────────────────────
     opacity: 0
-    x: cardWidth + 20          // slide in from the right, based on own width
+    x: offscreenX          // slide in from the right, based on own width
 
     Component.onCompleted: {
         opacity = 1
@@ -61,7 +62,7 @@ Rectangle {
     // ── Dismiss logic ─────────────────────────────
     function dismiss() {
         opacity = 0
-        x = cardWidth + 20     // slide out to where it came from
+        x = offscreenX     // slide out to where it came from
         dismissTimer.stop()
         ringTimer.running = false
         dismissDelay.start()
@@ -196,35 +197,34 @@ Rectangle {
 
         Item { width: 1; height: 8 }
 
-        // Summary
-        Text {
-            visible: notification.summary !== ""
-            text:    notification.summary
-            font.pixelSize: 18
-            font.bold:      true
-            font.family:    "JetBrainsMono Nerd Font"
-            color: PanelColors.textAccent
-            width: parent.width
-            wrapMode:        Text.WordWrap
-            maximumLineCount: 2
-            elide: Text.ElideRight
-        }
+                // Summary
+                Text {
+                    visible: notification.summary !== ""
+                    text:    notification.summary
+                    font.pixelSize: 18
+                    font.bold:      true
+                    font.family:    "JetBrainsMono Nerd Font"
+                    color: PanelColors.textAccent
+                    width: parent.width
+                    wrapMode:        Text.WordWrap
+                    maximumLineCount: 2
+                    elide: Text.ElideRight
+                }
 
         Item { width: 1; height: 4 }
 
-        // Body
-        Text {
-            visible: notification.body !== ""
-            text:    notification.body
-            font.pixelSize: 14
-            font.family:    "JetBrainsMono Nerd Font"
-            color: PanelColors.textMain
-            width: parent.width
-            wrapMode:        Text.WordWrap
-            maximumLineCount: 3
-            elide: Text.ElideRight
-            textFormat: Text.PlainText
-        }
-
+                // Body
+                Text {
+                    visible: notification.body !== ""
+                    text:    notification.body
+                    font.pixelSize: 14
+                    font.family:    "JetBrainsMono Nerd Font"
+                    color: PanelColors.textMain
+                    width: parent.width
+                    wrapMode:        Text.WordWrap
+                    maximumLineCount: 3
+                    elide: Text.ElideRight
+                    textFormat: Text.PlainText
+                }
     }
 }

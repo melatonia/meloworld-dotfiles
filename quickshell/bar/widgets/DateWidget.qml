@@ -9,11 +9,11 @@ Pill {
     label: "󰃭 " + Qt.formatDate(clock.date, "ddd d MMM")
     mouseArea.propagateComposedEvents: true
     mouseArea.onClicked: (mouse) => {
-        if (SessionState.calendarVisible) {
-            SessionState.calendarVisible = false
+        if (CalendarState.visible) {
+            CalendarState.hide()
         } else {
             SessionState.closeAllPopups()
-            SessionState.calendarVisible = true
+            CalendarState.show()
         }
         mouse.accepted = false
     }

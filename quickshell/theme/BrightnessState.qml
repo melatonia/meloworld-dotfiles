@@ -42,8 +42,8 @@ Singleton {
     }
 
     Timer {
-        interval: 2000
-        running: !popupVisible
+        interval: 500
+        running: true
         repeat: true
         onTriggered: brightnessProc.running = true
     }

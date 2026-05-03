@@ -1,3 +1,9 @@
 theme = Material
-# theme = Poimandres
-font-family = "JetbrainsMono Nerd Font"
+
+# Font — matches the JetBrainsMono Nerd Font used everywhere else in the rice
+font-family = JetBrainsMono Nerd Font
+font-size = 13
+
+# Cursor
+cursor-style = block
+cursor-style-blink = false

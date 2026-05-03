@@ -8,3 +8,4 @@ BluetoothPopup 1.0 BluetoothPopup.qml
 WifiPopup 1.0 WifiPopup.qml
 TrayPopup 1.0 TrayPopup.qml
 CalendarPopup 1.0 CalendarPopup.qml
+OsdWindow 1.0 OsdWindow.qml

@@ -35,31 +35,31 @@ Row {
                 hoverEnabled: true
                 acceptedButtons: Qt.LeftButton | Qt.RightButton
 
-            onClicked: (mouse) => {
-                if (mouse.button === Qt.RightButton) {
-                    if (trayDelegate.modelData.hasMenu) {
-                        if (TrayState.visible && TrayState.activeItem === trayDelegate.modelData) {
-                            TrayState.hide()
-                            return
+                onClicked: (mouse) => {
+                    if (mouse.button === Qt.RightButton) {
+                        if (trayDelegate.modelData.hasMenu) {
+                            if (TrayState.visible && TrayState.activeItem === trayDelegate.modelData) {
+                                TrayState.hide()
+                                return
+                            }
+                            SessionState.closeAllPopups()
+                            const pos = trayDelegate.mapToItem(null, 0, 0)
+                            TrayState.show(trayDelegate.modelData, pos.x, pos.y)
                         }
-                        SessionState.closeAllPopups()
-                        const pos = trayDelegate.mapToItem(null, 0, 0)
-                        TrayState.show(trayDelegate.modelData, pos.x, pos.y)
-                    }
-                } else {
-                    if (trayDelegate.modelData.onlyMenu) {
-                        if (TrayState.visible && TrayState.activeItem === trayDelegate.modelData) {
-                            TrayState.hide()
-                            return
-                        }
-                        SessionState.closeAllPopups()
-                        const pos = trayDelegate.mapToItem(null, 0, 0)
-                        TrayState.show(trayDelegate.modelData, pos.x, pos.y)
                     } else {
-                        trayDelegate.modelData.activate()
+                        if (trayDelegate.modelData.onlyMenu) {
+                            if (TrayState.visible && TrayState.activeItem === trayDelegate.modelData) {
+                                TrayState.hide()
+                                return
+                            }
+                            SessionState.closeAllPopups()
+                            const pos = trayDelegate.mapToItem(null, 0, 0)
+                            TrayState.show(trayDelegate.modelData, pos.x, pos.y)
+                        } else {
+                            trayDelegate.modelData.activate()
+                        }
                     }
                 }
-            }
 
                 onWheel: (wheel) => {
                     trayDelegate.modelData.scroll(wheel.angleDelta.y, false)

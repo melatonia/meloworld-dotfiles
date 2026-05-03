@@ -106,8 +106,17 @@ fi
 
 # paru / packages
 alias yay='paru'
-alias orphans='[[ -n $(pacman -Qdt) ]] && sudo pacman -Rs $(pacman -Qdtq) || echo "no orphans to remove"'
 alias packages='pacman -Qe'
+
+function orphans() {
+  local pkgs
+  pkgs=$(pacman -Qdtq)
+  if [[ -n $pkgs ]]; then
+    sudo pacman -Rs $pkgs
+  else
+    echo "no orphans to remove"
+  fi
+}
 
 # Full system update
 alias update='paru && rustup update && orphans && flatpak update && flatpak uninstall --unused && flatpak repair'

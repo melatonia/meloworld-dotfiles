@@ -17,45 +17,54 @@ ShellRoot {
             color: "transparent"
             exclusiveZone: implicitHeight
             Bar { id: bar; anchors.fill: parent }
+
+            // Returns the X anchor for a right-bar popup centred under its trigger widget.
+            // Pass the trigger widget and the popup's own implicitWidth.
+            function popupX(widget, pWidth) {
+                return Math.min(
+                    bar.rightContainer.x + bar.rightBar.x + widget.x + widget.width / 2 - pWidth / 2,
+                    bar.rightContainer.x + bar.rightContainer.width - pWidth
+                )
+            }
+
             AudioPopup {
                 anchor.window: panelWin
-                anchor.rect.x: Math.min(bar.rightContainer.x + bar.rightBar.x + bar.rightBar.audioWidget.x + (bar.rightBar.audioWidget.width / 2) - (implicitWidth / 2), bar.rightContainer.x + bar.rightContainer.width - implicitWidth)
+                anchor.rect.x: panelWin.popupX(bar.rightBar.audioWidget, implicitWidth)
                 anchor.rect.y: panelWin.height
             }
             BrightnessPopup {
                 anchor.window: panelWin
-                anchor.rect.x: Math.min(bar.rightContainer.x + bar.rightBar.x + bar.rightBar.brightnessWidget.x + (bar.rightBar.brightnessWidget.width / 2) - (implicitWidth / 2), bar.rightContainer.x + bar.rightContainer.width - implicitWidth)
+                anchor.rect.x: panelWin.popupX(bar.rightBar.brightnessWidget, implicitWidth)
                 anchor.rect.y: panelWin.height
             }
             PowerProfilePopup {
                 anchor.window: panelWin
-                anchor.rect.x: Math.min(bar.rightContainer.x + bar.rightBar.x + bar.rightBar.batteryWidget.x + (bar.rightBar.batteryWidget.width / 2) - (implicitWidth / 2), bar.rightContainer.x + bar.rightContainer.width - implicitWidth)
+                anchor.rect.x: panelWin.popupX(bar.rightBar.batteryWidget, implicitWidth)
                 anchor.rect.y: panelWin.height
             }
             BluetoothPopup {
                 anchor.window: panelWin
-                anchor.rect.x: Math.min(bar.rightContainer.x + bar.rightBar.x + bar.rightBar.bluetoothWidget.x + (bar.rightBar.bluetoothWidget.width / 2) - (implicitWidth / 2), bar.rightContainer.x + bar.rightContainer.width - implicitWidth)
+                anchor.rect.x: panelWin.popupX(bar.rightBar.bluetoothWidget, implicitWidth)
                 anchor.rect.y: panelWin.height
             }
             WifiPopup {
-                id: wifiPopup
-                screenObj: modelData
-                xPos: Math.min(bar.rightContainer.x + bar.rightBar.x + bar.rightBar.networkWidget.x + (bar.rightBar.networkWidget.width / 2) - (implicitWidth / 2), bar.rightContainer.x + bar.rightContainer.width - implicitWidth)
-                yPos: panelWin.height
+                anchor.window: panelWin
+                anchor.rect.x: panelWin.popupX(bar.rightBar.networkWidget, implicitWidth)
+                anchor.rect.y: panelWin.height
             }
             SessionPopup {
                 anchor.window: panelWin
-                anchor.rect.x: Math.min(bar.rightContainer.x + bar.rightBar.x + bar.rightBar.sessionWidget.x + (bar.rightBar.sessionWidget.width / 2) - (implicitWidth / 2), bar.rightContainer.x + bar.rightContainer.width - implicitWidth)
+                anchor.rect.x: panelWin.popupX(bar.rightBar.sessionWidget, implicitWidth)
                 anchor.rect.y: panelWin.height
             }
             TrayPopup {
                 anchor.window: panelWin
-                anchor.rect.x: Math.min(bar.rightContainer.x + bar.rightBar.x + bar.rightBar.trayBar.x + (bar.rightBar.trayBar.width / 2) - (implicitWidth / 2), bar.rightContainer.x + bar.rightContainer.width - implicitWidth)
+                anchor.rect.x: panelWin.popupX(bar.rightBar.trayBar, implicitWidth)
                 anchor.rect.y: panelWin.height
             }
             CalendarPopup {
                 anchor.window: panelWin
-                anchor.rect.x: Math.min(bar.rightContainer.x + bar.rightBar.x + bar.rightBar.dateWidget.x + (bar.rightBar.dateWidget.width / 2) - (implicitWidth / 2), bar.rightContainer.x + bar.rightContainer.width - implicitWidth)
+                anchor.rect.x: panelWin.popupX(bar.rightBar.dateWidget, implicitWidth)
                 anchor.rect.y: panelWin.height
             }
         }
@@ -63,6 +72,13 @@ ShellRoot {
     Variants {
         model: Quickshell.screens
         NotificationPopup {
+            required property var modelData
+            screen: modelData
+        }
+    }
+    Variants {
+        model: Quickshell.screens
+        OsdWindow {
             required property var modelData
             screen: modelData
         }
