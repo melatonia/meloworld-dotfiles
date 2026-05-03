@@ -49,7 +49,8 @@ PopupBase {
                 delegate: Rectangle {
                     required property var modelData
                     width: parent.width; height: 34; radius: 6
-                    color: PanelColors.rowBackground
+                    color: menuMouse.containsMouse ? Qt.lighter(PanelColors.rowBackground, 1.15) : PanelColors.rowBackground
+                    Behavior on color { ColorAnimation { duration: 150 } }
 
                     Rectangle {
                         width: 3; height: parent.height - 10; radius: 2
@@ -71,9 +72,8 @@ PopupBase {
                         }
                     }
                     MouseArea {
+                        id: menuMouse
                         anchors.fill: parent; hoverEnabled: true
-                        onEntered: parent.opacity = 0.8
-                        onExited:  parent.opacity = 1.0
                         onClicked: {
                             if (modelData.action.startsWith("confirm_")) {
                                 root.menuState = modelData.action
@@ -87,7 +87,6 @@ PopupBase {
                             }
                         }
                     }
-                    Behavior on opacity { NumberAnimation { duration: 150 } }
                 }
             }
         }
@@ -118,7 +117,8 @@ PopupBase {
                 // No
                 Rectangle {
                     width: (parent.width - 4) / 2; height: 34; radius: 6
-                    color: PanelColors.rowBackground
+                    color: noMouse.containsMouse ? Qt.lighter(PanelColors.rowBackground, 1.15) : PanelColors.rowBackground
+                    Behavior on color { ColorAnimation { duration: 150 } }
                     Text {
                         anchors.centerIn: parent
                         text: "No"
@@ -126,18 +126,17 @@ PopupBase {
                         color: PanelColors.textMain
                     }
                     MouseArea {
+                        id: noMouse
                         anchors.fill: parent; hoverEnabled: true
-                        onEntered: parent.opacity = 0.8
-                        onExited:  parent.opacity = 1.0
                         onClicked: root.menuState = "menu"
                     }
-                    Behavior on opacity { NumberAnimation { duration: 150 } }
                 }
 
                 // Yes
                 Rectangle {
                     width: (parent.width - 4) / 2; height: 34; radius: 6
-                    color: PanelColors.session
+                    color: yesMouse.containsMouse ? Qt.lighter(PanelColors.session, 1.15) : PanelColors.session
+                    Behavior on color { ColorAnimation { duration: 150 } }
                     Text {
                         anchors.centerIn: parent
                         text: "Yes"
@@ -145,9 +144,8 @@ PopupBase {
                         color: PanelColors.pillForeground
                     }
                     MouseArea {
+                        id: yesMouse
                         anchors.fill: parent; hoverEnabled: true
-                        onEntered: parent.opacity = 0.8
-                        onExited:  parent.opacity = 1.0
                         onClicked: {
                             SessionState.hide()
                             if      (root.menuState === "confirm_shutdown") Quickshell.execDetached(["systemctl", "poweroff"])
@@ -155,7 +153,6 @@ PopupBase {
                             else if (root.menuState === "confirm_logout")   Quickshell.execDetached(["mmsg", "-q"])
                         }
                     }
-                    Behavior on opacity { NumberAnimation { duration: 150 } }
                 }
             }
         }

@@ -80,7 +80,12 @@ PopupBase {
                 width: popupColumn.width
                 height: 34
                 radius: 6
-                color: isActive ? PanelColors.audio : PanelColors.rowBackground
+                color: {
+                    let base = isActive ? PanelColors.audio : PanelColors.rowBackground
+                    return sinkMouse.containsMouse && !isActive ? Qt.lighter(base, 1.15) : base
+                }
+                Behavior on color { ColorAnimation { duration: 150 } }
+
                 Text {
                     anchors { left: parent.left; verticalCenter: parent.verticalCenter; leftMargin: 14; right: parent.right; rightMargin: 8 }
                     text: root.shortName(modelData.description)
@@ -91,13 +96,13 @@ PopupBase {
                     elide: Text.ElideRight
                 }
                 MouseArea {
+                    id: sinkMouse
                     anchors.fill: parent
                     hoverEnabled: true
-                    onEntered: { if (!isActive) parent.opacity = 0.8; root.updateTip(parent, modelData.description) }
-                    onExited: { parent.opacity = 1.0; root.clearTip() }
+                    onEntered: { root.updateTip(parent, modelData.description) }
+                    onExited: { root.clearTip() }
                     onClicked: AudioState.setDefaultSink(modelData.name)
                 }
-                Behavior on opacity { NumberAnimation { duration: 150 } }
             }
         }
 
@@ -119,7 +124,12 @@ PopupBase {
                 width: popupColumn.width
                 height: 34
                 radius: 6
-                color: isActive ? PanelColors.audio : PanelColors.rowBackground
+                color: {
+                    let base = isActive ? PanelColors.audio : PanelColors.rowBackground
+                    return sourceMouse.containsMouse && !isActive ? Qt.lighter(base, 1.15) : base
+                }
+                Behavior on color { ColorAnimation { duration: 150 } }
+
                 Text {
                     anchors { left: parent.left; verticalCenter: parent.verticalCenter; leftMargin: 14; right: parent.right; rightMargin: 8 }
                     text: root.shortName(modelData.description)
@@ -130,13 +140,13 @@ PopupBase {
                     elide: Text.ElideRight
                 }
                 MouseArea {
+                    id: sourceMouse
                     anchors.fill: parent
                     hoverEnabled: true
-                    onEntered: { if (!isActive) parent.opacity = 0.8; root.updateTip(parent, modelData.description) }
-                    onExited: { parent.opacity = 1.0; root.clearTip() }
+                    onEntered: { root.updateTip(parent, modelData.description) }
+                    onExited: { root.clearTip() }
                     onClicked: AudioState.setDefaultSource(modelData.name)
                 }
-                Behavior on opacity { NumberAnimation { duration: 150 } }
             }
         }
 

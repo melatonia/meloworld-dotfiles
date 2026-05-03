@@ -34,8 +34,11 @@ PopupBase {
 
         // ── Adapter toggle ────────────────────────
         Rectangle {
-            width: parent.width; height: 34; radius: 6
-            color: root.btOn ? PanelColors.bluetooth : PanelColors.rowBackground
+            color: {
+                let base = root.btOn ? PanelColors.bluetooth : PanelColors.rowBackground
+                return btMouse.containsMouse ? Qt.lighter(base, 1.15) : base
+            }
+            Behavior on color { ColorAnimation { duration: 150 } }
 
             Rectangle {
                 visible: !root.btOn
@@ -60,12 +63,10 @@ PopupBase {
                 }
             }
             MouseArea {
+                id: btMouse
                 anchors.fill: parent; hoverEnabled: true
-                onEntered: parent.opacity = 0.8
-                onExited:  parent.opacity = 1.0
                 onClicked: if (Bluetooth.defaultAdapter) Bluetooth.defaultAdapter.enabled = !Bluetooth.defaultAdapter.enabled
             }
-            Behavior on opacity { NumberAnimation { duration: 150 } }
         }
 
         // ── Paired devices ────────────────────────
@@ -75,7 +76,11 @@ PopupBase {
                 required property var modelData
                 visible: modelData.paired
                 width: parent.width; height: visible ? 34 : 0; radius: 6
-                color: modelData.connected ? PanelColors.bluetooth : PanelColors.rowBackground
+                color: {
+                    let base = modelData.connected ? PanelColors.bluetooth : PanelColors.rowBackground
+                    return pairedMouse.containsMouse && !modelData.connected ? Qt.lighter(base, 1.15) : base
+                }
+                Behavior on color { ColorAnimation { duration: 150 } }
 
                 Rectangle {
                     visible: !modelData.connected
@@ -110,12 +115,10 @@ PopupBase {
                     }
                 }
                 MouseArea {
+                    id: pairedMouse
                     anchors.fill: parent; hoverEnabled: true
-                    onEntered: if (!modelData.connected) parent.opacity = 0.8
-                    onExited:  parent.opacity = 1.0
                     onClicked: modelData.connected = !modelData.connected
                 }
-                Behavior on opacity { NumberAnimation { duration: 150 } }
             }
         }
 
@@ -130,7 +133,11 @@ PopupBase {
         Rectangle {
             visible: root.btOn
             width: parent.width; height: visible ? 34 : 0; radius: 6
-            color: root.scanning ? PanelColors.scanning : PanelColors.rowBackground
+            color: {
+                let base = root.scanning ? PanelColors.scanning : PanelColors.rowBackground
+                return scanMouse.containsMouse ? Qt.lighter(base, 1.15) : base
+            }
+            Behavior on color { ColorAnimation { duration: 150 } }
 
             Rectangle {
                 visible: !root.scanning
@@ -161,19 +168,18 @@ PopupBase {
                 }
             }
             MouseArea {
+                id: scanMouse
                 anchors.fill: parent; hoverEnabled: true
-                onEntered: parent.opacity = 0.8
-                onExited:  parent.opacity = 1.0
                 onClicked: if (Bluetooth.defaultAdapter) Bluetooth.defaultAdapter.discovering = !Bluetooth.defaultAdapter.discovering
             }
-            Behavior on opacity { NumberAnimation { duration: 150 } }
         }
 
         // ── Pair with PIN ─────────────────────────
         Rectangle {
             visible: root.scanning
             width: parent.width; height: visible ? 34 : 0; radius: 6
-            color: PanelColors.rowBackground
+            color: pinMouse.containsMouse ? Qt.lighter(PanelColors.rowBackground, 1.15) : PanelColors.rowBackground
+            Behavior on color { ColorAnimation { duration: 150 } }
 
             Rectangle {
                 width: 3; height: parent.height - 10; radius: 2
@@ -202,15 +208,13 @@ PopupBase {
                 running: false
             }
             MouseArea {
+                id: pinMouse
                 anchors.fill: parent; hoverEnabled: true
-                onEntered: parent.opacity = 0.8
-                onExited:  parent.opacity = 1.0
                 onClicked: {
                     bluetoothctlProc.running = true
                     SessionState.bluetoothPopupVisible = false
                 }
             }
-            Behavior on opacity { NumberAnimation { duration: 150 } }
         }
 
         // ── Unpaired scan results ─────────────────
@@ -242,7 +246,11 @@ PopupBase {
                             width:   unpairedColumn.width
                             height:  show ? 34 : 0
                             radius: 6
-                            color:  modelData.pairing ? PanelColors.pairing : PanelColors.rowBackground
+                            color: {
+                                let base = modelData.pairing ? PanelColors.pairing : PanelColors.rowBackground
+                                return unpMouse.containsMouse && !modelData.pairing ? Qt.lighter(base, 1.15) : base
+                            }
+                            Behavior on color { ColorAnimation { duration: 150 } }
 
                             Rectangle {
                                 visible: !modelData.pairing
@@ -269,12 +277,10 @@ PopupBase {
                                 }
                             }
                             MouseArea {
+                                id: unpMouse
                                 anchors.fill: parent; hoverEnabled: true
-                                onEntered: if (!modelData.pairing) parent.opacity = 0.8
-                                onExited:  parent.opacity = 1.0
                                 onClicked: if (!modelData.pairing) modelData.pair()
                             }
-                            Behavior on opacity { NumberAnimation { duration: 150 } }
                         }
                     }
                 }

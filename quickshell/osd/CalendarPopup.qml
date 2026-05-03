@@ -61,14 +61,14 @@ PopupBase {
                 id: prevBtn
                 width: 24; height: 24; radius: 5
                 anchors { left: parent.left; verticalCenter: parent.verticalCenter }
-                color: prevArea.containsMouse ? PanelColors.border : PanelColors.rowBackground
-                Behavior on color { ColorAnimation { duration: 120 } }
+                color: prevArea.containsMouse ? Qt.lighter(PanelColors.rowBackground, 1.15) : PanelColors.rowBackground
+                Behavior on color { ColorAnimation { duration: 150 } }
                 Text {
                     anchors.centerIn: parent
                     text: ""
                     font.pixelSize: 13; font.family: "JetBrainsMono Nerd Font"
-                    color: PanelColors.textDim
-                    Behavior on color { ColorAnimation { duration: 120 } }
+                    color: prevArea.containsMouse ? PanelColors.textAccent : PanelColors.textDim
+                    Behavior on color { ColorAnimation { duration: 150 } }
                 }
                 MouseArea {
                     id: prevArea; anchors.fill: parent; hoverEnabled: true
@@ -93,14 +93,14 @@ PopupBase {
                 id: nextBtn
                 width: 24; height: 24; radius: 5
                 anchors { right: parent.right; verticalCenter: parent.verticalCenter }
-                color: nextArea.containsMouse ? PanelColors.border : PanelColors.rowBackground
-                Behavior on color { ColorAnimation { duration: 120 } }
+                color: nextArea.containsMouse ? Qt.lighter(PanelColors.rowBackground, 1.15) : PanelColors.rowBackground
+                Behavior on color { ColorAnimation { duration: 150 } }
                 Text {
                     anchors.centerIn: parent
                     text: ""
                     font.pixelSize: 13; font.family: "JetBrainsMono Nerd Font"
                     color: nextArea.containsMouse ? PanelColors.textAccent : PanelColors.textDim
-                    Behavior on color { ColorAnimation { duration: 120 } }
+                    Behavior on color { ColorAnimation { duration: 150 } }
                 }
                 MouseArea {
                     id: nextArea; anchors.fill: parent; hoverEnabled: true
@@ -189,16 +189,24 @@ PopupBase {
                                 Rectangle {
                                     anchors.centerIn: parent
                                     width: 24; height: 24; radius: 6
-                                    color: isToday ? PanelColors.date : (dayArea.containsMouse && !isEmpty ? PanelColors.rowBackground : (isSelected ? PanelColors.border : "transparent"))
+                                    color: {
+                                        if (isEmpty) return "transparent"
+                                        let base = isToday ? PanelColors.date : (isSelected ? PanelColors.border : "transparent")
+                                        if (dayArea.containsMouse) {
+                                            let hoverRef = isToday ? PanelColors.date : (isSelected ? PanelColors.border : PanelColors.rowBackground)
+                                            return Qt.lighter(hoverRef, 1.15)
+                                        }
+                                        return base
+                                    }
 
-                                    Behavior on color { ColorAnimation { duration: 120 } }
+                                    Behavior on color { ColorAnimation { duration: 150 } }
 
                                     Text {
                                         anchors.centerIn: parent
                                         text: isEmpty ? "" : dayNum
                                         font.pixelSize: 13; font.bold: isToday || isSelected; font.family: "JetBrainsMono Nerd Font"
                                         color: isToday ? PanelColors.pillForeground : (isSelected ? PanelColors.textAccent : PanelColors.textMain)
-                                        Behavior on color { ColorAnimation { duration: 120 } }
+                                        Behavior on color { ColorAnimation { duration: 150 } }
                                     }
                                 }
 

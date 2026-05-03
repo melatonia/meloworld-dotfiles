@@ -164,13 +164,12 @@ PanelWindow {
             // 1. WiFi Toggle
             Rectangle {
                 width: parent.width; height: 34; radius: 6
-                color: NetworkState.wifiEnabled ? PanelColors.network : PanelColors.rowBackground
-                Rectangle {
-                    visible: !NetworkState.wifiEnabled
-                    width: 3; height: parent.height - 10; radius: 2
-                    anchors { left: parent.left; leftMargin: 4; verticalCenter: parent.verticalCenter }
-                    color: PanelColors.network
+                color: {
+                    let base = NetworkState.wifiEnabled ? PanelColors.network : PanelColors.rowBackground
+                    return toggleMouse.containsMouse ? Qt.lighter(base, 1.15) : base
                 }
+                Behavior on color { ColorAnimation { duration: 150 } }
+
                 Row {
                     anchors { left: parent.left; leftMargin: 14; verticalCenter: parent.verticalCenter }
                     spacing: 8
@@ -186,12 +185,10 @@ PanelWindow {
                     }
                 }
                 MouseArea {
+                    id: toggleMouse
                     anchors.fill: parent; hoverEnabled: true
-                    onEntered: parent.opacity = 0.8
-                    onExited: parent.opacity = 1.0
                     onClicked: NetworkState.toggleWifi()
                 }
-                Behavior on opacity { NumberAnimation { duration: 150 } }
             }
 
             // 2. Active Connection
@@ -236,7 +233,9 @@ PanelWindow {
                     required property var modelData
                     visible: modelData.known && modelData.ssid !== NetworkState.activeSSID
                     width: parent.width; height: visible ? 34 : 0; radius: 6
-                    color: PanelColors.rowBackground
+                    color: knownMouse.containsMouse ? Qt.lighter(PanelColors.rowBackground, 1.15) : PanelColors.rowBackground
+                    Behavior on color { ColorAnimation { duration: 150 } }
+
                     Rectangle {
                         width: 3; height: parent.height - 10; radius: 2
                         anchors { left: parent.left; leftMargin: 4; verticalCenter: parent.verticalCenter }
@@ -265,12 +264,10 @@ PanelWindow {
                         }
                     }
                     MouseArea {
+                        id: knownMouse
                         anchors.fill: parent; hoverEnabled: true
-                        onEntered: parent.opacity = 0.8
-                        onExited: parent.opacity = 1.0
                         onClicked: root.handleNetworkClick(modelData.ssid, modelData.security, true)
                     }
-                    Behavior on opacity { NumberAnimation { duration: 150 } }
                 }
             }
 
@@ -284,7 +281,12 @@ PanelWindow {
             Rectangle {
                 visible: NetworkState.wifiEnabled
                 width: parent.width; height: visible ? 34 : 0; radius: 6
-                color: NetworkState.isScanning ? PanelColors.networkScanning : PanelColors.rowBackground
+                color: {
+                    let base = NetworkState.isScanning ? PanelColors.networkScanning : PanelColors.rowBackground
+                    return scanMouse.containsMouse ? Qt.lighter(base, 1.15) : base
+                }
+                Behavior on color { ColorAnimation { duration: 150 } }
+
                 Rectangle {
                     visible: !NetworkState.isScanning
                     width: 3; height: parent.height - 10; radius: 2
@@ -312,12 +314,10 @@ PanelWindow {
                     }
                 }
                 MouseArea {
+                    id: scanMouse
                     anchors.fill: parent; hoverEnabled: true
-                    onEntered: parent.opacity = 0.8
-                    onExited: parent.opacity = 1.0
                     onClicked: NetworkState.rescan()
                 }
-                Behavior on opacity { NumberAnimation { duration: 150 } }
             }
 
             // 5. Connecting State
@@ -351,7 +351,8 @@ PanelWindow {
             Rectangle {
                 visible: NetworkState.wifiEnabled
                 width: parent.width; height: visible ? 34 : 0; radius: 6
-                color: PanelColors.rowBackground
+                color: nmtuiMouse.containsMouse ? Qt.lighter(PanelColors.rowBackground, 1.15) : PanelColors.rowBackground
+                Behavior on color { ColorAnimation { duration: 150 } }
                 Rectangle {
                     width: 3; height: parent.height - 10; radius: 2
                     anchors { left: parent.left; leftMargin: 4; verticalCenter: parent.verticalCenter }
@@ -372,15 +373,14 @@ PanelWindow {
                     }
                 }
                 MouseArea {
+                    id: nmtuiMouse
                     anchors.fill: parent; hoverEnabled: true
-                    onEntered: parent.opacity = 0.8
-                    onExited: parent.opacity = 1.0
                     onClicked: {
                         Quickshell.execDetached(["ghostty", "--title=nmtui", "-e", "nmtui"])
                         SessionState.wifiPopupVisible = false
                     }
                 }
-                Behavior on opacity { NumberAnimation { duration: 150 } }
+
             }
 
             // 7. Other Networks
@@ -406,7 +406,9 @@ PanelWindow {
                                 required property var modelData
                                 visible: !modelData.known
                                 width: otherNetCol.width; height: visible ? 34 : 0; radius: 6
-                                color: PanelColors.rowBackground
+                                color: otherMouse.containsMouse ? Qt.lighter(PanelColors.rowBackground, 1.15) : PanelColors.rowBackground
+                                Behavior on color { ColorAnimation { duration: 150 } }
+
                                 Rectangle {
                                     width: 3; height: parent.height - 10; radius: 2
                                     anchors { left: parent.left; leftMargin: 4; verticalCenter: parent.verticalCenter }
@@ -435,12 +437,10 @@ PanelWindow {
                                     }
                                 }
                                 MouseArea {
+                                    id: otherMouse
                                     anchors.fill: parent; hoverEnabled: true
-                                    onEntered: parent.opacity = 0.8
-                                    onExited: parent.opacity = 1.0
                                     onClicked: root.handleNetworkClick(modelData.ssid, modelData.security, false)
                                 }
-                                Behavior on opacity { NumberAnimation { duration: 150 } }
                             }
                         }
                     }
@@ -491,8 +491,9 @@ PanelWindow {
 
             // Back
             Rectangle {
-                width: parent.width; height: 34; radius: 6
-                color: PanelColors.rowBackground
+                color: backMouse.containsMouse ? Qt.lighter(PanelColors.rowBackground, 1.15) : PanelColors.rowBackground
+                Behavior on color { ColorAnimation { duration: 150 } }
+
                 Rectangle {
                     width: 3; height: parent.height - 10; radius: 2
                     anchors { left: parent.left; leftMargin: 4; verticalCenter: parent.verticalCenter }
@@ -505,12 +506,10 @@ PanelWindow {
                     Text { text: "Back"; font.pixelSize: 13; font.bold: true; font.family: "JetBrainsMono Nerd Font"; color: PanelColors.textMain }
                 }
                 MouseArea {
+                    id: backMouse
                     anchors.fill: parent; hoverEnabled: true
-                    onEntered: parent.opacity = 0.8
-                    onExited: parent.opacity = 1.0
                     onClicked: root.viewState = "list"
                 }
-                Behavior on opacity { NumberAnimation { duration: 150 } }
             }
 
             // Target SSID
@@ -602,7 +601,12 @@ PanelWindow {
             // Connect Button
             Rectangle {
                 width: parent.width; height: 34; radius: 6
-                color: root.passwordText.length > 0 ? PanelColors.network : PanelColors.rowBackground
+                color: {
+                    let base = root.passwordText.length > 0 ? PanelColors.network : PanelColors.rowBackground
+                    return connectMouse.containsMouse && root.passwordText.length > 0 ? Qt.lighter(base, 1.15) : base
+                }
+                Behavior on color { ColorAnimation { duration: 150 } }
+
                 Row {
                     anchors.centerIn: parent
                     spacing: 8
@@ -610,9 +614,8 @@ PanelWindow {
                     Text { text: "Connect"; font.pixelSize: 13; font.bold: true; font.family: "JetBrainsMono Nerd Font"; color: root.passwordText.length > 0 ? PanelColors.pillForeground : PanelColors.textDim }
                 }
                 MouseArea {
+                    id: connectMouse
                     anchors.fill: parent; hoverEnabled: true
-                    onEntered: if (root.passwordText.length > 0) parent.opacity = 0.8
-                    onExited: parent.opacity = 1.0
                     onClicked: {
                         if (root.passwordText.length > 0) {
                             NetworkState.connect(root.targetSSID, root.passwordText)
@@ -620,7 +623,6 @@ PanelWindow {
                         }
                     }
                 }
-                Behavior on opacity { NumberAnimation { duration: 150 } }
             }
         }
     }

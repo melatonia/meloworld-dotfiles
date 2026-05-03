@@ -36,7 +36,12 @@ PopupBase {
                 visible: modelData.profile !== PowerProfile.Performance
                     || PowerProfiles.hasPerformanceProfile
                 width: parent.width; height: visible ? 34 : 0; radius: 6
-                color: isActive ? PanelColors.profileColor(modelData.profile) : PanelColors.rowBackground
+                color: {
+                    let base = PanelColors.profileColor(modelData.profile)
+                    let bg = isActive ? base : PanelColors.rowBackground
+                    return profileMouse.containsMouse && !isActive ? Qt.lighter(bg, 1.15) : bg
+                }
+                Behavior on color { ColorAnimation { duration: 150 } }
 
                 Rectangle {
                     visible: !isActive
@@ -61,15 +66,13 @@ PopupBase {
                     }
                 }
                 MouseArea {
+                    id: profileMouse
                     anchors.fill: parent; hoverEnabled: true
-                    onEntered: if (!isActive) parent.opacity = 0.8
-                    onExited:  parent.opacity = 1.0
                     onClicked: {
                         PowerProfiles.profile = modelData.profile
                         SessionState.powerPopupVisible = false
                     }
                 }
-                Behavior on opacity { NumberAnimation { duration: 150 } }
             }
         }
     }
