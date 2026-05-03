@@ -19,7 +19,6 @@ Item {
     
     Accessible.role: Accessible.Slider
     Accessible.name: "Value Slider"
-    Accessible.value: Math.round(value) + "%"
 
     // ── Internal State ────────────────────────────
     property bool dragging: mouseArea.pressed
