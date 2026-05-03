@@ -48,9 +48,9 @@ ShellRoot {
                 anchor.rect.y: panelWin.height
             }
             WifiPopup {
-                anchor.window: panelWin
-                anchor.rect.x: panelWin.popupX(bar.rightBar.networkWidget, implicitWidth)
-                anchor.rect.y: panelWin.height
+                screenObj: modelData
+                xPos: panelWin.popupX(bar.rightBar.networkWidget, implicitWidth)
+                anchorWindow: panelWin
             }
             SessionPopup {
                 anchor.window: panelWin

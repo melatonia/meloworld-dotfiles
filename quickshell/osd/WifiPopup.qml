@@ -1,14 +1,40 @@
 import QtQuick
 import Quickshell
+import Quickshell.Wayland
 import "../theme"
 
-PopupBase {
+PanelWindow {
     id: root
     implicitWidth: 260
-    borderColor: NetworkState.wifiEnabled ? PanelColors.network : PanelColors.border
-    clipContent: true
-    padding: 10
-    contentHeight: Math.min(contentCol.implicitHeight, 480)
+    implicitHeight: 600
+    color: "transparent"
+
+    property color borderColor: NetworkState.wifiEnabled ? PanelColors.network : PanelColors.border
+    property bool clipContent: true
+    property int padding: 10
+    property int contentHeight: Math.min(contentCol.implicitHeight, 480)
+    property string animState: "closed"
+
+    WlrLayershell.keyboardFocus: WlrKeyboardFocus.OnDemand
+    WlrLayershell.layer: WlrLayershell.Overlay
+
+    property var screenObj: null
+    screen: screenObj
+
+    property int xPos: 0
+    property var anchorWindow: null
+
+    anchors.top: anchorWindow && anchorWindow.anchors.top ? true : false
+    anchors.bottom: anchorWindow && anchorWindow.anchors.bottom ? true : false
+    anchors.left: true
+    
+    // The usable area automatically accounts for the bar's exclusive zone.
+    // Margin 0 makes it perfectly flush with the bar.
+    margins.top: 0
+    margins.bottom: 0
+    margins.left: xPos
+
+    visible: animState !== "closed"
 
     // ── UI State ─────────────────────────────────────
     property string viewState: "list"
@@ -53,6 +79,60 @@ PopupBase {
             viewState = "password"
         }
     }
+
+    Rectangle {
+        id: innerRect
+        width:  parent.width
+        height: root.contentHeight + (root.padding * 2)
+        radius: 10
+        color:  PanelColors.popupBackground
+        border.color: root.borderColor
+        border.width: 2
+        clip:   root.clipContent
+
+        Behavior on height {
+            SmoothedAnimation { velocity: 800; easing.type: Easing.OutExpo }
+        }
+
+        y:       0
+        opacity: 1.0
+
+        states: [
+            State {
+                name: "open"
+                when: root.animState === "open"
+                PropertyChanges { target: innerRect; y: 0; opacity: 1.0 }
+            },
+            State {
+                name: "closing"
+                when: root.animState === "closing"
+                PropertyChanges { target: innerRect; y: -20; opacity: 0.0 }
+            }
+        ]
+
+        transitions: [
+            Transition {
+                to: "open"
+                SequentialAnimation {
+                    PropertyAction  { target: innerRect; property: "y";       value: -20  }
+                    PropertyAction  { target: innerRect; property: "opacity"; value: 0.0  }
+                    ParallelAnimation {
+                        NumberAnimation { target: innerRect; property: "y";       to: 0;   duration: 250; easing.type: Easing.OutExpo  }
+                        NumberAnimation { target: innerRect; property: "opacity"; to: 1.0; duration: 180; easing.type: Easing.OutCubic }
+                    }
+                }
+            },
+            Transition {
+                to: "closing"
+                SequentialAnimation {
+                    ParallelAnimation {
+                        NumberAnimation { target: innerRect; property: "y";       to: -20; duration: 180; easing.type: Easing.InCubic }
+                        NumberAnimation { target: innerRect; property: "opacity"; to: 0.0; duration: 150; easing.type: Easing.InCubic }
+                    }
+                    ScriptAction { script: root.animState = "closed" }
+                }
+            }
+        ]
 
     Column {
         id: contentCol
@@ -536,4 +616,5 @@ PopupBase {
             }
         }
     }
+}
 }

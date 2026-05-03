@@ -10,7 +10,8 @@ import "../theme"
 PanelWindow {
     id: root
 
-    anchors { bottom: true; left: true; right: true }
+    anchors.bottom: true
+    implicitWidth: 260
     implicitHeight: 80
     color: "transparent"
     exclusiveZone: 0
@@ -59,13 +60,13 @@ PanelWindow {
     // ── Triggers ──────────────────────────────────────
     Connections {
         target: BrightnessState
-        onBrightnessChanged: if (!BrightnessState.popupVisible) root.show("brightness")
+        function onBrightnessChanged() { if (!BrightnessState.popupVisible) root.show("brightness") }
     }
 
     Connections {
         target: AudioState
-        onVolumeChanged: if (!AudioState.popupVisible) root.show("audio")
-        onMutedChanged:  if (!AudioState.popupVisible) root.show("audio")
+        function onVolumeChanged() { if (!AudioState.popupVisible) root.show("audio") }
+        function onMutedChanged()  { if (!AudioState.popupVisible) root.show("audio") }
     }
 
     // ── Card ──────────────────────────────────────────
