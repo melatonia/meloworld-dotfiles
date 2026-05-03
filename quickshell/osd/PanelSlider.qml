@@ -16,11 +16,14 @@ Item {
     // Timer to track active wheeling
     Timer {
         id: wheelTimer
-        interval: 600
+        interval: 400 // Snappier return-to-circle after scroll
     }
 
     // The raw target value (optimistic during interaction)
     readonly property real targetValue: (dragging || wheelTimer.running) ? internalValue : value
+
+    // Helper to track if we are actively interacting (drag or scroll)
+    readonly property bool activeInteraction: dragging || wheelTimer.running
 
     // The animated value used for ALL visual components
     property real animValue: targetValue
@@ -29,61 +32,85 @@ Item {
         NumberAnimation { duration: 80; easing.type: Easing.OutCubic }
     }
 
-    Rectangle {
-        id: track
-        anchors.verticalCenter: parent.verticalCenter
-        width: parent.width
-        height: dragging ? 8 : 6
-        radius: height / 2
-        color: PanelColors.trackBackground
-        Behavior on height { NumberAnimation { duration: 100; easing.type: Easing.OutCubic } }
-
-        Rectangle {
-            width: (root.animValue - root.from) / (root.to - root.from) * parent.width
-            height: parent.height
-            radius: height / 2
-            color: root.accentColor
-        }
+    // ── Internal Helpers ──────────────────────────
+    function _updateFromMouse(mouseX) {
+        var newVal = Math.round(Math.max(root.from, Math.min(root.to,
+            root.from + (mouseX / parent.width) * (root.to - root.from))))
+        root.internalValue = newVal
+        root.moved(newVal)
     }
 
     Rectangle {
-        id: handle
-        width: dragging ? 22 : 16
-        height: dragging ? 22 : 16
-        radius: width / 2
-        color: root.accentColor
+        id: track
+        anchors.verticalCenter: parent.verticalCenter
+        width: parent.width; height: 6; radius: 3
+        
+        // Neo-Brutalist matte track with hover awareness
+        color: mouseArea.containsMouse ? Qt.lighter(PanelColors.trackBackground, 1.1) : Qt.rgba(PanelColors.trackBackground.r, PanelColors.trackBackground.g, PanelColors.trackBackground.b, 0.4)
+        Behavior on color { ColorAnimation { duration: 150 } }
+
+        Rectangle {
+            id: activeTrack
+            width: (root.animValue - root.from) / (root.to - root.from) * parent.width
+            height: parent.height; radius: parent.radius
+            color: mouseArea.containsMouse ? Qt.lighter(root.accentColor, 1.15) : root.accentColor
+            
+            // "Ghibli Soul" breathing pulse during interaction
+            property real pulse: 1.0
+            opacity: activeInteraction ? pulse : 1.0
+            SequentialAnimation on pulse {
+                loops: Animation.Infinite
+                running: root.activeInteraction
+                NumberAnimation { to: 0.7; duration: 1000; easing.type: Easing.InOutSine }
+                NumberAnimation { to: 1.0; duration: 1000; easing.type: Easing.InOutSine }
+            }
+            
+            Behavior on color { ColorAnimation { duration: 150 } }
+        }
+    }
+
+    Item {
+        id: handleContainer
+        width: 0; height: 0
         anchors.verticalCenter: track.verticalCenter
-        x: (root.animValue - root.from) / (root.to - root.from) * (track.width) - (width / 2)
-        Behavior on width { NumberAnimation { duration: 100; easing.type: Easing.OutCubic } }
-        Behavior on height { NumberAnimation { duration: 100; easing.type: Easing.OutCubic } }
+        x: (root.animValue - root.from) / (root.to - root.from) * track.width
+        
+        Rectangle {
+            id: handle
+            anchors.centerIn: parent
+            
+            // Morph: Solid circle -> clean vertical needle for precision
+            width: activeInteraction ? 6 : (mouseArea.containsMouse ? 18 : 14)
+            height: activeInteraction ? 24 : (mouseArea.containsMouse ? 18 : 14)
+            radius: width / 2
+            
+            color: mouseArea.containsMouse ? Qt.lighter(root.accentColor, 1.15) : root.accentColor
+            
+            // Whimsical "Soft-Settle" bounce
+            Behavior on width  { NumberAnimation { duration: 300; easing.type: Easing.OutBack } }
+            Behavior on height { NumberAnimation { duration: 300; easing.type: Easing.OutBack } }
+            Behavior on color  { ColorAnimation { duration: 150 } }
+        }
     }
 
     MouseArea {
         id: mouseArea
-        anchors.fill: parent
-        hoverEnabled: true
-        onPressed: root.internalValue = root.value
-        onPositionChanged: (mouse) => {
-            if (pressed) {
-                var newVal = Math.round(Math.max(root.from, Math.min(root.to,
-                    root.from + (mouse.x / width) * (root.to - root.from))))
-                root.internalValue = newVal
-                root.moved(newVal)
-            }
+        anchors.fill: parent; hoverEnabled: true
+
+        onPressed: (mouse) => {
+            root.internalValue = root.animValue // Zero-jump initialization
+            root._updateFromMouse(mouse.x)
         }
-        onClicked: (mouse) => {
-            var newVal = Math.round(Math.max(root.from, Math.min(root.to,
-                root.from + (mouse.x / width) * (root.to - root.from))))
-            root.internalValue = newVal
-            root.moved(newVal)
-        }
+        onPositionChanged: (mouse) => { if (pressed) root._updateFromMouse(mouse.x) }
+        onClicked: (mouse) => root._updateFromMouse(mouse.x)
+
         onWheel: (wheel) => {
             // Sensitivity math: 1 notch (120 delta) = 5% of range
             var step = (root.to - root.from) / 20
             var notches = wheel.angleDelta.y / 120
             var delta = notches * step
             
-            // Use internalValue as base if we are already wheeling to maintain momentum
+            // Maintain optimistic momentum during active scrolling
             var base = (dragging || wheelTimer.running) ? root.internalValue : root.value
             var newVal = Math.round(Math.max(root.from, Math.min(root.to, base + delta)))
             
