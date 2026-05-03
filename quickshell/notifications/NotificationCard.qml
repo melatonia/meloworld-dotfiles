@@ -212,7 +212,7 @@ Rectangle {
         // Separator
         Rectangle {
             width:   parent.width
-            height:  1
+            height:  2
             color:   PanelColors.rowBackground
             opacity: 0.6
         }

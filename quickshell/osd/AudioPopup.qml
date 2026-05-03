@@ -143,7 +143,7 @@ PopupBase {
         Rectangle { 
             visible: AudioState.sinks.length > 1 || AudioState.sources.length > 1
             width: parent.width
-            height: visible ? 1 : 0
+            height: visible ? 2 : 0
             color: PanelColors.rowBackground 
         }
 

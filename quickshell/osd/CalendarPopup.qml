@@ -130,7 +130,7 @@ PopupBase {
 
         // ── Divider ───────────────────────────────
         Rectangle {
-            width: parent.width; height: 1
+            width: parent.width; height: 2
             color: PanelColors.border
         }
 

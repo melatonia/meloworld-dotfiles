@@ -50,7 +50,7 @@ PopupBase {
                 Rectangle {
                     visible: entryDelegate.modelData.isSeparator
                     anchors.centerIn: parent
-                    width: parent.width; height: 1
+                    width: parent.width; height: 2
                     color: PanelColors.border
                 }
 

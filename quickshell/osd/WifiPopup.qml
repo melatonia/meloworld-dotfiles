@@ -225,7 +225,7 @@ PanelWindow {
 
             Rectangle {
                 visible: NetworkState.wifiEnabled
-                width: parent.width; height: visible ? 1 : 0
+                width: parent.width; height: visible ? 2 : 0
                 color: PanelColors.rowBackground
             }
 
@@ -276,7 +276,7 @@ PanelWindow {
 
             Rectangle {
                 visible: NetworkState.wifiEnabled && NetworkState.networks.some(function(n){ return n.known && n.ssid !== NetworkState.activeSSID })
-                width: parent.width; height: visible ? 1 : 0
+                width: parent.width; height: visible ? 2 : 0
                 color: PanelColors.rowBackground
             }
 

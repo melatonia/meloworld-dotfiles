@@ -122,7 +122,7 @@ PopupBase {
         // ── Divider ───────────────────────────────
         Rectangle {
             visible: root.btOn
-            width: parent.width; height: visible ? 1 : 0
+            width: parent.width; height: visible ? 2 : 0
             color: PanelColors.rowBackground
         }
 
