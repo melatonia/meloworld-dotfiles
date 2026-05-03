@@ -9,8 +9,6 @@ Rectangle {
     // ── Dimensions ────────────────────────────────
     readonly property int cardWidth:   400
     readonly property int dismissMs:   4000
-    readonly property int animSlideMs: 250
-    readonly property int offscreenX:  cardWidth + 20  // park position for slide-in/out
 
     width:  cardWidth
     height: cardContent.implicitHeight + 32
@@ -18,6 +16,8 @@ Rectangle {
     color:  PanelColors.popupBackground
     border.color: accentColor
     border.width: 2
+    clip: true
+    layer.enabled: true
 
     // ── Accent color ──────────────────────────────
     readonly property color accentColor: {
@@ -42,30 +42,34 @@ Rectangle {
     }
 
     // ── Entry animation ───────────────────────────
-    opacity: 0
-    x: offscreenX          // slide in from the right, based on own width
-
     Component.onCompleted: {
-        opacity = 1
-        x = 0
         dismissTimer.start()
         timerItem.startTime = Date.now()
     }
 
-    Behavior on opacity {
-        NumberAnimation { duration: 200; easing.type: Easing.OutCubic }
-    }
-    Behavior on x {
-        SmoothedAnimation { velocity: 1400; easing.type: Easing.OutExpo }
-    }
-
     // ── Dismiss logic ─────────────────────────────
     function dismiss() {
-        opacity = 0
-        x = offscreenX     // slide out to where it came from
         dismissTimer.stop()
         ringTimer.running = false
-        dismissDelay.start()
+        exitAnim.start()
+    }
+
+    SequentialAnimation {
+        id: exitAnim
+        NumberAnimation {
+            target: root
+            property: "x"
+            to: cardWidth + 20
+            duration: 250
+            easing.type: Easing.InExpo
+        }
+        NumberAnimation {
+            target: root
+            property: "opacity"
+            to: 0
+            duration: 200
+        }
+        ScriptAction { script: notification.expire() }
     }
 
     Timer {
@@ -74,27 +78,45 @@ Rectangle {
         onTriggered: root.dismiss()
     }
 
-    Timer {
-        id: dismissDelay
-        interval: animSlideMs
-        onTriggered: notification.expire()
-    }
-
     // ── Hover: pause/resume dismiss ───────────────
     MouseArea {
         anchors.fill: parent
         hoverEnabled: true
-        onEntered: {
-            dismissTimer.stop()
-            ringTimer.running = false
-            timerRing.progress = 1.0
-            timerRing.requestPaint()
+
+        SequentialAnimation {
+            id: hoverEnterAnim
+            ScriptAction { script: {
+                dismissTimer.stop()
+                ringTimer.stop()
+            }}
+            NumberAnimation { target: timerRing; property: "progress"; to: 1.0; duration: 200 }
+            PauseAnimation { duration: 100 }
+            NumberAnimation { target: timerRing; property: "opacity"; to: 0.0; duration: 200 }
         }
+
+        NumberAnimation {
+            id: ringFadeInAnim
+            target: timerRing
+            property: "opacity"
+            to: 1.0
+            duration: 150
+        }
+
+        onEntered: {
+            ringFadeInAnim.stop()
+            hoverEnterAnim.start()
+        }
+
         onExited: {
-            dismissTimer.interval = root.dismissMs
+            hoverEnterAnim.stop()
+            ringFadeInAnim.start()
+            
+            // Resume timer from current progress
+            timerItem.startTime = Date.now() - (1.0 - timerRing.progress) * root.dismissMs
+            dismissTimer.interval = timerRing.progress * root.dismissMs
+            
             dismissTimer.restart()
-            ringTimer.running = true
-            timerItem.startTime = Date.now()
+            ringTimer.start()
         }
         onClicked: root.dismiss()
     }
