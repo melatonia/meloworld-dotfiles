@@ -3,20 +3,31 @@ import "../theme"
 
 Item {
     id: root
-    height: 24
+    
+    // ── Public API ────────────────────────────────
     property real value: 0
     property real from: 0
     property real to: 100
     property color accentColor: Colors.teal200
+    
     signal moved(real value)
 
+    // ── Layout & Accessibility ────────────────────
+    implicitWidth: 120
+    implicitHeight: 24
+    height: implicitHeight
+    
+    Accessible.role: Accessible.Slider
+    Accessible.name: "Value Slider"
+    Accessible.value: Math.round(value) + "%"
+
+    // ── Internal State ────────────────────────────
     property bool dragging: mouseArea.pressed
     property real internalValue: 0
     
-    // Timer to track active wheeling
     Timer {
         id: wheelTimer
-        interval: 400 // Snappier return-to-circle after scroll
+        interval: 400
     }
 
     // The raw target value (optimistic during interaction)
@@ -34,8 +45,9 @@ Item {
 
     // ── Internal Helpers ──────────────────────────
     function _updateFromMouse(mouseX) {
+        // Calculate value based on local width for pixel-perfect alignment
         var newVal = Math.round(Math.max(root.from, Math.min(root.to,
-            root.from + (mouseX / parent.width) * (root.to - root.from))))
+            root.from + (mouseX / root.width) * (root.to - root.from))))
         root.internalValue = newVal
         root.moved(newVal)
     }
@@ -51,7 +63,7 @@ Item {
 
         Rectangle {
             id: activeTrack
-            width: (root.animValue - root.from) / (root.to - root.from) * parent.width
+            width: (root.animValue - root.from) / (root.to - root.from) * root.width
             height: parent.height; radius: parent.radius
             color: mouseArea.containsMouse ? Qt.lighter(root.accentColor, 1.15) : root.accentColor
             
