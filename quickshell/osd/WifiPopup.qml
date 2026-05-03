@@ -134,6 +134,14 @@ PanelWindow {
             }
         ]
 
+        HoverHandler { id: hover }
+
+        Timer {
+            interval: 3000
+            running: root.animState === "open" && !hover.hovered
+            onTriggered: SessionState.closeAllPopups()
+        }
+
     Column {
         id: contentCol
         anchors {
