@@ -11,7 +11,7 @@ PanelWindow {
 
     property color borderColor: NetworkState.wifiEnabled ? PanelColors.network : PanelColors.border
     property bool clipContent: true
-    property int padding: 10
+    property int padding: 12
     property int contentHeight: Math.min(contentCol.implicitHeight, 480)
     property string animState: "closed"
 

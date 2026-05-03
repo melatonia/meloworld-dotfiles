@@ -21,7 +21,7 @@ else
   compinit -C
 fi
 
-zstyle :compinstall filename '/home/melatonia/.zshrc'
+zstyle :compinstall filename '$HOME/.zshrc'
 zstyle ':completion:*' menu select          # Arrow-key navigable completion menu
 zstyle ':completion:*' matcher-list 'm:{a-z}={A-Z}'  # Case-insensitive completion
 
