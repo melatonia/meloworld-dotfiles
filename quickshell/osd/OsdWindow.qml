@@ -76,7 +76,7 @@ PanelWindow {
         height: 52
         anchors.horizontalCenter: parent.horizontalCenter
         y:      root.implicitHeight   // starts off-screen (80 px below visible area)
-        radius: 12
+        radius: 10
         color:  PanelColors.popupBackground
         border.width: 2
         border.color: root.osdType === "brightness" ? PanelColors.brightness : PanelColors.audio
@@ -147,7 +147,7 @@ PanelWindow {
                 horizontalAlignment: Text.AlignRight
                 text: (root.osdType === "brightness" ? BrightnessState.brightness : AudioState.volume)
                 font.pixelSize: 12; font.bold: true; font.family: "JetBrainsMono Nerd Font"
-                color: PanelColors.textDim
+                color: PanelColors.textMain
             }
         }
     }
