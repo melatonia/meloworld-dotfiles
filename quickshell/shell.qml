@@ -71,7 +71,6 @@ ShellRoot {
 
             Dashboard {
                 screenObj: modelData
-                barHeight: panelWin.height
             }
         }
     }

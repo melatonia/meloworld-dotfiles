@@ -2,34 +2,28 @@ import QtQuick
 import "../theme"
 
 SectionBase {
-    title: "System Resources"
-    icon: "󰢮"
-    accent: Colors.blue200
+    id: statsSection
+    width: parent.width
+    // Implicit height helps DashCard calculate its own size[cite: 2]
+    implicitHeight: statRow.height
 
     Row {
-        anchors.horizontalCenter: parent.horizontalCenter
-        spacing: 24
+        id: statRow
+        width: parent.width
+        // Centers rings by calculating gaps based on available width[cite: 3]
+        spacing: (width - (cpuRing.width * 3)) / 2
 
         StatRing {
             id: cpuRing
-            label: "CPU"
-            icon: ""
-            value: SystemStatsState.cpuUsage
-            color: Colors.red200
+            label: "CPU"; icon: ""; value: SystemStatsState.cpuUsage; color: Colors.red200
         }
-
         StatRing {
-            label: "RAM"
-            icon: ""
-            value: SystemStatsState.ramUsage
-            color: Colors.blue200
+            id: ramRing
+            label: "RAM"; icon: ""; value: SystemStatsState.ramUsage; color: Colors.blue200
         }
-
         StatRing {
-            label: "GPU"
-            icon: "󰢮"
-            value: SystemStatsState.gpuUsage
-            color: Colors.green200
+            id: gpuRing
+            label: "GPU"; icon: "󰢮"; value: SystemStatsState.gpuUsage; color: Colors.green200
         }
     }
 }

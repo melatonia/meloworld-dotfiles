@@ -5,32 +5,32 @@ import "../theme"
 
 PanelWindow {
     id: root
-    
+
     property var screenObj: null
     property int barHeight: 55
-    property int gap: 12
     property string animState: "closed"
-    
+
+    // Best Practice: Standardized spacing values
+    readonly property int cardGap: 10
+    readonly property int cardPad: 14
+
     screen: screenObj
-    
     anchors.top: true
     anchors.bottom: true
     anchors.left: true
-    
     color: "transparent"
-    
-    margins.top: 0
-    margins.left: gap
-    margins.bottom: gap
-    
-    implicitWidth: 420
-    implicitHeight: screenObj ? screenObj.height - margins.bottom : 1000
+
+    // External margins from the screen edge
+    margins.top: cardGap
+    margins.left: cardGap
+    margins.bottom: cardGap
+
+    implicitWidth: 290
     exclusiveZone: 0
     WlrLayershell.layer: WlrLayershell.Overlay
     WlrLayershell.keyboardFocus: WlrKeyboardFocus.OnDemand
-
     visible: animState !== "closed"
-    
+
     Connections {
         target: SessionState
         function onDashboardVisibleChanged() {
@@ -38,89 +38,157 @@ PanelWindow {
         }
     }
 
-    Rectangle {
-        id: innerPanel
-        width: parent.width
-        height: parent.height
-        radius: 12
+    HoverHandler { id: rootHover }
+    Timer {
+        interval: 3000
+        running: root.animState === "open" && !rootHover.hovered
+        onTriggered: SessionState.dashboardVisible = false
+    }
+
+    // ── DashCard ──────────────────────────────────────────────────────────────
+    component DashCard: Rectangle {
+        id: dashCard
+
+        property int staggerMs: 0
+        property color accent: PanelColors.launcher
+        property string label: ""
+        property alias header: cardHeader
+
+        radius: 10
         color: PanelColors.popupBackground
-        border.color: PanelColors.border
-        border.width: 4
+        border.color: accent
+        border.width: 2
         clip: true
 
-        opacity: 0.0
-        x: -20
+        property real slide: -24
+        property real fade: 0.0
+        opacity: fade
+        transform: Translate { x: dashCard.slide }
 
-        states: [
-            State {
-                name: "open"
-                when: root.animState === "open"
-                PropertyChanges { target: innerPanel; x: 0; opacity: 1.0 }
-            },
-            State {
-                name: "closing"
-                when: root.animState === "closing"
-                PropertyChanges { target: innerPanel; x: -20; opacity: 0.0 }
-            }
-        ]
+        function animIn() { slideIn.start(); fadeIn.start() }
+        function animOut() { slideOut.start(); fadeOut.start() }
 
-        transitions: [
-            Transition {
-                to: "open"
-                SequentialAnimation {
-                    PropertyAction { target: innerPanel; property: "x"; value: -20 }
-                    PropertyAction { target: innerPanel; property: "opacity"; value: 0.0 }
-                    ParallelAnimation {
-                        NumberAnimation { target: innerPanel; property: "x"; to: 0; duration: 250; easing.type: Easing.OutExpo }
-                        NumberAnimation { target: innerPanel; property: "opacity"; to: 1.0; duration: 180; easing.type: Easing.OutCubic }
-                    }
-                }
-            },
-            Transition {
-                to: "closing"
-                SequentialAnimation {
-                    ParallelAnimation {
-                        NumberAnimation { target: innerPanel; property: "x"; to: -20; duration: 180; easing.type: Easing.InCubic }
-                        NumberAnimation { target: innerPanel; property: "opacity"; to: 0.0; duration: 150; easing.type: Easing.InCubic }
-                    }
-                    ScriptAction { script: root.animState = "closed" }
-                }
-            }
-        ]
+        NumberAnimation { id: slideIn;  target: dashCard; property: "slide"; to: 0;   duration: 260; easing.type: Easing.OutExpo }
+        NumberAnimation { id: slideOut; target: dashCard; property: "slide"; to: -24; duration: 200; easing.type: Easing.InCubic }
+        NumberAnimation { id: fadeIn;   target: dashCard; property: "fade";  to: 1.0; duration: 200; easing.type: Easing.OutCubic }
+        NumberAnimation { id: fadeOut;  target: dashCard; property: "fade";  to: 0.0; duration: 160; easing.type: Easing.InCubic }
 
-        HoverHandler { id: panelHover }
-        Timer {
-            interval: 3000
-            running: root.animState === "open" && !panelHover.hovered
-            onTriggered: SessionState.dashboardVisible = false
+        default property alias content: inner.data
+
+        // Left accent stripe
+        Rectangle {
+            width: 4; height: parent.height - 24; radius: 2
+            anchors { left: parent.left; leftMargin: 7; verticalCenter: parent.verticalCenter }
+            color: dashCard.accent; opacity: 0.85
         }
 
-        Item {
-            anchors.fill: parent
-            anchors.margins: 16
-
-            ProfileSection { id: profile; anchors.top: parent.top; width: parent.width }
-            
-            // Media Player now placed directly under Profile for better UX
-            MediaPlayerSection { id: media; anchors.top: profile.bottom; anchors.topMargin: 12; width: parent.width }
-            
-            SystemStatsSection { 
-                id: stats
-                anchors.top: media.visible ? media.bottom : profile.bottom
-                anchors.topMargin: 12
-                width: parent.width 
+        // Header: label + divider
+        Column {
+            id: cardHeader
+            anchors {
+                top: parent.top; topMargin: root.cardPad
+                left: parent.left; leftMargin: 20
+                right: parent.right; rightMargin: 16
             }
-            
-            // Notification Section fills the rest
-            NotificationSection { 
-                anchors {
-                    top: stats.bottom
-                    topMargin: 12
-                    bottom: parent.bottom
-                    left: parent.left
-                    right: parent.right
+            spacing: 0
+
+            Text {
+                text: dashCard.label
+                font.pixelSize: 16; font.bold: true; font.family: "JetBrainsMono Nerd Font"
+                color: dashCard.accent; width: parent.width; elide: Text.ElideRight
+            }
+            Item { width: 1; height: 6 }
+            Rectangle { width: parent.width; height: 2; color: PanelColors.rowBackground; opacity: 0.6 }
+            Item { width: 1; height: 10 }
+        }
+
+        // Content slot
+        Item {
+            id: inner
+            anchors {
+                top: cardHeader.bottom
+                bottom: parent.bottom; bottomMargin: root.cardPad
+                left: parent.left; leftMargin: 20
+                right: parent.right; rightMargin: 16
+            }
+        }
+    }
+
+    // ── Unified Layout ────────────────────────────────────────────────────────
+    Column {
+        anchors.fill: parent
+        spacing: root.cardGap
+
+        // Top section with fixed heights
+        Column {
+            id: topCards
+            width: parent.width
+            spacing: root.cardGap
+
+            DashCard {
+                id: profileCard
+                accent: PanelColors.date; label: "meloworld"; staggerMs: 0
+                width: parent.width
+                // Account for top AND bottom margins:
+                height: profileCard.header.implicitHeight + profileInner.implicitHeight + (root.cardPad * 2)
+                ProfileSection { id: profileInner; width: parent.width }
+            }
+
+            DashCard {
+                id: mediaCard
+                accent: PanelColors.audio; label: "now playing"; staggerMs: 60
+                width: parent.width
+                // Account for top AND bottom margins:
+                height: mediaCard.header.implicitHeight + mediaInner.implicitHeight + (root.cardPad * 2)
+                visible: mediaInner.hasContent
+                MediaPlayerSection { id: mediaInner; width: parent.width }
+            }
+
+            DashCard {
+                id: statsCard
+                accent: Colors.blue200; label: "system"; staggerMs: 120
+                width: parent.width
+                // Account for top AND bottom margins:
+                height: statsCard.header.implicitHeight + statsInner.implicitHeight + (root.cardPad * 2)
+                SystemStatsSection {
+                    id: statsInner
+                    anchors.left: parent.left
+                    anchors.right: parent.right
                 }
             }
+        }
+
+        // Bottom section fills remaining space
+        DashCard {
+            id: notifCard
+            accent: PanelColors.network; label: "notifications"; staggerMs: 180
+            width: parent.width
+            height: parent.height - topCards.height - root.cardGap
+            NotificationSection { id: notifInner }
+        }
+    }
+
+    // ── Stagger Logic ────────────────────────────────────────────────────────
+    readonly property var allCards: [profileCard, mediaCard, statsCard, notifCard]
+
+    onAnimStateChanged: {
+        if (animState === "open") {
+            for (let i = 0; i < allCards.length; i++)
+                staggerFactory.createObject(root, { card: allCards[i], delay: allCards[i].staggerMs })
+        } else if (animState === "closing") {
+            for (let i = 0; i < allCards.length; i++) allCards[i].animOut()
+            closingTimer.restart()
+        }
+    }
+
+    Timer { id: closingTimer; interval: 280; onTriggered: root.animState = "closed" }
+
+    Component {
+        id: staggerFactory
+        Timer {
+            property var card: null; property int delay: 0
+            interval: delay; running: true; repeat: false
+            onTriggered: { if (card) card.animIn(); destroy() }
         }
     }
 }
