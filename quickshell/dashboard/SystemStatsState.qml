@@ -12,7 +12,7 @@ Singleton {
     property real gpuUsage: 0
 
     Timer {
-        interval: 2500
+        interval: 1000
         running: SessionState.dashboardVisible
         repeat: true
         triggeredOnStart: true

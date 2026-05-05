@@ -74,7 +74,7 @@ Item {
         Text {
             anchors.horizontalCenter: parent.horizontalCenter
             text: Math.round(root.value) + "%"
-            font.pixelSize: 12
+            font.pixelSize: 14
             font.bold: true
             font.family: "JetBrainsMono Nerd Font"
             color: PanelColors.textAccent
