@@ -6,10 +6,10 @@ import "../theme"
 SectionBase {
     id: root
     accent: PanelColors.launcher
-    
+
     property string username: "User"
     property string hostname: "Host"
-    
+
     Process {
         command: ["whoami"]
         running: true
@@ -17,13 +17,10 @@ SectionBase {
             onStreamFinished: root.username = text.trim()
         }
     }
-    
-    Process {
-        command: ["/usr/bin/hostname"] // FIXED: Using absolute path
-        running: true
-        stdout: StdioCollector {
-            onStreamFinished: root.hostname = text.trim()
-        }
+
+    FileView {
+        path: "/etc/hostname"
+        onLoaded: root.hostname = text().trim()
     }
 
     Row {
@@ -69,7 +66,7 @@ SectionBase {
                 font.family: "JetBrainsMono Nerd Font"
                 color: PanelColors.textAccent
             }
-            
+
             Text {
                 text: "@" + root.hostname
                 font.pixelSize: 13
