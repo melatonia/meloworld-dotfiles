@@ -53,6 +53,8 @@ PanelWindow {
         property color accent: PanelColors.launcher
         property string label: ""
         property alias header: cardHeader
+        // Optional extra item injected into the header row (e.g. "clear all" button)
+        property alias headerExtra: headerExtraSlot.data
 
         radius: 10
         color: PanelColors.popupBackground
@@ -92,10 +94,22 @@ PanelWindow {
             }
             spacing: 0
 
-            Text {
-                text: dashCard.label
-                font.pixelSize: 16; font.bold: true; font.family: "JetBrainsMono Nerd Font"
-                color: dashCard.accent; width: parent.width; elide: Text.ElideRight
+            Row {
+                width: parent.width
+                Text {
+                    text: dashCard.label
+                    font.pixelSize: 16; font.bold: true; font.family: "JetBrainsMono Nerd Font"
+                    color: dashCard.accent
+                    width: parent.width - headerExtraSlot.implicitWidth
+                    elide: Text.ElideRight
+                    anchors.verticalCenter: parent.verticalCenter
+                }
+                Item {
+                    id: headerExtraSlot
+                    implicitWidth: childrenRect.width
+                    implicitHeight: childrenRect.height
+                    anchors.verticalCenter: parent.verticalCenter
+                }
             }
             Item { width: 1; height: 6 }
             Rectangle { width: parent.width; height: 2; color: PanelColors.rowBackground; opacity: 0.6 }
@@ -127,7 +141,7 @@ PanelWindow {
 
             DashCard {
                 id: profileCard
-                accent: PanelColors.date; label: "meloworld"; staggerMs: 0
+                accent: PanelColors.profile; label: "meloworld"; staggerMs: 0
                 width: parent.width
                 // Account for top AND bottom margins:
                 height: profileCard.header.implicitHeight + profileInner.implicitHeight + (root.cardPad * 2)
@@ -146,7 +160,7 @@ PanelWindow {
 
             DashCard {
                 id: statsCard
-                accent: Colors.blue200; label: "system"; staggerMs: 120
+                accent: PanelColors.system; label: "system"; staggerMs: 120
                 width: parent.width
                 // Account for top AND bottom margins:
                 height: statsCard.header.implicitHeight + statsInner.implicitHeight + (root.cardPad * 2)
@@ -164,6 +178,22 @@ PanelWindow {
             accent: PanelColors.network; label: "notifications"; staggerMs: 180
             width: parent.width
             height: parent.height - topCards.height - root.cardGap
+
+            headerExtra: Text {
+                text: "clear all"
+                font.pixelSize: 11
+                font.family: "JetBrainsMono Nerd Font"
+                color: clearAllMouse.containsMouse ? PanelColors.error : PanelColors.textDim
+                visible: NotificationState.history.count > 0
+                MouseArea {
+                    id: clearAllMouse
+                    anchors.fill: parent
+                    hoverEnabled: true
+                    cursorShape: Qt.PointingHandCursor
+                    onClicked: NotificationState.clearHistory()
+                }
+            }
+
             NotificationSection { id: notifInner }
         }
     }

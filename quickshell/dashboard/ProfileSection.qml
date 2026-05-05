@@ -34,7 +34,7 @@ SectionBase {
             width: 64; height: 64
             radius: 32
             color: PanelColors.rowBackground
-            border.color: PanelColors.date
+            border.color: PanelColors.profile
             border.width: 2
             clip: true
 
@@ -70,7 +70,7 @@ SectionBase {
                 text: "@" + root.hostname
                 font.pixelSize: 13
                 font.family: "JetBrainsMono Nerd Font"
-                color: PanelColors.date
+                color: PanelColors.profile
                 opacity: 0.9
             }
         }

@@ -1,36 +1,33 @@
 import QtQuick
+import Quickshell.Services.Notifications
 import "../theme"
 
 Item {
     id: root
     anchors.fill: parent
 
-    // Fix 1: Clear All button now references the header in Dashboard.qml
-    Text {
-        id: clearBtn
-        // Positioned relative to the top of this file, which aligns with the DashCard header
-        anchors {
-            bottom: notifList.top
-            bottomMargin: 18 // Align vertically with the "notifications" text
-            right: parent.right
-        }
-        text: "clear all"
-        font.pixelSize: 12
-        font.family: "JetBrainsMono Nerd Font"
-        color: clearMouse.containsMouse ? PanelColors.error : PanelColors.textDim
-        visible: NotificationState.history.count > 0
-        z: 100 // Ensure it stays on top
-
-        MouseArea {
-            id: clearMouse
-            anchors.fill: parent
-            hoverEnabled: true
-            cursorShape: Qt.PointingHandCursor
-            onClicked: NotificationState.clearHistory()
-        }
+    // ── Accent color logic (mirrors NotificationCard.qml) ────────────────────
+    function accentForEntry(entry) {
+        if (entry.urgency === Notification.Critical) return PanelColors.error
+        return hashColor(entry.appName)
     }
 
-    // Empty state
+    function hashColor(str) {
+        var hash = 0
+        for (var i = 0; i < str.length; i++) {
+            hash = str.charCodeAt(i) + ((hash << 5) - hash)
+            hash = hash & hash
+        }
+        var colors = [
+            Colors.teal200, Colors.lightBlue200, Colors.green200,
+            Colors.purple200, Colors.orange200, Colors.pink200,
+            Colors.yellow200, Colors.cyan200, Colors.deepPurple200,
+            Colors.blueGrey300,
+        ]
+        return colors[Math.abs(hash) % colors.length]
+    }
+
+    // ── Empty state ───────────────────────────────────────────────────────────
     Column {
         visible: NotificationState.history.count === 0
         anchors.centerIn: parent
@@ -40,7 +37,7 @@ Item {
         Text {
             anchors.horizontalCenter: parent.horizontalCenter
             text: "󰂛"
-            font.pixelSize: 48
+            font.pixelSize: 36
             font.family: "JetBrainsMono Nerd Font"
             color: PanelColors.textDim
         }
@@ -48,42 +45,41 @@ Item {
         Text {
             anchors.horizontalCenter: parent.horizontalCenter
             text: "No notifications"
-            font.pixelSize: 14
+            font.pixelSize: 12
             font.family: "JetBrainsMono Nerd Font"
             color: PanelColors.textDim
         }
     }
 
+    // ── Notification list ─────────────────────────────────────────────────────
     ListView {
         id: notifList
         anchors.fill: parent
-        spacing: 12
+        spacing: 8
         model: NotificationState.history
         clip: true
         boundsBehavior: Flickable.StopAtBounds
 
         add: Transition {
             SequentialAnimation {
-                PropertyAction { property: "opacity"; value: 0.0 }
-                PropertyAction { property: "x"; value: -20 }
+                PropertyAction  { property: "opacity"; value: 0.0 }
+                PropertyAction  { property: "x";       value: -16 }
                 ParallelAnimation {
-                    NumberAnimation { property: "opacity"; to: 1.0; duration: 250; easing.type: Easing.OutCubic }
-                    NumberAnimation { property: "x"; to: 0; duration: 250; easing.type: Easing.OutExpo }
+                    NumberAnimation { property: "opacity"; to: 1.0; duration: 220; easing.type: Easing.OutCubic }
+                    NumberAnimation { property: "x";       to: 0;   duration: 220; easing.type: Easing.OutExpo  }
                 }
             }
         }
 
         remove: Transition {
-            SequentialAnimation {
-                ParallelAnimation {
-                    NumberAnimation { property: "x"; to: -(width + 40); duration: 250; easing.type: Easing.InExpo }
-                    NumberAnimation { property: "opacity"; to: 0; duration: 200 }
-                }
+            ParallelAnimation {
+                NumberAnimation { property: "x";       to: -200; duration: 220; easing.type: Easing.InExpo  }
+                NumberAnimation { property: "opacity"; to: 0;    duration: 180; easing.type: Easing.InCubic }
             }
         }
 
         displaced: Transition {
-            NumberAnimation { properties: "y"; duration: 250; easing.type: Easing.OutExpo }
+            NumberAnimation { properties: "y"; duration: 220; easing.type: Easing.OutExpo }
         }
 
         delegate: Rectangle {
@@ -91,142 +87,195 @@ Item {
             required property var modelData
             required property int index
 
-            width: notifList.width
-            height: cardCol.implicitHeight + 20
-            radius: 10
-            color: PanelColors.popupBackground
-            border.color: PanelColors.network
-            border.width: 2
-
+            readonly property color accent: root.accentForEntry(modelData)
             property bool expanded: false
 
+            width: notifList.width
+            // Height driven purely by content + symmetric 10px vertical padding
+            height: cardCol.implicitHeight + 20
+            radius: 8
+            color: PanelColors.popupBackground
+            border.color: accent
+            border.width: 2
+            clip: true
+
             Behavior on height {
-                NumberAnimation { duration: 250; easing.type: Easing.OutExpo }
+                NumberAnimation { duration: 220; easing.type: Easing.OutExpo }
             }
 
+            // Left accent stripe
+            Rectangle {
+                width: 3
+                height: parent.height - 16
+                radius: 2
+                anchors {
+                    left: parent.left
+                    leftMargin: 6
+                    verticalCenter: parent.verticalCenter
+                }
+                color: accent
+                opacity: 0.85
+            }
+
+            // Main content column
             Column {
                 id: cardCol
                 anchors {
-                    top: parent.top; left: parent.left; right: parent.right
-                    topMargin: 8; leftMargin: 16; rightMargin: 12
+                    top:         parent.top;    topMargin:    10
+                    left:        parent.left;   leftMargin:   18
+                    right:       parent.right;  rightMargin:  28  // room for dismiss btn
                 }
-                spacing: 0
+                spacing: 4
 
+                // App name + timestamp row
                 Row {
-                    width: parent.width; height: 20
+                    width: parent.width
+
                     Text {
                         text: modelData.appName
-                        font.pixelSize: 16; font.bold: true; font.family: "JetBrainsMono Nerd Font"
-                        color: PanelColors.network
-                        width: parent.width - timeText.width - 24
+                        font.pixelSize: 11
+                        font.bold: true
+                        font.family: "JetBrainsMono Nerd Font"
+                        color: card.accent
+                        width: parent.width - timeText.implicitWidth
                         elide: Text.ElideRight
+                        anchors.verticalCenter: parent.verticalCenter
                     }
+
                     Text {
                         id: timeText
                         text: Qt.formatTime(modelData.time, "HH:mm")
-                        font.pixelSize: 12; font.family: "JetBrainsMono Nerd Font"
+                        font.pixelSize: 10
+                        font.family: "JetBrainsMono Nerd Font"
                         color: PanelColors.textDim
+                        anchors.verticalCenter: parent.verticalCenter
                     }
                 }
 
-                Rectangle { width: parent.width; height: 2; color: PanelColors.rowBackground; opacity: 0.4 }
-                Item { width: 1; height: 4 }
+                // Divider
+                Rectangle {
+                    width: parent.width
+                    height: 1
+                    color: PanelColors.rowBackground
+                    opacity: 0.5
+                }
 
+                // Summary
                 Text {
+                    visible: modelData.summary !== ""
                     width: parent.width
                     text: modelData.summary
-                    font.pixelSize: 16; font.bold: true; font.family: "JetBrainsMono Nerd Font"
+                    font.pixelSize: 13
+                    font.bold: true
+                    font.family: "JetBrainsMono Nerd Font"
                     color: PanelColors.textAccent
                     wrapMode: Text.WordWrap
-                    maximumLineCount: card.expanded ? 10 : 2
+                    maximumLineCount: card.expanded ? 20 : 2
                     elide: Text.ElideRight
                 }
 
-                Item { width: 1; height: 2 }
-
+                // Body
                 Text {
                     id: bodyText
+                    visible: modelData.body !== ""
                     width: parent.width
                     text: modelData.body
-                    font.pixelSize: 14; font.family: "JetBrainsMono Nerd Font"
+                    font.pixelSize: 12
+                    font.family: "JetBrainsMono Nerd Font"
                     color: PanelColors.textMain
                     wrapMode: Text.WordWrap
                     maximumLineCount: card.expanded ? 999 : 2
                     elide: card.expanded ? Text.ElideNone : Text.ElideRight
-                    visible: text !== ""
+                    textFormat: Text.PlainText
                 }
 
-                Item { width: 1; height: 8; visible: showMorePill.visible }
-
+                // Expand / collapse pill — only shown when body is truncated or already expanded
                 Rectangle {
-                    id: showMorePill
+                    id: expandPill
                     visible: modelData.body !== "" && (bodyText.truncated || card.expanded)
-                    width: showMoreRow.implicitWidth + 16
-                    height: 28
-                    radius: 6
-                    color: moreMouse.containsMouse ? PanelColors.rowBackground : "transparent"
+                    width: expandRow.implicitWidth + 14
+                    height: 22
+                    radius: 5
+                    color: expandMouse.containsMouse ? PanelColors.rowBackground : "transparent"
 
                     Row {
-                        id: showMoreRow
+                        id: expandRow
                         anchors.centerIn: parent
-                        spacing: 6
+                        spacing: 4
                         Text {
                             text: card.expanded ? "󰅃" : "󰅀"
-                            font.pixelSize: 14; font.family: "JetBrainsMono Nerd Font"
-                            color: moreMouse.containsMouse ? PanelColors.textAccent : PanelColors.textDim
+                            font.pixelSize: 11
+                            font.family: "JetBrainsMono Nerd Font"
+                            color: expandMouse.containsMouse ? PanelColors.textAccent : PanelColors.textDim
                         }
                         Text {
-                            text: card.expanded ? "Collapse" : "Read full message"
-                            font.pixelSize: 12; font.bold: true; font.family: "JetBrainsMono Nerd Font"
-                            color: moreMouse.containsMouse ? PanelColors.textAccent : PanelColors.textDim
+                            text: card.expanded ? "Collapse" : "Read more"
+                            font.pixelSize: 10
+                            font.bold: true
+                            font.family: "JetBrainsMono Nerd Font"
+                            color: expandMouse.containsMouse ? PanelColors.textAccent : PanelColors.textDim
                         }
                     }
 
                     MouseArea {
-                        id: moreMouse; anchors.fill: parent; hoverEnabled: true
+                        id: expandMouse
+                        anchors.fill: parent
+                        hoverEnabled: true
+                        cursorShape: Qt.PointingHandCursor
                         onClicked: card.expanded = !card.expanded
                     }
                 }
             }
 
+            // Dismiss button — anchored top-right only, fixed size
             Text {
+                id: dismissBtn
                 text: "󰅖"
-                font.pixelSize: 18; font.family: "JetBrainsMono Nerd Font"
-                color: discardMouse.containsMouse ? PanelColors.error : PanelColors.textDim
-                anchors { top: parent.top; right: parent.right; bottom: parent.bottom; margins: 10 }
-                z: 10
+                font.pixelSize: 14
+                font.family: "JetBrainsMono Nerd Font"
+                color: dismissMouse.containsMouse ? PanelColors.error : PanelColors.textDim
+                anchors {
+                    top:         parent.top;   topMargin:   8
+                    right:       parent.right; rightMargin: 8
+                }
+
                 MouseArea {
-                    id: discardMouse; anchors.fill: parent; hoverEnabled: true
+                    id: dismissMouse
+                    anchors.fill: parent
+                    hoverEnabled: true
+                    cursorShape: Qt.PointingHandCursor
                     onClicked: NotificationState.removeByIndex(index)
                 }
             }
         }
     }
 
-    // Scroll hints
+    // ── Scroll hints ──────────────────────────────────────────────────────────
     Rectangle {
         visible: !notifList.atYBeginning
-        anchors { top: parent.top; topMargin: -4; horizontalCenter: parent.horizontalCenter }
-        width: 180; height: 28; radius: 8
+        anchors { top: parent.top; topMargin: 4; horizontalCenter: parent.horizontalCenter }
+        width: 160; height: 24; radius: 6
         color: PanelColors.rowBackground
         z: 20
+
         Row {
-            anchors.centerIn: parent; spacing: 8
-            Text { text: "󰁞"; font.pixelSize: 14; font.family: "JetBrainsMono Nerd Font"; color: PanelColors.textDim }
-            Text { text: "scroll for more"; font.pixelSize: 13; font.bold: true; font.family: "JetBrainsMono Nerd Font"; color: PanelColors.textDim }
+            anchors.centerIn: parent; spacing: 6
+            Text { text: "󰁞"; font.pixelSize: 11; font.family: "JetBrainsMono Nerd Font"; color: PanelColors.textDim }
+            Text { text: "scroll for more"; font.pixelSize: 11; font.family: "JetBrainsMono Nerd Font"; color: PanelColors.textDim }
         }
     }
 
     Rectangle {
         visible: !notifList.atYEnd
         anchors { bottom: parent.bottom; bottomMargin: 4; horizontalCenter: parent.horizontalCenter }
-        width: 180; height: 28; radius: 8
+        width: 160; height: 24; radius: 6
         color: PanelColors.rowBackground
         z: 20
+
         Row {
-            anchors.centerIn: parent; spacing: 8
-            Text { text: "󰁆"; font.pixelSize: 14; font.family: "JetBrainsMono Nerd Font"; color: PanelColors.textDim }
-            Text { text: "scroll for more"; font.pixelSize: 13; font.bold: true; font.family: "JetBrainsMono Nerd Font"; color: PanelColors.textDim }
+            anchors.centerIn: parent; spacing: 6
+            Text { text: "󰁆"; font.pixelSize: 11; font.family: "JetBrainsMono Nerd Font"; color: PanelColors.textDim }
+            Text { text: "scroll for more"; font.pixelSize: 11; font.family: "JetBrainsMono Nerd Font"; color: PanelColors.textDim }
         }
     }
 }

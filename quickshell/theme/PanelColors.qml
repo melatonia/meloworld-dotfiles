@@ -42,6 +42,10 @@ Singleton {
     readonly property color dashboardAccent:     Colors.lightBlue200
     readonly property color dashboardStripe:     Colors.blueGrey700
 
+    readonly property color profile:           Colors.green200
+    readonly property color system:            Colors.blue200
+
+
     // Returns the accent color for a given PowerProfile value.
     // Used by BatteryWidget (pill) and PowerProfilePopup (border + row highlight)
     // so both always stay in sync.
