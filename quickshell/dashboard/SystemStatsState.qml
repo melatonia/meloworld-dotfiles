@@ -41,9 +41,13 @@ Singleton {
 
     Process {
         id: gpuProc
+        // The error was likely a missing comma or unescaped quote in this long command string
         command: ["bash", "-c", "cat /sys/class/drm/card*/device/gpu_busy_percent 2>/dev/null | head -n 1 || nvidia-smi --query-gpu=utilization.gpu --format=csv,noheader,nounits 2>/dev/null || echo 0"]
         stdout: StdioCollector {
-            onStreamFinished: root.gpuUsage = Math.min(100, Math.max(0, parseFloat(text.trim()) || 0))
+            onStreamFinished: {
+                let val = parseFloat(text.trim());
+                root.gpuUsage = isNaN(val) ? 0 : Math.min(100, Math.max(0, val));
+            }
         }
     }
 }

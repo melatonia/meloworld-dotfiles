@@ -9,30 +9,83 @@ SectionBase {
     icon: "󰕾"
     accent: PanelColors.audio
 
-    // ── Active player ─────────────────────────────────────────────────────────
+    // ── Player selection ──────────────────────────────────────────────────────
+    // Filter out browser idle registrations: require a non-empty trackTitle
+    // OR an active Playing state. Chrome/Firefox register on D-Bus with blank
+    // metadata when nothing is playing — this discards those ghost entries.
     readonly property MprisPlayer activePlayer: {
         const vals = Mpris.players.values
+        // First pass: prefer a player that is actively Playing
         for (let i = 0; i < vals.length; i++) {
-            if (vals[i]?.playbackState === MprisPlaybackState.Playing)
-                return vals[i]
+            const p = vals[i]
+            if (!p) continue
+            if (p.playbackState === MprisPlaybackState.Playing
+                    && (p.trackTitle ?? "") !== "")
+                return p
         }
-        return vals.length > 0 ? vals[0] : null
+        // Second pass: fall back to a paused/stopped player with known track
+        // (excludes browsers with blank metadata)
+        for (let i = 0; i < vals.length; i++) {
+            const p = vals[i]
+            if (!p) continue
+            if ((p.trackTitle ?? "") !== "")
+                return p
+        }
+        return null
     }
 
     readonly property bool isPlaying: activePlayer?.playbackState === MprisPlaybackState.Playing
 
+    // ── Pause cooldown ────────────────────────────────────────────────────────
+    // Keep the last known player visible for 10 s after it disappears,
+    // so pausing doesn't make the widget vanish immediately.
+    // If a new valid player appears during cooldown, it takes over instantly.
+    property MprisPlayer displayPlayer: null
+    property bool inCooldown: false
+
+    Timer {
+        id: cooldownTimer
+        interval: 10000
+        repeat: false
+        onTriggered: {
+            root.inCooldown = false
+            root.displayPlayer = null
+        }
+    }
+
+    onActivePlayerChanged: {
+        if (activePlayer !== null) {
+            // New real player — show it immediately, cancel any cooldown
+            cooldownTimer.stop()
+            inCooldown = false
+            displayPlayer = activePlayer
+        } else {
+            // Player gone — start cooldown, keep last displayPlayer
+            if (displayPlayer !== null) {
+                inCooldown = true
+                cooldownTimer.restart()
+            }
+        }
+    }
+
+    // The widget is shown if we have a live player OR are in cooldown
+    readonly property bool hasContent: activePlayer !== null || inCooldown
+    // What we actually render — live player when available, cached otherwise
+    readonly property MprisPlayer shownPlayer: activePlayer !== null ? activePlayer : displayPlayer
+
     // ── Position tracking ─────────────────────────────────────────────────────
-    property real livePosition: activePlayer?.position ?? 0
+    property real livePosition: shownPlayer?.position ?? 0
+    property bool userSeeking: false
 
     Timer {
         interval: 1000
         repeat: true
-        running: root.isPlaying
-        onTriggered: { if (root.activePlayer) root.livePosition = root.activePlayer.position }
+        running: root.isPlaying && !root.userSeeking
+        onTriggered: { if (root.shownPlayer) root.livePosition = root.shownPlayer.position }
     }
 
     Connections {
-        target: root.activePlayer
+        target: root.shownPlayer
         function onTrackChanged() { root.livePosition = 0 }
     }
 
@@ -46,7 +99,7 @@ SectionBase {
 
     // ── Empty state ───────────────────────────────────────────────────────────
     Text {
-        visible: root.activePlayer === null
+        visible: !root.hasContent
         width: parent.width
         text: "No active media session"
         font.pixelSize: 13
@@ -59,16 +112,19 @@ SectionBase {
 
     // ── Player UI ─────────────────────────────────────────────────────────────
     Column {
-        visible: root.activePlayer !== null
+        visible: root.hasContent
         width: parent.width
         spacing: 12
 
-        // ── Top row: art + track info ─────────────────────────────────────────
+        // Fade out during cooldown to signal "nothing active"
+        opacity: root.inCooldown && !root.isPlaying ? 0.5 : 1.0
+        Behavior on opacity { NumberAnimation { duration: 600; easing.type: Easing.InOutCubic } }
+
+        // ── Art + track info ──────────────────────────────────────────────────
         Row {
             width: parent.width
             spacing: 12
 
-            // Square artwork — same style as AudioPopup device rows
             Rectangle {
                 id: artBox
                 width: 72; height: 72
@@ -81,7 +137,7 @@ SectionBase {
                 Image {
                     id: artImage
                     anchors.fill: parent
-                    source: root.activePlayer?.trackArtUrl ?? ""
+                    source: root.shownPlayer?.trackArtUrl ?? ""
                     fillMode: Image.PreserveAspectCrop
                     asynchronous: true
                     visible: status === Image.Ready
@@ -97,7 +153,6 @@ SectionBase {
                 }
             }
 
-            // Track info column — vertically centered against art
             Column {
                 width: parent.width - artBox.width - parent.spacing
                 anchors.verticalCenter: parent.verticalCenter
@@ -105,7 +160,7 @@ SectionBase {
 
                 Text {
                     width: parent.width
-                    text: root.activePlayer?.trackTitle || "Unknown Title"
+                    text: root.shownPlayer?.trackTitle || "Unknown Title"
                     font.pixelSize: 15
                     font.bold: true
                     font.family: "JetBrainsMono Nerd Font"
@@ -115,16 +170,15 @@ SectionBase {
 
                 Text {
                     width: parent.width
-                    text: root.activePlayer?.trackArtist || "Unknown Artist"
+                    text: root.shownPlayer?.trackArtist || "Unknown Artist"
                     font.pixelSize: 12
                     font.family: "JetBrainsMono Nerd Font"
                     color: PanelColors.textDim
                     elide: Text.ElideRight
                 }
 
-                // Player identity badge
                 Rectangle {
-                    visible: (root.activePlayer?.identity ?? "") !== ""
+                    visible: (root.shownPlayer?.identity ?? "") !== ""
                     height: 18
                     width: badgeText.implicitWidth + 12
                     radius: 4
@@ -135,7 +189,7 @@ SectionBase {
                     Text {
                         id: badgeText
                         anchors.centerIn: parent
-                        text: root.activePlayer?.identity ?? ""
+                        text: root.shownPlayer?.identity ?? ""
                         font.pixelSize: 10
                         font.family: "JetBrainsMono Nerd Font"
                         color: root.accent
@@ -144,23 +198,34 @@ SectionBase {
             }
         }
 
-        // ── Progress bar + timestamps ─────────────────────────────────────────
+        // ── Wave progress bar + timestamps ────────────────────────────────────
         Column {
             width: parent.width
             spacing: 4
-            visible: root.activePlayer?.positionSupported ?? false
+            visible: root.shownPlayer?.positionSupported ?? false
 
-            ProgressBar {
+            WaveBar {
+                id: waveBar
                 width: parent.width
                 accentColor: root.accent
                 from: 0
-                to: Math.max(1, root.activePlayer?.length ?? 1)
+                to: Math.max(1, root.shownPlayer?.length ?? 1)
                 value: root.livePosition
-                seekable: root.activePlayer?.canSeek ?? false
+                playing: root.isPlaying
+                seekable: root.shownPlayer?.canSeek ?? false
                 onSeeked: (v) => {
-                    root.activePlayer.position = v
+                    root.userSeeking = true
+                    root.shownPlayer.position = v
                     root.livePosition = v
+                    // Release seeking lock after a short settle
+                    seekReleaseTimer.restart()
                 }
+            }
+
+            Timer {
+                id: seekReleaseTimer
+                interval: 1200
+                onTriggered: root.userSeeking = false
             }
 
             Row {
@@ -175,7 +240,7 @@ SectionBase {
                 Item { width: parent.width - posLeft.implicitWidth - posRight.implicitWidth; height: 1 }
                 Text {
                     id: posRight
-                    text: root.fmtTime(root.activePlayer?.length ?? 0)
+                    text: root.fmtTime(root.shownPlayer?.length ?? 0)
                     font.pixelSize: 11
                     font.family: "JetBrainsMono Nerd Font"
                     color: PanelColors.textDim
@@ -183,17 +248,15 @@ SectionBase {
             }
         }
 
-        // ── Controls: three equal buttons, centered ───────────────────────────
-        // All buttons identical size — no hero play button.
-        // rowBackground fill matches AudioPopup clickable rows.
+        // ── Controls ──────────────────────────────────────────────────────────
         Row {
             anchors.horizontalCenter: parent.horizontalCenter
             spacing: 8
 
             MediaButton {
                 icon: "󰒮"
-                enabled: root.activePlayer?.canGoPrevious ?? false
-                onClicked: root.activePlayer?.previous()
+                enabled: root.shownPlayer?.canGoPrevious ?? false
+                onClicked: root.shownPlayer?.previous()
             }
 
             MediaButton {
@@ -201,65 +264,147 @@ SectionBase {
                 highlighted: true
                 accentColor: root.accent
                 enabled: root.isPlaying
-                    ? (root.activePlayer?.canPause ?? false)
-                    : (root.activePlayer?.canPlay ?? false)
+                    ? (root.shownPlayer?.canPause ?? false)
+                    : (root.shownPlayer?.canPlay ?? false)
                 onClicked: root.isPlaying
-                    ? root.activePlayer?.pause()
-                    : root.activePlayer?.play()
+                    ? root.shownPlayer?.pause()
+                    : root.shownPlayer?.play()
             }
 
             MediaButton {
                 icon: "󰒭"
-                enabled: root.activePlayer?.canGoNext ?? false
-                onClicked: root.activePlayer?.next()
+                enabled: root.shownPlayer?.canGoNext ?? false
+                onClicked: root.shownPlayer?.next()
             }
         }
     }
 
-    // ── ProgressBar ───────────────────────────────────────────────────────────
-    component ProgressBar: Item {
+    // ── Material 3 Expressive WaveBar ─────────────────────────────────────────
+    component WaveBar: Item {
         id: bar
+        // API & Logic from PanelSlider.qml
         property real value: 0
         property real from: 0
-        property real to: 1
-        property color accentColor: PanelColors.audio
-        property bool seekable: false
+        property real to: 100
+        property color accentColor: Colors.teal200
+        property bool playing: false
+        property bool seekable: true
         signal seeked(real value)
 
-        implicitHeight: 20
-        readonly property real _ratio: to > from
-            ? Math.max(0, Math.min(1, (value - from) / (to - from))) : 0
+        implicitWidth: 120
+        implicitHeight: 32
 
+        property bool dragging: barMouse.pressed
+        property real internalValue: 0
+        readonly property bool activeInteraction: dragging
+        readonly property bool isNeedle: activeInteraction || playing
+
+        readonly property real targetValue: activeInteraction ? internalValue : value
+        property real animValue: targetValue
+        Behavior on animValue {
+            enabled: !bar.dragging
+            NumberAnimation { duration: 80; easing.type: Easing.OutCubic }
+        }
+
+        readonly property real _fillWidth: ((bar.animValue - bar.from) / (bar.to - bar.from)) * bar.width
+
+        function _updateFromMouse(mouseX) {
+            var newVal = Math.max(bar.from, Math.min(bar.to,
+                bar.from + (mouseX / bar.width) * (bar.to - bar.from)))
+            bar.internalValue = newVal
+            bar.seeked(newVal)
+        }
+
+        // Wave Animation Driver
+        property real _phase: 0
+        NumberAnimation on _phase {
+            from: 0; to: Math.PI * 2
+            duration: 1200
+            loops: Animation.Infinite
+            running: bar.playing && !bar.activeInteraction
+        }
+
+        property real _waveAmount: 0.0
+        Behavior on _waveAmount { NumberAnimation { duration: 400; easing.type: Easing.InOutSine } }
+        onPlayingChanged: _waveAmount = (playing && !activeInteraction) ? 1.0 : 0.0
+        onActiveInteractionChanged: _waveAmount = (playing && !activeInteraction) ? 1.0 : 0.0
+
+        // 1. BACKGROUND Track (Straight part from PanelSlider.qml[cite: 2])
         Rectangle {
-            id: barTrack
+            id: trackBackground
+            x: Math.max(0, bar._fillWidth - 3) // Slight overlap to prevent gaps
+            width: Math.max(0, parent.width - x)
+            height: 6
+            radius: 3 // Rounded ends for the inactive part[cite: 2]
             anchors.verticalCenter: parent.verticalCenter
-            width: parent.width; height: 6; radius: 3
-            color: Qt.rgba(1, 1, 1, barMouse.containsMouse ? 0.15 : 0.10)
-            Behavior on color { ColorAnimation { duration: 150 } }
+            color: barMouse.containsMouse
+                ? Qt.lighter(PanelColors.trackBackground, 1.1)
+                : Qt.rgba(PanelColors.trackBackground.r, PanelColors.trackBackground.g, PanelColors.trackBackground.b, 0.4)
+        }
 
-            Rectangle {
-                width: bar._ratio * parent.width
-                height: parent.height; radius: parent.radius
-                color: barMouse.containsMouse ? Qt.lighter(bar.accentColor, 1.15) : bar.accentColor
-                Behavior on color { ColorAnimation { duration: 150 } }
-                Behavior on width {
-                    enabled: !barMouse.pressed
-                    NumberAnimation { duration: 80; easing.type: Easing.OutCubic }
+        // 2. ACTIVE Track (Wavy part with rounded caps)
+        Canvas {
+            id: waveCanvas
+            anchors.fill: parent
+            antialiasing: true
+
+            onPaint: {
+                const ctx = getContext("2d")
+                ctx.clearRect(0, 0, width, height)
+
+                if (bar._fillWidth <= 0) return
+
+                const cy = height / 2
+                const amp = 3.5 * bar._waveAmount
+                const freq = 0.16
+
+                ctx.beginPath()
+                ctx.lineWidth = 6 // Matches PanelSlider thickness[cite: 2]
+                ctx.lineCap = "round" // FIX: This rounds the left-most start of the line[cite: 1]
+                ctx.strokeStyle = barMouse.containsMouse ? Qt.lighter(bar.accentColor, 1.15) : bar.accentColor
+
+                // Offset start by 3px so the rounded cap is visible and not squared by the edge
+                const startX = 3
+
+                if (bar._waveAmount > 0) {
+                    for (let x = startX; x <= bar._fillWidth; x++) {
+                        const y = cy + Math.sin(x * freq + bar._phase) * amp
+                        if (x === startX) ctx.moveTo(x, y)
+                        else ctx.lineTo(x, y)
+                    }
+                } else {
+                    ctx.moveTo(startX, cy)
+                    ctx.lineTo(bar._fillWidth, cy)
                 }
+                ctx.stroke()
+            }
+
+            Connections {
+                target: bar
+                function onAnimValueChanged() { waveCanvas.requestPaint() }
+                function on_PhaseChanged() { waveCanvas.requestPaint() }
+                function on_WaveAmountChanged() { waveCanvas.requestPaint() }
             }
         }
 
-        Rectangle {
-            visible: bar.seekable
-            anchors.verticalCenter: barTrack.verticalCenter
-            x: bar._ratio * bar.width - width / 2
-            width:  barMouse.pressed ? 6  : (barMouse.containsMouse ? 16 : 12)
-            height: barMouse.pressed ? 20 : (barMouse.containsMouse ? 16 : 12)
-            radius: width / 2
-            color: barMouse.containsMouse ? Qt.lighter(bar.accentColor, 1.15) : bar.accentColor
-            Behavior on width  { NumberAnimation { duration: 200; easing.type: Easing.OutBack } }
-            Behavior on height { NumberAnimation { duration: 200; easing.type: Easing.OutBack } }
-            Behavior on color  { ColorAnimation { duration: 150 } }
+        // 3. Handle (Needle Morph from PanelSlider.qml[cite: 2])
+        Item {
+            id: handleContainer
+            width: 0; height: 0
+            anchors.verticalCenter: parent.verticalCenter
+            x: bar._fillWidth
+
+            Rectangle {
+                id: handle
+                anchors.centerIn: parent
+                width: bar.isNeedle ? 6 : (barMouse.containsMouse ? 18 : 14)
+                height: bar.isNeedle ? 24 : (barMouse.containsMouse ? 18 : 14)
+                radius: width / 2
+                color: barMouse.containsMouse ? Qt.lighter(bar.accentColor, 1.15) : bar.accentColor
+
+                Behavior on width  { NumberAnimation { duration: 300; easing.type: Easing.OutBack } }
+                Behavior on height { NumberAnimation { duration: 300; easing.type: Easing.OutBack } }
+            }
         }
 
         MouseArea {
@@ -267,19 +412,13 @@ SectionBase {
             anchors.fill: parent
             hoverEnabled: true
             enabled: bar.seekable
-            cursorShape: bar.seekable ? Qt.PointingHandCursor : Qt.ArrowCursor
-            onPressed: (e) => bar.seeked(bar.from + (e.x / bar.width) * (bar.to - bar.from))
-            onPositionChanged: (e) => {
-                if (pressed)
-                    bar.seeked(bar.from + Math.max(0, Math.min(bar.width, e.x)) / bar.width * (bar.to - bar.from))
-            }
+            onPressed: (mouse) => { bar.internalValue = bar.animValue; bar._updateFromMouse(mouse.x) }
+            onPositionChanged: (mouse) => { if (pressed) bar._updateFromMouse(mouse.x) }
+            onClicked: (mouse) => bar._updateFromMouse(mouse.x)
         }
     }
 
     // ── MediaButton ───────────────────────────────────────────────────────────
-    // All three buttons are the same 40×40 size.
-    // `highlighted` puts the accent border on play/pause so it reads as primary
-    // without breaking the size parity — matches AudioPopup's active-row pattern.
     component MediaButton: Rectangle {
         id: btn
         property string icon: ""
@@ -291,8 +430,6 @@ SectionBase {
         width: 40; height: 40
         radius: 8
 
-        // highlighted (play/pause): full accent fill + dark icon — matches pill/active-row pattern.
-        // normal (prev/next): rowBackground fill — matches AudioPopup clickable rows.
         color: {
             if (!enabled) return Qt.rgba(
                 PanelColors.rowBackground.r,
