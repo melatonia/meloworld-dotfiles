@@ -34,6 +34,7 @@ PopupBase {
 
         // ── Adapter toggle ────────────────────────
         Rectangle {
+            width: parent.width; height: 34; radius: 6
             color: {
                 let base = root.btOn ? PanelColors.bluetooth : PanelColors.rowBackground
                 return btMouse.containsMouse ? Qt.lighter(base, 1.15) : base

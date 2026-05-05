@@ -491,6 +491,7 @@ PanelWindow {
 
             // Back
             Rectangle {
+                width: parent.width; height: 34; radius: 6
                 color: backMouse.containsMouse ? Qt.lighter(PanelColors.rowBackground, 1.15) : PanelColors.rowBackground
                 Behavior on color { ColorAnimation { duration: 150 } }
 
