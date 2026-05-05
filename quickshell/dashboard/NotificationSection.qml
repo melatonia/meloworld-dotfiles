@@ -193,7 +193,7 @@ Item {
                 text: "󰅖"
                 font.pixelSize: 18; font.family: "JetBrainsMono Nerd Font"
                 color: discardMouse.containsMouse ? PanelColors.error : PanelColors.textDim
-                anchors { top: parent.top; right: parent.right; margins: 10 }
+                anchors { top: parent.top; right: parent.right; bottom: parent.bottom; margins: 10 }
                 z: 10
                 MouseArea {
                     id: discardMouse; anchors.fill: parent; hoverEnabled: true

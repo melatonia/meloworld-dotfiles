@@ -27,7 +27,6 @@ SectionBase {
         width: parent.width
         spacing: 16
         topPadding: 4
-        // Reduced bottom padding to fix the "weird gap"
         bottomPadding: 4
 
         // Avatar
@@ -35,7 +34,7 @@ SectionBase {
             width: 64; height: 64
             radius: 32
             color: PanelColors.rowBackground
-            border.color: Colors.blue200
+            border.color: PanelColors.date
             border.width: 2
             clip: true
 
@@ -71,7 +70,7 @@ SectionBase {
                 text: "@" + root.hostname
                 font.pixelSize: 13
                 font.family: "JetBrainsMono Nerd Font"
-                color: Colors.blue200
+                color: PanelColors.date
                 opacity: 0.9
             }
         }

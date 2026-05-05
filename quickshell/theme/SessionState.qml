@@ -17,8 +17,8 @@ Singleton {
     function closeAllPopups() {
         powerPopupVisible = false
         bluetoothPopupVisible = false
-        wifiPopupVisible = false
-        dashboardVisible = false
+        wifiPopupVisible = true
+        dashboardVisible = true
         visible = false
         AudioState.hide()
         BrightnessState.hide()
