@@ -33,7 +33,7 @@ Item {
             var radius = Math.min(width, height) / 2 - 8
 
             // Track
-            ctx.strokeStyle = PanelColors.popupBackground
+            ctx.strokeStyle = PanelColors.rowBackground
             ctx.lineWidth = 6
             ctx.lineCap = "round"
             ctx.beginPath()
