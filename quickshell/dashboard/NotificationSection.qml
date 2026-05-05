@@ -14,7 +14,7 @@ Item {
             bottomMargin: 18 // Align vertically with the "notifications" text
             right: parent.right
         }
-        text: "clear All"
+        text: "clear all"
         font.pixelSize: 12
         font.family: "JetBrainsMono Nerd Font"
         color: clearMouse.containsMouse ? PanelColors.error : PanelColors.textDim
@@ -92,7 +92,7 @@ Item {
             required property int index
 
             width: notifList.width
-            height: cardCol.implicitHeight + 32
+            height: cardCol.implicitHeight + 20
             radius: 10
             color: PanelColors.popupBackground
             border.color: PanelColors.network
@@ -108,12 +108,12 @@ Item {
                 id: cardCol
                 anchors {
                     top: parent.top; left: parent.left; right: parent.right
-                    topMargin: 14; leftMargin: 24; rightMargin: 16
+                    topMargin: 8; leftMargin: 16; rightMargin: 12
                 }
                 spacing: 0
 
                 Row {
-                    width: parent.width; height: 22
+                    width: parent.width; height: 20
                     Text {
                         text: modelData.appName
                         font.pixelSize: 16; font.bold: true; font.family: "JetBrainsMono Nerd Font"
@@ -129,20 +129,20 @@ Item {
                     }
                 }
 
-                Rectangle { width: parent.width; height: 2; color: PanelColors.rowBackground; opacity: 0.6 }
-                Item { width: 1; height: 8 }
+                Rectangle { width: parent.width; height: 2; color: PanelColors.rowBackground; opacity: 0.4 }
+                Item { width: 1; height: 4 }
 
                 Text {
                     width: parent.width
                     text: modelData.summary
-                    font.pixelSize: 18; font.bold: true; font.family: "JetBrainsMono Nerd Font"
+                    font.pixelSize: 16; font.bold: true; font.family: "JetBrainsMono Nerd Font"
                     color: PanelColors.textAccent
                     wrapMode: Text.WordWrap
                     maximumLineCount: card.expanded ? 10 : 2
                     elide: Text.ElideRight
                 }
 
-                Item { width: 1; height: 4 }
+                Item { width: 1; height: 2 }
 
                 Text {
                     id: bodyText
