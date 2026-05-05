@@ -11,6 +11,14 @@ Item {
     implicitWidth: 80
     implicitHeight: 100
 
+    // This animates any change to 'value' over 500ms
+    Behavior on value {
+        NumberAnimation {
+            duration: 800
+            easing.type: Easing.OutExpo // Smooth "deceleration" effect
+        }
+    }
+
     Canvas {
         id: canvas
         width: parent.width; height: 80
@@ -19,11 +27,11 @@ Item {
         onPaint: {
             var ctx = getContext("2d")
             ctx.reset()
-            
+
             var centerX = width / 2
             var centerY = height / 2
             var radius = Math.min(width, height) / 2 - 8
-            
+
             // Track
             ctx.strokeStyle = PanelColors.popupBackground
             ctx.lineWidth = 6
@@ -31,7 +39,7 @@ Item {
             ctx.beginPath()
             ctx.arc(centerX, centerY, radius, 0, 2 * Math.PI)
             ctx.stroke()
-            
+
             // Progress
             ctx.strokeStyle = root.color
             ctx.lineWidth = 8
