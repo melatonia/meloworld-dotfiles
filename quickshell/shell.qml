@@ -4,6 +4,7 @@ import Quickshell
 import "bar"
 import "notifications"
 import "osd"
+import "dashboard"
 
 ShellRoot {
     Variants {
@@ -66,6 +67,11 @@ ShellRoot {
                 anchor.window: panelWin
                 anchor.rect.x: panelWin.popupX(bar.rightBar.dateWidget, implicitWidth)
                 anchor.rect.y: panelWin.height
+            }
+
+            Dashboard {
+                screenObj: modelData
+                barHeight: panelWin.height
             }
         }
     }

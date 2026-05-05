@@ -9,6 +9,11 @@ Pill {
     label: ""
 
     mouseArea.onClicked: {
-        Quickshell.execDetached(["rofi", "-show", "drun"])
+        if (SessionState.dashboardVisible) {
+            SessionState.dashboardVisible = false
+        } else {
+            SessionState.closeAllPopups()
+            SessionState.dashboardVisible = true
+        }
     }
 }

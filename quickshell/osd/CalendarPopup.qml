@@ -47,7 +47,7 @@ PopupBase {
         property int direction: 0
         ParallelAnimation {
             NumberAnimation { target: dayGrid; property: "opacity"; to: 0; duration: 80; easing.type: Easing.OutCubic }
-            NumberAnimation { target: gridTrans; property: "x"; to: direction > 0 ? -30 : 30; duration: 80; easing.type: Easing.OutCubic }
+            NumberAnimation { target: gridTrans; property: "x"; to: monthAnim.direction > 0 ? -30 : 30; duration: 80; easing.type: Easing.OutCubic }
         }
         ScriptAction {
             script: {

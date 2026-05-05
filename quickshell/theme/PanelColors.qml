@@ -36,6 +36,12 @@ Singleton {
     readonly property color pairing:           Colors.yellow600
     readonly property color error:             Colors.red200
 
+    // Dashboard specific
+    readonly property color dashboardBackground: Qt.rgba(0.08, 0.08, 0.09, 0.98)
+    readonly property color dashboardCard:       Colors.grey800
+    readonly property color dashboardAccent:     Colors.lightBlue200
+    readonly property color dashboardStripe:     Colors.blueGrey700
+
     // Returns the accent color for a given PowerProfile value.
     // Used by BatteryWidget (pill) and PowerProfilePopup (border + row highlight)
     // so both always stay in sync.
