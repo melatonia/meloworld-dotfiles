@@ -9,3 +9,4 @@ BluetoothWidget 1.0 BluetoothWidget.qml
 AudioWidget 1.0 AudioWidget.qml
 SessionWidget 1.0 SessionWidget.qml
 BrightnessWidget 1.0 BrightnessWidget.qml
+LauncherWidget 1.0 LauncherWidget.qml
