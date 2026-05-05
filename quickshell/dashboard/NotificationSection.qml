@@ -5,16 +5,21 @@ Item {
     id: root
     anchors.fill: parent
 
-    // Clear button — floats top-right, z-stacked above list
+    // Fix 1: Clear All button now references the header in Dashboard.qml
     Text {
         id: clearBtn
-        anchors { top: parent.top; right: parent.right }
-        text: "Clear All"
-        font.pixelSize: 11
+        // Positioned relative to the top of this file, which aligns with the DashCard header
+        anchors {
+            bottom: notifList.top
+            bottomMargin: 18 // Align vertically with the "notifications" text
+            right: parent.right
+        }
+        text: "clear All"
+        font.pixelSize: 12
         font.family: "JetBrainsMono Nerd Font"
         color: clearMouse.containsMouse ? PanelColors.error : PanelColors.textDim
         visible: NotificationState.history.count > 0
-        z: 10
+        z: 100 // Ensure it stays on top
 
         MouseArea {
             id: clearMouse
