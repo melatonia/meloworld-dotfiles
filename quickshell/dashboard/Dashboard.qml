@@ -172,12 +172,22 @@ PanelWindow {
             }
         }
 
-        // Bottom section fills remaining space
+        // Bottom section: shrinks when empty, fills when content present
         DashCard {
             id: notifCard
             accent: PanelColors.network; label: "notifications"; staggerMs: 180
             width: parent.width
-            height: parent.height - topCards.height - root.cardGap
+            height: {
+                const base = notifCard.header.implicitHeight + (root.cardPad * 2)
+                const maxH = root.height - topCards.height - root.cardGap
+                if (NotificationState.history.count === 0)
+                    return base + notifInner.emptyHeight + 32
+                return maxH
+            }
+
+            Behavior on height {
+                NumberAnimation { duration: 220; easing.type: Easing.OutExpo }
+            }
 
             headerExtra: Text {
                 text: "clear all"

@@ -6,7 +6,9 @@ Item {
     id: root
     anchors.fill: parent
 
-    // ── Accent color logic (mirrors NotificationCard.qml) ────────────────────
+    property alias emptyHeight: emptyCol.implicitHeight
+
+    // ── Accent color logic ────────────────────────────────────────────────────
     function accentForEntry(entry) {
         if (entry.urgency === Notification.Critical) return PanelColors.error
         return hashColor(entry.appName)
@@ -29,6 +31,7 @@ Item {
 
     // ── Empty state ───────────────────────────────────────────────────────────
     Column {
+        id: emptyCol
         visible: NotificationState.history.count === 0
         anchors.centerIn: parent
         spacing: 8
@@ -44,7 +47,7 @@ Item {
 
         Text {
             anchors.horizontalCenter: parent.horizontalCenter
-            text: "No notifications"
+            text: "no notifications"
             font.pixelSize: 12
             font.family: "JetBrainsMono Nerd Font"
             color: PanelColors.textDim
@@ -91,7 +94,6 @@ Item {
             property bool expanded: false
 
             width: notifList.width
-            // Height driven purely by content + symmetric 10px vertical padding
             height: cardCol.implicitHeight + 20
             radius: 8
             color: PanelColors.popupBackground
@@ -103,7 +105,6 @@ Item {
                 NumberAnimation { duration: 220; easing.type: Easing.OutExpo }
             }
 
-            // Left accent stripe
             Rectangle {
                 width: 3
                 height: parent.height - 16
@@ -117,17 +118,15 @@ Item {
                 opacity: 0.85
             }
 
-            // Main content column
             Column {
                 id: cardCol
                 anchors {
-                    top:         parent.top;    topMargin:    10
-                    left:        parent.left;   leftMargin:   18
-                    right:       parent.right;  rightMargin:  28  // room for dismiss btn
+                    top:        parent.top;   topMargin:   10
+                    left:       parent.left;  leftMargin:  18
+                    right:      parent.right; rightMargin: 28
                 }
                 spacing: 4
 
-                // App name + timestamp row
                 Row {
                     width: parent.width
 
@@ -152,7 +151,6 @@ Item {
                     }
                 }
 
-                // Divider
                 Rectangle {
                     width: parent.width
                     height: 1
@@ -160,7 +158,6 @@ Item {
                     opacity: 0.5
                 }
 
-                // Summary
                 Text {
                     visible: modelData.summary !== ""
                     width: parent.width
@@ -174,7 +171,6 @@ Item {
                     elide: Text.ElideRight
                 }
 
-                // Body
                 Text {
                     id: bodyText
                     visible: modelData.body !== ""
@@ -189,7 +185,6 @@ Item {
                     textFormat: Text.PlainText
                 }
 
-                // Expand / collapse pill — only shown when body is truncated or already expanded
                 Rectangle {
                     id: expandPill
                     visible: modelData.body !== "" && (bodyText.truncated || card.expanded)
@@ -227,16 +222,14 @@ Item {
                 }
             }
 
-            // Dismiss button — anchored top-right only, fixed size
             Text {
-                id: dismissBtn
                 text: "󰅖"
                 font.pixelSize: 14
                 font.family: "JetBrainsMono Nerd Font"
                 color: dismissMouse.containsMouse ? PanelColors.error : PanelColors.textDim
                 anchors {
-                    top:         parent.top;   topMargin:   8
-                    right:       parent.right; rightMargin: 8
+                    top:   parent.top;   topMargin:   8
+                    right: parent.right; rightMargin: 8
                 }
 
                 MouseArea {
@@ -252,7 +245,7 @@ Item {
 
     // ── Scroll hints ──────────────────────────────────────────────────────────
     Rectangle {
-        visible: !notifList.atYBeginning
+        visible: NotificationState.history.count > 0 && !notifList.atYBeginning
         anchors { top: parent.top; topMargin: 4; horizontalCenter: parent.horizontalCenter }
         width: 160; height: 24; radius: 6
         color: PanelColors.rowBackground
@@ -266,7 +259,7 @@ Item {
     }
 
     Rectangle {
-        visible: !notifList.atYEnd
+        visible: NotificationState.history.count > 0 && !notifList.atYEnd
         anchors { bottom: parent.bottom; bottomMargin: 4; horizontalCenter: parent.horizontalCenter }
         width: 160; height: 24; radius: 6
         color: PanelColors.rowBackground
