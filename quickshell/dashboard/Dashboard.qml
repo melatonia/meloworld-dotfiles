@@ -180,9 +180,7 @@ PanelWindow {
             height: {
                 const base = notifCard.header.implicitHeight + (root.cardPad * 2)
                 const maxH = root.height - topCards.height - root.cardGap
-                if (NotificationState.history.count === 0)
-                    return base + notifInner.emptyHeight + 32
-                return maxH
+                return Math.min(base + notifInner.totalHeight + root.cardPad, maxH)
             }
 
             Behavior on height {

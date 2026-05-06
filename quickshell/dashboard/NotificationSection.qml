@@ -1,4 +1,5 @@
 import QtQuick
+import QtQuick.Layouts
 import Quickshell.Services.Notifications
 import "../theme"
 
@@ -6,7 +7,13 @@ Item {
     id: root
     anchors.fill: parent
 
-    property alias emptyHeight: emptyCol.implicitHeight
+    // ── Shared constants ──────────────────────────────────────────────────────
+    readonly property string monoFont: "JetBrainsMono Nerd Font"
+
+    readonly property real totalHeight:
+    NotificationState.history.count === 0
+    ? emptyRow.implicitHeight
+    : Math.max(0, notifList.contentHeight - notifList.spacing)
 
     // ── Accent color logic ────────────────────────────────────────────────────
     function accentForEntry(entry) {
@@ -29,28 +36,28 @@ Item {
         return colors[Math.abs(hash) % colors.length]
     }
 
-    // ── Empty state ───────────────────────────────────────────────────────────
-    Column {
-        id: emptyCol
+    // ── Empty state — single centered row ────────────────────────────────────
+    RowLayout {
+        id: emptyRow
         visible: NotificationState.history.count === 0
         anchors.centerIn: parent
-        spacing: 8
+        spacing: 6
         opacity: 0.3
 
         Text {
-            anchors.horizontalCenter: parent.horizontalCenter
             text: "󰂛"
-            font.pixelSize: 36
-            font.family: "JetBrainsMono Nerd Font"
+            font.pixelSize: 16                          // smaller icon
+            font.family: root.monoFont
             color: PanelColors.textDim
+            Layout.alignment: Qt.AlignVCenter
         }
 
         Text {
-            anchors.horizontalCenter: parent.horizontalCenter
             text: "no notifications"
             font.pixelSize: 12
-            font.family: "JetBrainsMono Nerd Font"
+            font.family: root.monoFont
             color: PanelColors.textDim
+            Layout.alignment: Qt.AlignVCenter
         }
     }
 
@@ -134,7 +141,7 @@ Item {
                         text: modelData.appName
                         font.pixelSize: 11
                         font.bold: true
-                        font.family: "JetBrainsMono Nerd Font"
+                        font.family: root.monoFont
                         color: card.accent
                         width: parent.width - timeText.implicitWidth
                         elide: Text.ElideRight
@@ -145,7 +152,7 @@ Item {
                         id: timeText
                         text: Qt.formatTime(modelData.time, "HH:mm")
                         font.pixelSize: 10
-                        font.family: "JetBrainsMono Nerd Font"
+                        font.family: root.monoFont
                         color: PanelColors.textDim
                         anchors.verticalCenter: parent.verticalCenter
                     }
@@ -164,7 +171,7 @@ Item {
                     text: modelData.summary
                     font.pixelSize: 13
                     font.bold: true
-                    font.family: "JetBrainsMono Nerd Font"
+                    font.family: root.monoFont
                     color: PanelColors.textAccent
                     wrapMode: Text.WordWrap
                     maximumLineCount: card.expanded ? 20 : 2
@@ -177,7 +184,7 @@ Item {
                     width: parent.width
                     text: modelData.body
                     font.pixelSize: 12
-                    font.family: "JetBrainsMono Nerd Font"
+                    font.family: root.monoFont
                     color: PanelColors.textMain
                     wrapMode: Text.WordWrap
                     maximumLineCount: card.expanded ? 999 : 2
@@ -200,14 +207,14 @@ Item {
                         Text {
                             text: card.expanded ? "󰅃" : "󰅀"
                             font.pixelSize: 11
-                            font.family: "JetBrainsMono Nerd Font"
+                            font.family: root.monoFont
                             color: expandMouse.containsMouse ? PanelColors.textAccent : PanelColors.textDim
                         }
                         Text {
                             text: card.expanded ? "Collapse" : "Read more"
                             font.pixelSize: 10
                             font.bold: true
-                            font.family: "JetBrainsMono Nerd Font"
+                            font.family: root.monoFont
                             color: expandMouse.containsMouse ? PanelColors.textAccent : PanelColors.textDim
                         }
                     }
@@ -225,7 +232,7 @@ Item {
             Text {
                 text: "󰅖"
                 font.pixelSize: 14
-                font.family: "JetBrainsMono Nerd Font"
+                font.family: root.monoFont
                 color: dismissMouse.containsMouse ? PanelColors.error : PanelColors.textDim
                 anchors {
                     top:   parent.top;   topMargin:   8
@@ -253,8 +260,8 @@ Item {
 
         Row {
             anchors.centerIn: parent; spacing: 6
-            Text { text: "󰁞"; font.pixelSize: 11; font.family: "JetBrainsMono Nerd Font"; color: PanelColors.textDim }
-            Text { text: "scroll for more"; font.pixelSize: 11; font.family: "JetBrainsMono Nerd Font"; color: PanelColors.textDim }
+            Text { text: "󰁞"; font.pixelSize: 11; font.family: root.monoFont; color: PanelColors.textDim }
+            Text { text: "scroll for more"; font.pixelSize: 11; font.family: root.monoFont; color: PanelColors.textDim }
         }
     }
 
@@ -267,8 +274,8 @@ Item {
 
         Row {
             anchors.centerIn: parent; spacing: 6
-            Text { text: "󰁆"; font.pixelSize: 11; font.family: "JetBrainsMono Nerd Font"; color: PanelColors.textDim }
-            Text { text: "scroll for more"; font.pixelSize: 11; font.family: "JetBrainsMono Nerd Font"; color: PanelColors.textDim }
+            Text { text: "󰁆"; font.pixelSize: 11; font.family: root.monoFont; color: PanelColors.textDim }
+            Text { text: "scroll for more"; font.pixelSize: 11; font.family: root.monoFont; color: PanelColors.textDim }
         }
     }
 }
