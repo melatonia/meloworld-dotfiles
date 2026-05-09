@@ -9,11 +9,11 @@ PanelWindow {
     required property var screen
 
     anchors { bottom: true; right: true }
-    implicitWidth: 440
+    implicitWidth:  440
     implicitHeight: 1000
-    color: "transparent"
-    exclusiveZone: 0
-    mask: Region { item: notifList }
+    color:          "transparent"
+    exclusiveZone:  0
+    mask: Region { item: cardColumn }
 
     NotificationServer {
         id: server
@@ -33,34 +33,34 @@ PanelWindow {
         }
     }
 
-    ListView {
-        id: notifList
+    // Column anchored to the bottom-right. Grows upward as cards are added.
+    // No ListView, no rotation — input coordinates are exactly as authored.
+    Column {
+        id: cardColumn
+        spacing: 8
         anchors {
             bottom:       parent.bottom
             right:        parent.right
             bottomMargin: 10
             rightMargin:  10
         }
-        width:                   400
-        height:                  contentHeight
-        spacing:                 8
-        interactive:             false
-        verticalLayoutDirection: ListView.BottomToTop
 
-        model: server.trackedNotifications
+        Repeater {
+            model: server.trackedNotifications
 
-        delegate: NotificationCard {
-            required property var modelData
-            notification: modelData
-        }
+            // Wrapper tracks the card's full height so the Column slot
+            // stays correct during expand/collapse.
+            Item {
+                id:       wrapper
+                required property var modelData
+                width:    400
+                height:   card.implicitHeight
 
-        add: Transition {
-            NumberAnimation { property: "opacity"; from: 0; to: 1;   duration: 200 }
-            NumberAnimation { property: "x";       from: 420; to: 0; duration: 250; easing.type: Easing.OutExpo }
-        }
-
-        displaced: Transition {
-            NumberAnimation { properties: "y"; duration: 250; easing.type: Easing.OutCubic }
+                NotificationCard {
+                    id:           card
+                    notification: wrapper.modelData
+                }
+            }
         }
     }
 }
