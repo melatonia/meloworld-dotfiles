@@ -33,7 +33,6 @@ PanelWindow {
         }
     }
 
-    // Column anchored to the bottom-right. Grows upward as cards are added.
     Column {
         id: cardColumn
         spacing: 8
@@ -47,29 +46,26 @@ PanelWindow {
         Repeater {
             model: server.trackedNotifications
 
-            // Wrapper handles the smooth vertical sliding so the Column layout doesn't snap.
             Item {
                 id:       wrapper
                 required property var modelData
                 width:    400
 
-                property bool isInitialized: false
-
-                // If exiting, shrink to 0. Otherwise, grow from 0 to the card's full height.
-                height:   card.isExiting ? 0 : (isInitialized ? card.implicitHeight : 0)
+                // Synchronized height: Match duration/easing with the card's expansion
+                height:   card.isExiting ? 0 : card.implicitHeight
 
                 Behavior on height {
-                    NumberAnimation { duration: 400; easing.type: Easing.OutQuart }
-                }
-
-                Component.onCompleted: {
-                    // Trigger the entrance height animation immediately after creation
-                    Qt.callLater(() => { wrapper.isInitialized = true })
+                    NumberAnimation {
+                        duration: 250
+                        easing.type: Easing.OutCubic
+                    }
                 }
 
                 NotificationCard {
                     id:           card
                     notification: wrapper.modelData
+                    // Ensure the card is aligned to the bottom of the wrapper
+                    anchors.bottom: parent.bottom
                 }
             }
         }

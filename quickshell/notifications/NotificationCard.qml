@@ -7,7 +7,6 @@ Rectangle {
     id: root
     required property Notification notification
 
-    // ── Dimensions ────────────────────────────────
     readonly property int cardWidth:          400
     readonly property int dismissMs:          4000
     readonly property int collapsedBodyLines: 3
@@ -18,8 +17,9 @@ Rectangle {
     visible: notification !== null
 
     width:          cardWidth
-    height:         cardContent.implicitHeight + 14
-    implicitHeight: cardContent.implicitHeight + 14
+    // The height follows the cardContent size
+    height:         cardContent.implicitHeight + 28
+    implicitHeight: cardContent.implicitHeight + 28
     radius: 10
     color:  PanelColors.popupBackground
 
@@ -28,10 +28,9 @@ Rectangle {
     clip:         true
     layer.enabled: true
 
-    // ── Enter animation ───────────────────────────
     opacity: 0
-    x:       cardWidth + 40 // Start completely off-screen to the right
-    y:       0              // Start at y:0 so the wrapper handles the vertical push
+    x:       cardWidth + 40
+    y:       0
 
     ParallelAnimation {
         id: enterAnim
@@ -53,7 +52,6 @@ Rectangle {
         }
     }
 
-    // ── Accent color ──────────────────────────────
     readonly property color accentColor: {
         if (!notification) return Colors.blueGrey300
         if (notification.urgency === Notification.Critical) return PanelColors.error
@@ -77,7 +75,6 @@ Rectangle {
         return colors[Math.abs(hash) % colors.length]
     }
 
-    // ── Whether body needs expand ─────────────────
     readonly property bool bodyIsLong: {
         if (!notification) return false
         var body = notification.body ?? ""
@@ -85,10 +82,8 @@ Rectangle {
         return body.length > 120 || body.split("\n").length > 3
     }
 
-    // ── Animation lock ────────────────────────────
     property bool dismissing: false
 
-    // ── Pause/resume helpers ──────────────────────
     function pauseDismiss() {
         dismissTimer.stop()
         ringTimer.stop()
@@ -111,7 +106,6 @@ Rectangle {
         timerItem.startTime = Date.now()
     }
 
-    // ── dismiss() / expire() / invokeAction() ─────
     function dismiss() {
         if (root.dismissing) return
         root.dismissing = true
@@ -142,12 +136,9 @@ Rectangle {
         exitAnim.start()
     }
 
-    // ── Exit animation ────────────────────────────
     SequentialAnimation {
         id: exitAnim
         property bool dismissMode: false
-
-        // Step 1: Slide out cleanly (Visuals left entirely untouched)
         ParallelAnimation {
             NumberAnimation {
                 target:      root
@@ -164,14 +155,8 @@ Rectangle {
                 easing.type: Easing.InCubic
             }
         }
-
-        // Step 2: Signal the wrapper in NotificationPopup to smoothly close the layout gap
         ScriptAction { script: { root.isExiting = true } }
-
-        // Step 3: Wait for the gap to close (matches wrapper height animation duration)
-        PauseAnimation { duration: 400 }
-
-        // Step 4: Safely destroy the data
+        PauseAnimation { duration: 200 }
         ScriptAction {
             script: {
                 if (root.pendingAction) {
@@ -221,7 +206,6 @@ Rectangle {
         onClicked: root.dismiss()
     }
 
-    // ── Left accent stripe ────────────────────────
     Rectangle {
         width:  4
         height: parent.height - 24
@@ -235,21 +219,19 @@ Rectangle {
         opacity: 0.9
     }
 
-    // ── Content ───────────────────────────────────
     Column {
         id: cardContent
         anchors {
-            top:          parent.top
+            // BEST PRACTICE: Anchor to bottom for upward expansion
+            bottom:       parent.bottom
             left:         parent.left
             right:        parent.right
-            topMargin:    14
             bottomMargin: 14
             leftMargin:   24
             rightMargin:  16
         }
         spacing: 0
 
-        // ── Header row: icon + app name + timer ──
         Row {
             width:   parent.width
             height:  22
@@ -258,9 +240,7 @@ Rectangle {
             Image {
                 id:      appIconImg
                 visible: (notification?.appIcon ?? "") !== "" && status === Image.Ready
-                source:  (notification?.appIcon ?? "") !== ""
-                         ? "image://icon/" + notification.appIcon
-                         : ""
+                source:  (notification?.appIcon ?? "") !== "" ? "image://icon/" + notification.appIcon : ""
                 width:   18
                 height:  18
                 anchors.verticalCenter: parent.verticalCenter
@@ -276,10 +256,7 @@ Rectangle {
                 color:          root.accentColor
                 elide:          Text.ElideRight
                 anchors.verticalCenter: parent.verticalCenter
-                width: parent.width
-                      - timerItem.width
-                      - (appIconImg.visible ? appIconImg.width + parent.spacing : 0)
-                      - parent.spacing
+                width: parent.width - timerItem.width - (appIconImg.visible ? appIconImg.width + parent.spacing : 0) - parent.spacing
             }
 
             Item {
@@ -295,7 +272,6 @@ Rectangle {
                     height: 22
                     anchors.right: parent.right
                     property real progress: 1.0
-
                     onPaint: {
                         var ctx = getContext("2d")
                         ctx.reset()
@@ -303,10 +279,7 @@ Rectangle {
                         ctx.lineWidth   = 2
                         ctx.lineCap     = "round"
                         ctx.beginPath()
-                        ctx.arc(11, 11, 8,
-                            -Math.PI / 2,
-                            -Math.PI / 2 + (2 * Math.PI * progress),
-                            false)
+                        ctx.arc(11, 11, 8, -Math.PI / 2, -Math.PI / 2 + (2 * Math.PI * progress), false)
                         ctx.stroke()
                     }
                     onProgressChanged: requestPaint()
@@ -318,14 +291,12 @@ Rectangle {
                     running:  true
                     repeat:   true
                     onTriggered: {
-                        timerRing.progress = Math.max(0,
-                            (root.dismissMs - (Date.now() - timerItem.startTime)) / root.dismissMs)
+                        timerRing.progress = Math.max(0, (root.dismissMs - (Date.now() - timerItem.startTime)) / root.dismissMs)
                     }
                 }
             }
         }
 
-        // ── Header / body separator ───────────────
         Rectangle {
             width:   parent.width
             height:  1
@@ -335,15 +306,12 @@ Rectangle {
 
         Item { width: 1; height: 8 }
 
-        // ── Body row: text + optional avatar ─────
         Row {
             width:   parent.width
             spacing: 10
 
             Column {
-                width:   notifImageFrame.visible
-                         ? parent.width - notifImageFrame.width - parent.spacing
-                         : parent.width
+                width:   notifImageFrame.visible ? parent.width - notifImageFrame.width - parent.spacing : parent.width
                 spacing: 4
 
                 Text {
@@ -367,7 +335,7 @@ Rectangle {
                     clip:             true
 
                     Behavior on height {
-                        NumberAnimation { duration: 300; easing.type: Easing.OutCubic }
+                        NumberAnimation { duration: 250; easing.type: Easing.OutCubic }
                     }
 
                     Text {
@@ -403,12 +371,10 @@ Rectangle {
                     fillMode:        Image.PreserveAspectCrop
                     source:          notification?.image ?? ""
                     smooth:          true
-                    clip:            false
                 }
             }
         }
 
-        // ── Expand / Collapse button ──────────────
         Item { width: 1; height: 10 }
 
         Item {
@@ -462,7 +428,6 @@ Rectangle {
             }
         }
 
-        // ── Action buttons ────────────────────────
         Item {
             visible: (notification?.actions?.length ?? 0) > 0
             width:   parent.width
@@ -488,13 +453,11 @@ Rectangle {
 
                 Repeater {
                     model: notification?.actions ?? []
-
                     Rectangle {
                         required property var modelData
                         height: 30
                         width:  actionLabel.implicitWidth + 24
                         radius: 6
-
                         color: Qt.lighter(root.accentColor, actionMouse.containsMouse ? 1.15 : 1.0)
                         scale: actionMouse.containsMouse ? 1.03 : 1.0
 
