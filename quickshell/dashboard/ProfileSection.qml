@@ -96,7 +96,7 @@ SectionBase {
             Image {
                 id: profileImg
                 anchors.fill: parent
-                anchors.margins: 4
+                anchors.margins: 2
                 source: root.avatarPath
                 fillMode: Image.PreserveAspectCrop
                 asynchronous: true
@@ -117,9 +117,9 @@ SectionBase {
                 id: borderOverlay
                 anchors.fill: parent
                 color: "transparent"
-                border.width: 4
+                border.width: 2
                 border.color: profileMouseArea.containsMouse ? PanelColors.textAccent : PanelColors.profile
-                radius: 4
+                radius: 5
 
                 scale: profileMouseArea.containsMouse ? 1.05 : 1.0
                 Behavior on scale { NumberAnimation { duration: 200; easing.type: Easing.OutCubic } }

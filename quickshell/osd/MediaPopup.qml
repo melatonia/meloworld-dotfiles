@@ -88,36 +88,45 @@ PopupBase {
             width: parent.width
             spacing: 12
 
-            Rectangle {
-                id: artBox
-                width: 72; height: 72
-                radius: 8
-                color: PanelColors.rowBackground
-                border.color: PanelColors.clock
-                border.width: 1
-                clip: true
+            Item {
+                id: artContainer
+                width: 64
+                height: 64
 
+                // Layer 1: The Album Art (Bottom)
                 Image {
                     id: artImage
                     anchors.fill: parent
+                    anchors.margins: 2
                     source: root.shownPlayer?.trackArtUrl ?? ""
                     fillMode: Image.PreserveAspectCrop
                     asynchronous: true
                     visible: status === Image.Ready
                 }
 
+                // Layer 2: Fallback Icon (Middle)
                 Text {
                     visible: artImage.status !== Image.Ready
                     anchors.centerIn: parent
                     text: "󰎆"
-                    font.pixelSize: 28
+                    font.pixelSize: 24
                     font.family: "JetBrainsMono Nerd Font"
                     color: PanelColors.textDim
+                }
+
+                // Layer 3: Border Frame (Top)
+                Rectangle {
+                    id: artFrame
+                    anchors.fill: parent
+                    color: "transparent"
+                    border.width: 2
+                    border.color: PanelColors.clock
+                    radius: 4
                 }
             }
 
             Column {
-                width: parent.width - artBox.width - parent.spacing
+                width: parent.width - artContainer.width - parent.spacing
                 anchors.verticalCenter: parent.verticalCenter
                 spacing: 4
 
@@ -137,7 +146,6 @@ PopupBase {
 
                         readonly property bool overflow: implicitWidth > parent.width
 
-                        // Reset to start whenever track changes or overflow state changes
                         onOverflowChanged: {
                             marqueeAnim.stop()
                             titleText.x = 0
@@ -154,10 +162,8 @@ PopupBase {
                             running: false
                             loops: Animation.Infinite
 
-                            // Pause at start before scrolling
                             PauseAnimation { duration: 1200 }
 
-                            // Scroll the text left until it's gone
                             NumberAnimation {
                                 target: titleText
                                 property: "x"
@@ -167,14 +173,12 @@ PopupBase {
                                 easing.type: Easing.Linear
                             }
 
-                            // Jump back to right edge (invisible since clipped)
                             PropertyAction {
                                 target: titleText
                                 property: "x"
                                 value: titleText.parent.width
                             }
 
-                            // Scroll in from right
                             NumberAnimation {
                                 target: titleText
                                 property: "x"
@@ -184,7 +188,6 @@ PopupBase {
                                 easing.type: Easing.Linear
                             }
 
-                            // Pause at end
                             PauseAnimation { duration: 1200 }
                         }
                     }
@@ -199,7 +202,6 @@ PopupBase {
                     elide: Text.ElideRight
                 }
 
-                // ── App badge ─────────────────────────────────────────────────
                 Text {
                     visible: (root.shownPlayer?.identity ?? "") !== ""
                     text: root.shownPlayer?.identity ?? ""
@@ -268,7 +270,6 @@ PopupBase {
             width: parent.width
             height: playPauseBtn.height
 
-            // Shuffle — Pinned to the left margin
             MediaButton {
                 id: shuffleBtn
                 anchors.left: parent.left
@@ -283,7 +284,6 @@ PopupBase {
                 }
             }
 
-            // Central Control Group — Mathematically centered in the popup
             Row {
                 anchors.centerIn: parent
                 spacing: 4
@@ -316,7 +316,6 @@ PopupBase {
                 }
             }
 
-            // Repeat — Pinned to the right margin
             MediaButton {
                 id: repeatBtn
                 anchors.right: parent.right
