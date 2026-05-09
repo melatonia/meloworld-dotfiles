@@ -149,18 +149,8 @@ PanelWindow {
             }
 
             DashCard {
-                id: mediaCard
-                accent: PanelColors.audio; label: "now playing"; staggerMs: 60
-                width: parent.width
-                // Account for top AND bottom margins:
-                height: mediaCard.header.implicitHeight + mediaInner.implicitHeight + (root.cardPad * 2)
-                visible: mediaInner.hasContent
-                MediaPlayerSection { id: mediaInner; width: parent.width }
-            }
-
-            DashCard {
                 id: statsCard
-                accent: PanelColors.system; label: "system"; staggerMs: 120
+                accent: PanelColors.system; label: "system"; staggerMs: 60
                 width: parent.width
                 // Account for top AND bottom margins:
                 height: statsCard.header.implicitHeight + statsInner.implicitHeight + (root.cardPad * 2)
@@ -175,7 +165,7 @@ PanelWindow {
         // Bottom section: shrinks when empty, fills when content present
         DashCard {
             id: notifCard
-            accent: PanelColors.network; label: "notifications"; staggerMs: 180
+            accent: PanelColors.network; label: "notifications"; staggerMs: 120
             width: parent.width
             height: {
                 const base = notifCard.header.implicitHeight + (root.cardPad * 2)
@@ -207,7 +197,7 @@ PanelWindow {
     }
 
     // ── Stagger Logic ────────────────────────────────────────────────────────
-    readonly property var allCards: [profileCard, mediaCard, statsCard, notifCard]
+    readonly property var allCards: [profileCard, statsCard, notifCard]
 
     onAnimStateChanged: {
         if (animState === "open") {

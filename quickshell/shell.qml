@@ -28,6 +28,10 @@ ShellRoot {
                 )
             }
 
+            function centerPopupX(pWidth) {
+                return Math.round(panelWin.screen.width / 2 - pWidth / 2)
+            }
+
             AudioPopup {
                 anchor.window: panelWin
                 anchor.rect.x: panelWin.popupX(bar.rightBar.audioWidget, implicitWidth)
@@ -66,6 +70,12 @@ ShellRoot {
             CalendarPopup {
                 anchor.window: panelWin
                 anchor.rect.x: panelWin.popupX(bar.rightBar.dateWidget, implicitWidth)
+                anchor.rect.y: panelWin.height
+            }
+
+            MediaPopup {
+                anchor.window: panelWin
+                anchor.rect.x: panelWin.centerPopupX(implicitWidth)
                 anchor.rect.y: panelWin.height
             }
 

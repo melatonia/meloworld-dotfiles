@@ -1,22 +1,25 @@
-// UNUSED, CURRENTLY SWITCHED TO CLOCK POPUP
 import QtQuick
 import Quickshell
 import Quickshell.Services.Mpris
 import "../theme"
 
-SectionBase {
+PopupBase {
     id: root
-    title: "Media Player"
-    icon: "󰕾"
-    accent: PanelColors.audio
+    implicitWidth: 300
+    borderColor: PanelColors.clock
+    clipContent: false
+    contentHeight: popupColumn.implicitHeight
+
+    Connections {
+        target: SessionState
+        function onMediaPopupVisibleChanged() {
+            root.animState = SessionState.mediaPopupVisible ? "open" : "closing"
+        }
+    }
 
     // ── Player selection ──────────────────────────────────────────────────────
-    // Filter out browser idle registrations: require a non-empty trackTitle
-    // OR an active Playing state. Chrome/Firefox register on D-Bus with blank
-    // metadata when nothing is playing — this discards those ghost entries.
     readonly property MprisPlayer activePlayer: {
         const vals = Mpris.players.values
-        // First pass: prefer a player that is actively Playing
         for (let i = 0; i < vals.length; i++) {
             const p = vals[i]
             if (!p) continue
@@ -24,8 +27,6 @@ SectionBase {
                     && (p.trackTitle ?? "") !== "")
                 return p
         }
-        // Second pass: fall back to a paused/stopped player with known track
-        // (excludes browsers with blank metadata)
         for (let i = 0; i < vals.length; i++) {
             const p = vals[i]
             if (!p) continue
@@ -36,6 +37,8 @@ SectionBase {
     }
 
     readonly property bool isPlaying: activePlayer?.playbackState === MprisPlaybackState.Playing
+    readonly property bool hasContent: activePlayer !== null
+    readonly property MprisPlayer shownPlayer: activePlayer
 
     // ── Position tracking ─────────────────────────────────────────────────────
     property real livePosition: shownPlayer?.position ?? 0
@@ -61,27 +64,27 @@ SectionBase {
         return m + ":" + (rem < 10 ? "0" + rem : rem)
     }
 
-    // ── Empty state ───────────────────────────────────────────────────────────
-    Text {
-        visible: !root.hasContent
-        width: parent.width
-        text: "No active media session"
-        font.pixelSize: 13
-        font.family: "JetBrainsMono Nerd Font"
-        color: PanelColors.textDim
-        horizontalAlignment: Text.AlignHCenter
-        topPadding: 8
-        bottomPadding: 8
-    }
-
-    // ── Player UI ─────────────────────────────────────────────────────────────
     Column {
-        visible: root.hasContent
-        width: parent.width
+        id: popupColumn
+        anchors { top: parent.top; left: parent.left; right: parent.right; margins: root.padding }
         spacing: 12
+
+        // ── Empty state ───────────────────────────────────────────────────────
+        Text {
+            visible: !root.hasContent
+            width: parent.width
+            text: "No active media session"
+            font.pixelSize: 13
+            font.family: "JetBrainsMono Nerd Font"
+            color: PanelColors.textDim
+            horizontalAlignment: Text.AlignHCenter
+            topPadding: 8
+            bottomPadding: 8
+        }
 
         // ── Art + track info ──────────────────────────────────────────────────
         Row {
+            visible: root.hasContent
             width: parent.width
             spacing: 12
 
@@ -90,7 +93,7 @@ SectionBase {
                 width: 72; height: 72
                 radius: 8
                 color: PanelColors.rowBackground
-                border.color: root.accent
+                border.color: PanelColors.clock
                 border.width: 1
                 clip: true
 
@@ -108,7 +111,7 @@ SectionBase {
                     anchors.centerIn: parent
                     text: "󰎆"
                     font.pixelSize: 28
-                    font.family: "Symbols Nerd Font"
+                    font.family: "JetBrainsMono Nerd Font"
                     color: PanelColors.textDim
                 }
             }
@@ -118,14 +121,73 @@ SectionBase {
                 anchors.verticalCenter: parent.verticalCenter
                 spacing: 4
 
-                Text {
+                // ── Marquee title ─────────────────────────────────────────────
+                Item {
                     width: parent.width
-                    text: root.shownPlayer?.trackTitle || "Unknown Title"
-                    font.pixelSize: 15
-                    font.bold: true
-                    font.family: "JetBrainsMono Nerd Font"
-                    color: PanelColors.textAccent
-                    elide: Text.ElideRight
+                    height: 20
+                    clip: true
+
+                    Text {
+                        id: titleText
+                        text: root.shownPlayer?.trackTitle || "Unknown Title"
+                        font.pixelSize: 15
+                        font.bold: true
+                        font.family: "JetBrainsMono Nerd Font"
+                        color: PanelColors.textAccent
+
+                        readonly property bool overflow: implicitWidth > parent.width
+
+                        // Reset to start whenever track changes or overflow state changes
+                        onOverflowChanged: {
+                            marqueeAnim.stop()
+                            titleText.x = 0
+                            if (overflow) marqueeAnim.start()
+                        }
+                        onTextChanged: {
+                            marqueeAnim.stop()
+                            titleText.x = 0
+                            if (overflow) marqueeAnim.start()
+                        }
+
+                        SequentialAnimation {
+                            id: marqueeAnim
+                            running: false
+                            loops: Animation.Infinite
+
+                            // Pause at start before scrolling
+                            PauseAnimation { duration: 1200 }
+
+                            // Scroll the text left until it's gone
+                            NumberAnimation {
+                                target: titleText
+                                property: "x"
+                                from: 0
+                                to: -titleText.implicitWidth
+                                duration: titleText.implicitWidth * 14
+                                easing.type: Easing.Linear
+                            }
+
+                            // Jump back to right edge (invisible since clipped)
+                            PropertyAction {
+                                target: titleText
+                                property: "x"
+                                value: titleText.parent.width
+                            }
+
+                            // Scroll in from right
+                            NumberAnimation {
+                                target: titleText
+                                property: "x"
+                                from: titleText.parent.width
+                                to: 0
+                                duration: titleText.implicitWidth * 10
+                                easing.type: Easing.Linear
+                            }
+
+                            // Pause at end
+                            PauseAnimation { duration: 1200 }
+                        }
+                    }
                 }
 
                 Text {
@@ -137,37 +199,27 @@ SectionBase {
                     elide: Text.ElideRight
                 }
 
-                Rectangle {
+                // ── App badge ─────────────────────────────────────────────────
+                Text {
                     visible: (root.shownPlayer?.identity ?? "") !== ""
-                    height: 18
-                    width: badgeText.implicitWidth + 12
-                    radius: 4
-                    color: Qt.rgba(root.accent.r, root.accent.g, root.accent.b, 0.18)
-                    border.color: Qt.rgba(root.accent.r, root.accent.g, root.accent.b, 0.45)
-                    border.width: 1
-
-                    Text {
-                        id: badgeText
-                        anchors.centerIn: parent
-                        text: root.shownPlayer?.identity ?? ""
-                        font.pixelSize: 10
-                        font.family: "JetBrainsMono Nerd Font"
-                        color: root.accent
-                    }
+                    text: root.shownPlayer?.identity ?? ""
+                    font.pixelSize: 10
+                    font.family: "JetBrainsMono Nerd Font"
+                    color: Qt.rgba(PanelColors.clock.r, PanelColors.clock.g, PanelColors.clock.b, 0.7)
                 }
             }
         }
 
-        // ── Wave progress bar + timestamps ────────────────────────────────────
+        // ── WaveBar + timestamps ──────────────────────────────────────────────
         Column {
+            visible: root.hasContent && (root.shownPlayer?.positionSupported ?? false)
             width: parent.width
             spacing: 4
-            visible: root.shownPlayer?.positionSupported ?? false
 
             WaveBar {
                 id: waveBar
                 width: parent.width
-                accentColor: root.accent
+                accentColor: PanelColors.clock
                 from: 0
                 to: Math.max(1, root.shownPlayer?.length ?? 1)
                 value: root.livePosition
@@ -177,7 +229,6 @@ SectionBase {
                     root.userSeeking = true
                     root.shownPlayer.position = v
                     root.livePosition = v
-                    // Release seeking lock after a short settle
                     seekReleaseTimer.restart()
                 }
             }
@@ -190,6 +241,7 @@ SectionBase {
 
             Row {
                 width: parent.width
+
                 Text {
                     id: posLeft
                     text: root.fmtTime(root.livePosition)
@@ -197,7 +249,9 @@ SectionBase {
                     font.family: "JetBrainsMono Nerd Font"
                     color: PanelColors.textDim
                 }
+
                 Item { width: parent.width - posLeft.implicitWidth - posRight.implicitWidth; height: 1 }
+
                 Text {
                     id: posRight
                     text: root.fmtTime(root.shownPlayer?.length ?? 0)
@@ -210,11 +264,27 @@ SectionBase {
 
         // ── Controls ──────────────────────────────────────────────────────────
         Row {
+            visible: root.hasContent
             anchors.horizontalCenter: parent.horizontalCenter
             spacing: 8
 
+            // Shuffle — hidden when not supported
+            MediaButton {
+                width: 36; height: 36
+                visible: root.shownPlayer?.shuffleSupported ?? false
+                icon: "󰒝"
+                accentColor: PanelColors.clock
+                highlighted: root.shownPlayer?.shuffle ?? false
+                enabled: true
+                onClicked: {
+                    if (root.shownPlayer)
+                        root.shownPlayer.shuffle = !(root.shownPlayer.shuffle ?? false)
+                }
+            }
+
             MediaButton {
                 icon: "󰒮"
+                accentColor: PanelColors.clock
                 enabled: root.shownPlayer?.canGoPrevious ?? false
                 onClicked: root.shownPlayer?.previous()
             }
@@ -222,7 +292,7 @@ SectionBase {
             MediaButton {
                 icon: root.isPlaying ? "󰏤" : "󰐊"
                 highlighted: true
-                accentColor: root.accent
+                accentColor: PanelColors.clock
                 enabled: root.isPlaying
                     ? (root.shownPlayer?.canPause ?? false)
                     : (root.shownPlayer?.canPlay ?? false)
@@ -233,20 +303,41 @@ SectionBase {
 
             MediaButton {
                 icon: "󰒭"
+                accentColor: PanelColors.clock
                 enabled: root.shownPlayer?.canGoNext ?? false
                 onClicked: root.shownPlayer?.next()
+            }
+
+            // Repeat — hidden when not supported
+            MediaButton {
+                width: 36; height: 36
+                visible: root.shownPlayer?.loopSupported ?? false
+                icon: (root.shownPlayer?.loopState ?? MprisLoopState.None) === MprisLoopState.Track
+                    ? "󰑘" : "󰑖"
+                accentColor: PanelColors.clock
+                highlighted: (root.shownPlayer?.loopState ?? MprisLoopState.None) !== MprisLoopState.None
+                enabled: true
+                onClicked: {
+                    if (!root.shownPlayer) return
+                    const s = root.shownPlayer.loopState ?? MprisLoopState.None
+                    if (s === MprisLoopState.None)
+                        root.shownPlayer.loopState = MprisLoopState.Playlist
+                    else if (s === MprisLoopState.Playlist)
+                        root.shownPlayer.loopState = MprisLoopState.Track
+                    else
+                        root.shownPlayer.loopState = MprisLoopState.None
+                }
             }
         }
     }
 
-    // ── Material 3 Expressive WaveBar ─────────────────────────────────────────
+    // ── WaveBar ───────────────────────────────────────────────────────────────
     component WaveBar: Item {
         id: bar
-        // API & Logic from PanelSlider.qml
         property real value: 0
         property real from: 0
         property real to: 100
-        property color accentColor: Colors.teal200
+        property color accentColor: PanelColors.clock
         property bool playing: false
         property bool seekable: true
         signal seeked(real value)
@@ -275,7 +366,6 @@ SectionBase {
             bar.seeked(newVal)
         }
 
-        // Wave Animation Driver
         property real _phase: 0
         NumberAnimation on _phase {
             from: 0; to: Math.PI * 2
@@ -289,20 +379,18 @@ SectionBase {
         onPlayingChanged: _waveAmount = (playing && !activeInteraction) ? 1.0 : 0.0
         onActiveInteractionChanged: _waveAmount = (playing && !activeInteraction) ? 1.0 : 0.0
 
-        // 1. BACKGROUND Track (Straight part from PanelSlider.qml[cite: 2])
         Rectangle {
             id: trackBackground
-            x: Math.max(0, bar._fillWidth - 3) // Slight overlap to prevent gaps
+            x: Math.max(0, bar._fillWidth - 3)
             width: Math.max(0, parent.width - x)
             height: 6
-            radius: 3 // Rounded ends for the inactive part[cite: 2]
+            radius: 3
             anchors.verticalCenter: parent.verticalCenter
             color: barMouse.containsMouse
                 ? Qt.lighter(PanelColors.trackBackground, 1.1)
                 : Qt.rgba(PanelColors.trackBackground.r, PanelColors.trackBackground.g, PanelColors.trackBackground.b, 0.4)
         }
 
-        // 2. ACTIVE Track (Wavy part with rounded caps)
         Canvas {
             id: waveCanvas
             anchors.fill: parent
@@ -311,21 +399,15 @@ SectionBase {
             onPaint: {
                 const ctx = getContext("2d")
                 ctx.clearRect(0, 0, width, height)
-
                 if (bar._fillWidth <= 0) return
-
                 const cy = height / 2
                 const amp = 3.5 * bar._waveAmount
                 const freq = 0.16
-
                 ctx.beginPath()
-                ctx.lineWidth = 6 // Matches PanelSlider thickness[cite: 2]
-                ctx.lineCap = "round" // FIX: This rounds the left-most start of the line[cite: 1]
+                ctx.lineWidth = 6
+                ctx.lineCap = "round"
                 ctx.strokeStyle = barMouse.containsMouse ? Qt.lighter(bar.accentColor, 1.15) : bar.accentColor
-
-                // Offset start by 3px so the rounded cap is visible and not squared by the edge
                 const startX = 3
-
                 if (bar._waveAmount > 0) {
                     for (let x = startX; x <= bar._fillWidth; x++) {
                         const y = cy + Math.sin(x * freq + bar._phase) * amp
@@ -347,7 +429,6 @@ SectionBase {
             }
         }
 
-        // 3. Handle (Needle Morph from PanelSlider.qml[cite: 2])
         Item {
             id: handleContainer
             width: 0; height: 0
@@ -361,7 +442,6 @@ SectionBase {
                 height: bar.isNeedle ? 24 : (barMouse.containsMouse ? 18 : 14)
                 radius: width / 2
                 color: barMouse.containsMouse ? Qt.lighter(bar.accentColor, 1.15) : bar.accentColor
-
                 Behavior on width  { NumberAnimation { duration: 300; easing.type: Easing.OutBack } }
                 Behavior on height { NumberAnimation { duration: 300; easing.type: Easing.OutBack } }
             }
@@ -383,7 +463,7 @@ SectionBase {
         id: btn
         property string icon: ""
         property bool highlighted: false
-        property color accentColor: PanelColors.audio
+        property color accentColor: PanelColors.clock
         property bool enabled: true
         signal clicked()
 
@@ -391,23 +471,13 @@ SectionBase {
         radius: 8
 
         color: {
-            if (!enabled) return Qt.rgba(
-                PanelColors.rowBackground.r,
-                PanelColors.rowBackground.g,
-                PanelColors.rowBackground.b, 0.35)
-            if (highlighted) return btnMouse.containsMouse
-                ? Qt.lighter(accentColor, 1.1)
-                : accentColor
-            return btnMouse.containsMouse
-                ? Qt.lighter(PanelColors.rowBackground, 1.25)
-                : PanelColors.rowBackground
+            if (!enabled) return Qt.rgba(PanelColors.rowBackground.r, PanelColors.rowBackground.g, PanelColors.rowBackground.b, 0.35)
+            if (highlighted) return btnMouse.containsMouse ? Qt.lighter(accentColor, 1.1) : accentColor
+            return btnMouse.containsMouse ? Qt.lighter(PanelColors.rowBackground, 1.25) : PanelColors.rowBackground
         }
 
-        border.color: highlighted
-            ? "transparent"
-            : Qt.rgba(1, 1, 1, btnMouse.containsMouse ? 0.10 : 0.04)
+        border.color: highlighted ? "transparent" : Qt.rgba(1, 1, 1, btnMouse.containsMouse ? 0.10 : 0.04)
         border.width: 1
-
         scale: btnMouse.pressed ? 0.91 : 1.0
         Behavior on color { ColorAnimation { duration: 120 } }
         Behavior on scale { NumberAnimation { duration: 100; easing.type: Easing.OutCubic } }
@@ -416,7 +486,7 @@ SectionBase {
             anchors.centerIn: parent
             text: btn.icon
             font.pixelSize: 18
-            font.family: "Symbols Nerd Font"
+            font.family: "JetBrainsMono Nerd Font"
             color: {
                 if (!btn.enabled)    return PanelColors.textDim
                 if (btn.highlighted) return PanelColors.pillForeground

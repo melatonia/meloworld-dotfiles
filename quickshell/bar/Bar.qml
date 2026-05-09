@@ -8,6 +8,8 @@ Item {
 
     property alias rightContainer: rightContainer
     property alias rightBar: rightBar
+    property alias centerContainer: centerContainer
+    property alias centerBar: centerBar
 
     Rectangle {
         id: leftContainer

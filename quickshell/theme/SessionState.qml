@@ -10,6 +10,7 @@ Singleton {
     property bool bluetoothPopupVisible: false
     property bool wifiPopupVisible: false
     property bool dashboardVisible: false
+    property bool mediaPopupVisible: false
 
     function show() { visible = true }
     function hide() { closeAllPopups() }
@@ -19,6 +20,7 @@ Singleton {
         bluetoothPopupVisible = false
         wifiPopupVisible = false
         dashboardVisible = false
+        mediaPopupVisible = false
         visible = false
         AudioState.hide()
         BrightnessState.hide()

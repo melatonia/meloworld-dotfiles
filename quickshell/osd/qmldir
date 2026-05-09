@@ -9,3 +9,4 @@ WifiPopup 1.0 WifiPopup.qml
 TrayPopup 1.0 TrayPopup.qml
 CalendarPopup 1.0 CalendarPopup.qml
 OsdWindow 1.0 OsdWindow.qml
+MediaPopup 1.0 MediaPopup.qml

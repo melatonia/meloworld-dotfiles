@@ -2,5 +2,6 @@ import QtQuick
 import "widgets"
 
 Row {
-    ClockWidget { anchors.verticalCenter: parent.verticalCenter }
+    property alias clockWidget: clockWidget
+    ClockWidget { id: clockWidget; anchors.verticalCenter: parent.verticalCenter }
 }
