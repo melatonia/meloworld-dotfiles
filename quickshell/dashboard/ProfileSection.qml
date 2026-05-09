@@ -10,7 +10,6 @@ SectionBase {
     property string username: "User"
     property string hostname: "Host"
     property string avatarPath: ""
-    // Persistent local storage path
     property string localAvatar: Quickshell.env("HOME") + "/.config/quickshell/avatar.png"
 
     Process {
@@ -29,7 +28,6 @@ SectionBase {
         onLoaded: root.hostname = text().trim()
     }
 
-    // PRIORITY 1: Check for manual override in config folder
     Process {
         id: checkLocalAvatar
         command: ["test", "-f", root.localAvatar]
@@ -42,7 +40,6 @@ SectionBase {
         }
     }
 
-    // PRIORITY 2: Fallback to System/Gnome settings
     Process {
         id: checkAccountsService
         command: ["sh", "-c", "grep '^Icon=' /var/lib/AccountsService/users/$USER | cut -d= -f2"]
@@ -58,7 +55,6 @@ SectionBase {
         }
     }
 
-    // Manual Picker logic
     Process {
         id: manualPicker
         command: ["zenity", "--file-selection", "--title=Select Profile Picture"]
@@ -76,7 +72,6 @@ SectionBase {
     Process {
         id: saveAvatar
         onExited: {
-            // Reset path to force reload from disk
             root.avatarPath = "";
             root.avatarPath = "file://" + root.localAvatar;
         }
@@ -102,6 +97,8 @@ SectionBase {
                 asynchronous: true
                 cache: false
                 visible: status === Image.Ready
+                mipmap: true
+                smooth: true
             }
 
             Text {
@@ -120,7 +117,6 @@ SectionBase {
                 border.width: 2
                 border.color: profileMouseArea.containsMouse ? PanelColors.textAccent : PanelColors.profile
                 radius: 5
-
                 scale: profileMouseArea.containsMouse ? 1.05 : 1.0
                 Behavior on scale { NumberAnimation { duration: 200; easing.type: Easing.OutCubic } }
                 Behavior on border.color { ColorAnimation { duration: 200 } }
@@ -154,14 +150,12 @@ SectionBase {
         Column {
             anchors.verticalCenter: parent.verticalCenter
             spacing: 0
-
             Text {
                 text: "Welcome back,"
                 font.pixelSize: 13
                 font.family: "JetBrainsMono Nerd Font"
                 color: PanelColors.textDim
             }
-
             Text {
                 text: root.username
                 font.pixelSize: 24
@@ -169,7 +163,6 @@ SectionBase {
                 font.family: "JetBrainsMono Nerd Font"
                 color: PanelColors.textAccent
             }
-
             Text {
                 text: "@" + root.hostname
                 font.pixelSize: 13

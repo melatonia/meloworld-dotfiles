@@ -17,7 +17,6 @@ PopupBase {
         }
     }
 
-    // ── Player selection ──────────────────────────────────────────────────────
     readonly property MprisPlayer activePlayer: {
         const vals = Mpris.players.values
         for (let i = 0; i < vals.length; i++) {
@@ -40,7 +39,6 @@ PopupBase {
     readonly property bool hasContent: activePlayer !== null
     readonly property MprisPlayer shownPlayer: activePlayer
 
-    // ── Position tracking ─────────────────────────────────────────────────────
     property real livePosition: shownPlayer?.position ?? 0
     property bool userSeeking: false
 
@@ -69,7 +67,6 @@ PopupBase {
         anchors { top: parent.top; left: parent.left; right: parent.right; margins: root.padding }
         spacing: 12
 
-        // ── Empty state ───────────────────────────────────────────────────────
         Text {
             visible: !root.hasContent
             width: parent.width
@@ -82,7 +79,6 @@ PopupBase {
             bottomPadding: 8
         }
 
-        // ── Art + track info ──────────────────────────────────────────────────
         Row {
             visible: root.hasContent
             width: parent.width
@@ -93,7 +89,6 @@ PopupBase {
                 width: 64
                 height: 64
 
-                // Layer 1: The Album Art (Bottom)
                 Image {
                     id: artImage
                     anchors.fill: parent
@@ -102,9 +97,10 @@ PopupBase {
                     fillMode: Image.PreserveAspectCrop
                     asynchronous: true
                     visible: status === Image.Ready
+                    mipmap: true
+                    smooth: true
                 }
 
-                // Layer 2: Fallback Icon (Middle)
                 Text {
                     visible: artImage.status !== Image.Ready
                     anchors.centerIn: parent
@@ -114,7 +110,6 @@ PopupBase {
                     color: PanelColors.textDim
                 }
 
-                // Layer 3: Border Frame (Top)
                 Rectangle {
                     id: artFrame
                     anchors.fill: parent
@@ -130,7 +125,6 @@ PopupBase {
                 anchors.verticalCenter: parent.verticalCenter
                 spacing: 4
 
-                // ── Marquee title ─────────────────────────────────────────────
                 Item {
                     width: parent.width
                     height: 20
@@ -161,9 +155,7 @@ PopupBase {
                             id: marqueeAnim
                             running: false
                             loops: Animation.Infinite
-
                             PauseAnimation { duration: 1200 }
-
                             NumberAnimation {
                                 target: titleText
                                 property: "x"
@@ -172,13 +164,11 @@ PopupBase {
                                 duration: titleText.implicitWidth * 14
                                 easing.type: Easing.Linear
                             }
-
                             PropertyAction {
                                 target: titleText
                                 property: "x"
                                 value: titleText.parent.width
                             }
-
                             NumberAnimation {
                                 target: titleText
                                 property: "x"
@@ -187,7 +177,6 @@ PopupBase {
                                 duration: titleText.implicitWidth * 10
                                 easing.type: Easing.Linear
                             }
-
                             PauseAnimation { duration: 1200 }
                         }
                     }
@@ -212,7 +201,6 @@ PopupBase {
             }
         }
 
-        // ── WaveBar + timestamps ──────────────────────────────────────────────
         Column {
             visible: root.hasContent && (root.shownPlayer?.positionSupported ?? false)
             width: parent.width
@@ -243,7 +231,6 @@ PopupBase {
 
             Row {
                 width: parent.width
-
                 Text {
                     id: posLeft
                     text: root.fmtTime(root.livePosition)
@@ -251,9 +238,7 @@ PopupBase {
                     font.family: "JetBrainsMono Nerd Font"
                     color: PanelColors.textDim
                 }
-
                 Item { width: parent.width - posLeft.implicitWidth - posRight.implicitWidth; height: 1 }
-
                 Text {
                     id: posRight
                     text: root.fmtTime(root.shownPlayer?.length ?? 0)
@@ -264,7 +249,6 @@ PopupBase {
             }
         }
 
-        // ── Controls ──────────────────────────────────────────────────────────
         Item {
             visible: root.hasContent
             width: parent.width
@@ -287,14 +271,12 @@ PopupBase {
             Row {
                 anchors.centerIn: parent
                 spacing: 4
-
                 MediaButton {
                     icon: "󰒮"
                     accentColor: PanelColors.clock
                     enabled: root.shownPlayer?.canGoPrevious ?? false
                     onClicked: root.shownPlayer?.previous()
                 }
-
                 MediaButton {
                     id: playPauseBtn
                     icon: root.isPlaying ? "󰏤" : "󰐊"
@@ -307,7 +289,6 @@ PopupBase {
                         ? root.shownPlayer?.pause()
                         : root.shownPlayer?.play()
                 }
-
                 MediaButton {
                     icon: "󰒭"
                     accentColor: PanelColors.clock
@@ -339,7 +320,6 @@ PopupBase {
         }
     }
 
-    // ── WaveBar ───────────────────────────────────────────────────────────────
     component WaveBar: Item {
         id: bar
         property real value: 0
@@ -349,31 +329,25 @@ PopupBase {
         property bool playing: false
         property bool seekable: true
         signal seeked(real value)
-
         implicitWidth: 120
         implicitHeight: 32
-
         property bool dragging: barMouse.pressed
         property real internalValue: 0
         readonly property bool activeInteraction: dragging
         readonly property bool isNeedle: activeInteraction || playing
-
         readonly property real targetValue: activeInteraction ? internalValue : value
         property real animValue: targetValue
         Behavior on animValue {
             enabled: !bar.dragging
             NumberAnimation { duration: 80; easing.type: Easing.OutCubic }
         }
-
         readonly property real _fillWidth: ((bar.animValue - bar.from) / (bar.to - bar.from)) * bar.width
-
         function _updateFromMouse(mouseX) {
             var newVal = Math.max(bar.from, Math.min(bar.to,
                 bar.from + (mouseX / bar.width) * (bar.to - bar.from)))
             bar.internalValue = newVal
             bar.seeked(newVal)
         }
-
         property real _phase: 0
         NumberAnimation on _phase {
             from: 0; to: Math.PI * 2
@@ -381,12 +355,10 @@ PopupBase {
             loops: Animation.Infinite
             running: bar.playing && !bar.activeInteraction
         }
-
         property real _waveAmount: 0.0
         Behavior on _waveAmount { NumberAnimation { duration: 400; easing.type: Easing.InOutSine } }
         onPlayingChanged: _waveAmount = (playing && !activeInteraction) ? 1.0 : 0.0
         onActiveInteractionChanged: _waveAmount = (playing && !activeInteraction) ? 1.0 : 0.0
-
         Rectangle {
             id: trackBackground
             x: Math.max(0, bar._fillWidth - 3)
@@ -398,12 +370,10 @@ PopupBase {
                 ? Qt.lighter(PanelColors.trackBackground, 1.1)
                 : Qt.rgba(PanelColors.trackBackground.r, PanelColors.trackBackground.g, PanelColors.trackBackground.b, 0.4)
         }
-
         Canvas {
             id: waveCanvas
             anchors.fill: parent
             antialiasing: true
-
             onPaint: {
                 const ctx = getContext("2d")
                 ctx.clearRect(0, 0, width, height)
@@ -428,7 +398,6 @@ PopupBase {
                 }
                 ctx.stroke()
             }
-
             Connections {
                 target: bar
                 function onAnimValueChanged() { waveCanvas.requestPaint() }
@@ -436,13 +405,11 @@ PopupBase {
                 function on_WaveAmountChanged() { waveCanvas.requestPaint() }
             }
         }
-
         Item {
             id: handleContainer
             width: 0; height: 0
             anchors.verticalCenter: parent.verticalCenter
             x: bar._fillWidth
-
             Rectangle {
                 id: handle
                 anchors.centerIn: parent
@@ -454,7 +421,6 @@ PopupBase {
                 Behavior on height { NumberAnimation { duration: 300; easing.type: Easing.OutBack } }
             }
         }
-
         MouseArea {
             id: barMouse
             anchors.fill: parent
@@ -466,7 +432,6 @@ PopupBase {
         }
     }
 
-    // ── MediaButton ───────────────────────────────────────────────────────────
     component MediaButton: Rectangle {
         id: btn
         property string icon: ""
@@ -474,22 +439,18 @@ PopupBase {
         property color accentColor: PanelColors.clock
         property bool enabled: true
         signal clicked()
-
         width: 40; height: 40
         radius: 8
-
         color: {
             if (!enabled) return Qt.rgba(PanelColors.rowBackground.r, PanelColors.rowBackground.g, PanelColors.rowBackground.b, 0.35)
             if (highlighted) return btnMouse.containsMouse ? Qt.lighter(accentColor, 1.1) : accentColor
             return btnMouse.containsMouse ? Qt.lighter(PanelColors.rowBackground, 1.25) : PanelColors.rowBackground
         }
-
         border.color: highlighted ? "transparent" : Qt.rgba(1, 1, 1, btnMouse.containsMouse ? 0.10 : 0.04)
         border.width: 1
         scale: btnMouse.pressed ? 0.91 : 1.0
         Behavior on color { ColorAnimation { duration: 120 } }
         Behavior on scale { NumberAnimation { duration: 100; easing.type: Easing.OutCubic } }
-
         Text {
             anchors.centerIn: parent
             text: btn.icon
@@ -502,7 +463,6 @@ PopupBase {
             }
             Behavior on color { ColorAnimation { duration: 120 } }
         }
-
         MouseArea {
             id: btnMouse
             anchors.fill: parent
