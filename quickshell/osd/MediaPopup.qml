@@ -263,60 +263,69 @@ PopupBase {
         }
 
         // ── Controls ──────────────────────────────────────────────────────────
-        Row {
+        Item {
             visible: root.hasContent
-            anchors.horizontalCenter: parent.horizontalCenter
-            spacing: 8
+            width: parent.width
+            height: playPauseBtn.height
 
-            // Shuffle — hidden when not supported
+            // Shuffle — Pinned to the left margin
             MediaButton {
-                width: 36; height: 36
+                id: shuffleBtn
+                anchors.left: parent.left
+                anchors.verticalCenter: parent.verticalCenter
                 visible: root.shownPlayer?.shuffleSupported ?? false
                 icon: "󰒝"
                 accentColor: PanelColors.clock
                 highlighted: root.shownPlayer?.shuffle ?? false
-                enabled: true
                 onClicked: {
                     if (root.shownPlayer)
                         root.shownPlayer.shuffle = !(root.shownPlayer.shuffle ?? false)
                 }
             }
 
-            MediaButton {
-                icon: "󰒮"
-                accentColor: PanelColors.clock
-                enabled: root.shownPlayer?.canGoPrevious ?? false
-                onClicked: root.shownPlayer?.previous()
+            // Central Control Group — Mathematically centered in the popup
+            Row {
+                anchors.centerIn: parent
+                spacing: 4
+
+                MediaButton {
+                    icon: "󰒮"
+                    accentColor: PanelColors.clock
+                    enabled: root.shownPlayer?.canGoPrevious ?? false
+                    onClicked: root.shownPlayer?.previous()
+                }
+
+                MediaButton {
+                    id: playPauseBtn
+                    icon: root.isPlaying ? "󰏤" : "󰐊"
+                    highlighted: true
+                    accentColor: PanelColors.clock
+                    enabled: root.isPlaying
+                        ? (root.shownPlayer?.canPause ?? false)
+                        : (root.shownPlayer?.canPlay ?? false)
+                    onClicked: root.isPlaying
+                        ? root.shownPlayer?.pause()
+                        : root.shownPlayer?.play()
+                }
+
+                MediaButton {
+                    icon: "󰒭"
+                    accentColor: PanelColors.clock
+                    enabled: root.shownPlayer?.canGoNext ?? false
+                    onClicked: root.shownPlayer?.next()
+                }
             }
 
+            // Repeat — Pinned to the right margin
             MediaButton {
-                icon: root.isPlaying ? "󰏤" : "󰐊"
-                highlighted: true
-                accentColor: PanelColors.clock
-                enabled: root.isPlaying
-                    ? (root.shownPlayer?.canPause ?? false)
-                    : (root.shownPlayer?.canPlay ?? false)
-                onClicked: root.isPlaying
-                    ? root.shownPlayer?.pause()
-                    : root.shownPlayer?.play()
-            }
-
-            MediaButton {
-                icon: "󰒭"
-                accentColor: PanelColors.clock
-                enabled: root.shownPlayer?.canGoNext ?? false
-                onClicked: root.shownPlayer?.next()
-            }
-
-            // Repeat — hidden when not supported
-            MediaButton {
-                width: 36; height: 36
+                id: repeatBtn
+                anchors.right: parent.right
+                anchors.verticalCenter: parent.verticalCenter
                 visible: root.shownPlayer?.loopSupported ?? false
                 icon: (root.shownPlayer?.loopState ?? MprisLoopState.None) === MprisLoopState.Track
                     ? "󰑘" : "󰑖"
                 accentColor: PanelColors.clock
                 highlighted: (root.shownPlayer?.loopState ?? MprisLoopState.None) !== MprisLoopState.None
-                enabled: true
                 onClicked: {
                     if (!root.shownPlayer) return
                     const s = root.shownPlayer.loopState ?? MprisLoopState.None
