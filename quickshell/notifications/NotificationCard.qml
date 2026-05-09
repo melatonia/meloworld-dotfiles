@@ -27,23 +27,25 @@ Rectangle {
 
     // ── Enter animation ───────────────────────────
     opacity: 0
-    y:       16
+    y:       20 // Increased slightly to give a bit more runway for the smoother curve
 
     ParallelAnimation {
         id: enterAnim
         NumberAnimation {
             target:      root
             property:    "opacity"
-            from:        0; to: 1
-            duration:    260
+            from:        0
+            to:          1
+            duration:    400
             easing.type: Easing.OutCubic
         }
         NumberAnimation {
             target:      root
             property:    "y"
-            from:        16; to: 0
-            duration:    300
-            easing.type: Easing.OutCubic
+            from:        20
+            to:          0
+            duration:    500
+            easing.type: Easing.OutQuart // Provides a much smoother, longer deceleration
         }
     }
 
@@ -51,7 +53,8 @@ Rectangle {
     readonly property color accentColor: {
         if (!notification) return Colors.blueGrey300
         if (notification.urgency === Notification.Critical) return PanelColors.error
-        if (notification.hints["x-hint-color"])             return notification.hints["x-hint-color"]
+        if (notification.hints["x-hint-color"])
+              return notification.hints["x-hint-color"]
         return hashColor(notification.appName)
     }
 
@@ -345,18 +348,30 @@ Rectangle {
                     elide:            Text.ElideRight
                 }
 
-                Text {
-                    id:               bodyText
+                // Wrapper item that handles the smooth height interpolation and clipping
+                Item {
+                    id:               bodyTextContainer
                     visible:          (notification?.body ?? "") !== ""
-                    text:             notification?.body ?? ""
-                    font.pixelSize:   14
-                    font.family:      "JetBrainsMono Nerd Font"
-                    color:            PanelColors.textMain
                     width:            parent.width
-                    wrapMode:         Text.WordWrap
-                    maximumLineCount: root.expanded ? -1 : root.collapsedBodyLines
-                    elide:            root.expanded  ? Text.ElideNone : Text.ElideRight
-                    textFormat:       Text.PlainText
+                    height:           bodyText.implicitHeight
+                    clip:             true
+
+                    Behavior on height {
+                        NumberAnimation { duration: 300; easing.type: Easing.OutCubic }
+                    }
+
+                    Text {
+                        id:               bodyText
+                        text:             notification?.body ?? ""
+                        font.pixelSize:   14
+                        font.family:      "JetBrainsMono Nerd Font"
+                        color:            PanelColors.textMain
+                        width:            parent.width
+                        wrapMode:         Text.WordWrap
+                        maximumLineCount: root.expanded ? -1 : root.collapsedBodyLines
+                        elide:            root.expanded  ? Text.ElideNone : Text.ElideRight
+                        textFormat:       Text.PlainText
+                    }
                 }
             }
 
