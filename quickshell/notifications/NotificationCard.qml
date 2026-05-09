@@ -31,6 +31,7 @@ Rectangle {
 
     // ── Accent color ──────────────────────────────
     readonly property color accentColor: {
+        if (!notification) return Colors.blueGrey300
         if (notification.urgency === Notification.Critical) return PanelColors.error
         if (notification.hints["x-hint-color"])             return notification.hints["x-hint-color"]
         return hashColor(notification.appName)
@@ -55,6 +56,7 @@ Rectangle {
 
     // ── Whether body needs expand ─────────────────
     readonly property bool bodyIsLong: {
+        if (!notification) return false
         var body = notification.body ?? ""
         if (body === "") return false
         return body.length > 120 || body.split("\n").length > 3
@@ -174,7 +176,7 @@ Rectangle {
             height: 22
 
             Text {
-                text:           notification.appName || "Notification"
+                text:           notification?.appName || "Notification"
                 font.pixelSize: 16
                 font.bold:      true
                 font.family:    "JetBrainsMono Nerd Font"
@@ -233,8 +235,8 @@ Rectangle {
         Item { width: 1; height: 8 }
 
         Text {
-            visible:        (notification.summary ?? "") !== ""
-            text:           notification.summary ?? ""
+            visible:        (notification?.summary ?? "") !== ""
+            text:           notification?.summary ?? ""
             font.pixelSize: 18
             font.bold:      true
             font.family:    "JetBrainsMono Nerd Font"
@@ -249,8 +251,8 @@ Rectangle {
 
         Text {
             id:             bodyText
-            visible:        (notification.body ?? "") !== ""
-            text:           notification.body ?? ""
+            visible:        (notification?.body ?? "") !== ""
+            text:           notification?.body ?? ""
             font.pixelSize: 14
             font.family:    "JetBrainsMono Nerd Font"
             color:          PanelColors.textMain
