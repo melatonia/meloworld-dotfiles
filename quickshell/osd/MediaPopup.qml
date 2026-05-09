@@ -10,6 +10,16 @@ PopupBase {
     clipContent: false
     contentHeight: popupColumn.implicitHeight
 
+    function getPlayerIcon(identity) {
+        const id = (identity || "").toLowerCase();
+        if (id.includes("spotify")) return "󰓇";
+        if (id.includes("firefox")) return "󰈹";
+        if (id.includes("zen"))     return "󰈹";
+        if (id.includes("chrome"))  return "󰊯";
+        if (id.includes("vlc"))     return "󰕼";
+        return "󰎆";
+    }
+
     Connections {
         target: SessionState
         function onMediaPopupVisibleChanged() {
@@ -22,15 +32,13 @@ PopupBase {
         for (let i = 0; i < vals.length; i++) {
             const p = vals[i]
             if (!p) continue
-            if (p.playbackState === MprisPlaybackState.Playing
-                    && (p.trackTitle ?? "") !== "")
+            if (p.playbackState === MprisPlaybackState.Playing && (p.trackTitle ?? "") !== "")
                 return p
         }
         for (let i = 0; i < vals.length; i++) {
             const p = vals[i]
             if (!p) continue
-            if ((p.trackTitle ?? "") !== "")
-                return p
+            if ((p.trackTitle ?? "") !== "") return p
         }
         return null
     }
@@ -123,7 +131,7 @@ PopupBase {
             Column {
                 width: parent.width - artContainer.width - parent.spacing
                 anchors.verticalCenter: parent.verticalCenter
-                spacing: 4
+                spacing: 6
 
                 Item {
                     width: parent.width
@@ -191,12 +199,36 @@ PopupBase {
                     elide: Text.ElideRight
                 }
 
-                Text {
+                Rectangle {
+                    id: identityPill
                     visible: (root.shownPlayer?.identity ?? "") !== ""
-                    text: root.shownPlayer?.identity ?? ""
-                    font.pixelSize: 10
-                    font.family: "JetBrainsMono Nerd Font"
-                    color: Qt.rgba(PanelColors.clock.r, PanelColors.clock.g, PanelColors.clock.b, 0.7)
+                    height: 18
+                    width: pillRow.implicitWidth + 12
+                    radius: height / 2
+                    color: Qt.rgba(PanelColors.clock.r, PanelColors.clock.g, PanelColors.clock.b, 0.15)
+
+                    Row {
+                        id: pillRow
+                        anchors.centerIn: parent
+                        spacing: 4
+
+                        Text {
+                            text: root.getPlayerIcon(root.shownPlayer?.identity)
+                            font.pixelSize: 10
+                            font.family: "JetBrainsMono Nerd Font"
+                            color: PanelColors.textAccent
+                            anchors.verticalCenter: parent.verticalCenter
+                        }
+
+                        Text {
+                            text: root.shownPlayer?.identity ?? ""
+                            font.pixelSize: 9
+                            font.bold: true
+                            font.family: "JetBrainsMono Nerd Font"
+                            color: PanelColors.textAccent
+                            anchors.verticalCenter: parent.verticalCenter
+                        }
+                    }
                 }
             }
         }
