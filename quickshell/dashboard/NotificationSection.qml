@@ -195,8 +195,8 @@ Item {
                 Rectangle {
                     id: expandPill
                     visible: modelData.body !== "" && (bodyText.truncated || card.expanded)
-                    width: expandRow.implicitWidth + 14
-                    height: 22
+                    width: parent.width
+                    height: 26
                     radius: 5
                     color: expandMouse.containsMouse ? PanelColors.rowBackground : "transparent"
 
