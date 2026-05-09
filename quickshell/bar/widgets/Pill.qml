@@ -26,7 +26,7 @@ Rectangle {
 
     Behavior on targetWidth {
         NumberAnimation {
-            duration: root.isGrowing ? 180 : 120
+            duration: root.isGrowing ? 120 : 100
             easing.type: Easing.OutQuart
         }
     }
@@ -48,6 +48,8 @@ Rectangle {
         id: contentRow
         anchors.centerIn: parent
         spacing: 4
+
+        Behavior on spacing { NumberAnimation { duration: 150 } }
 
         Text {
             id: pillLabel

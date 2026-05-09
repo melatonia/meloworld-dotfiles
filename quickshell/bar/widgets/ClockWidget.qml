@@ -35,12 +35,21 @@ Pill {
         color: PanelColors.pillForeground
     }
 
-    // Animated visualizer
+    // Smooth Expanding Visualizer
     Item {
-        visible: isPlaying
-        width: 14
+        id: visualizerContainer
+        width: isPlaying ? 14 : 0
         height: 16
+        clip: true
         anchors.verticalCenter: parent.verticalCenter
+
+        Behavior on width {
+            // Match the new Pill.qml speed
+            NumberAnimation { duration: 120; easing.type: Easing.OutCubic }
+        }
+
+        opacity: isPlaying ? 1 : 0
+        Behavior on opacity { NumberAnimation { duration: 120 } }
 
         Row {
             spacing: 2
@@ -55,18 +64,17 @@ Pill {
                     color: PanelColors.pillForeground
                     anchors.verticalCenter: parent.verticalCenter
 
-                    // Standard Practice: Slight offsets create randomness
                     readonly property int targetHeight: index === 0 ? 14 : (index === 1 ? 10 : 16)
-                    readonly property int animDuration: index === 0 ? 500 : (index === 1 ? 700 : 600)
+                    readonly property int animDuration: index === 0 ? 350 : (index === 1 ? 500 : 420)
 
                     SequentialAnimation on height {
-                        running: isPlaying
+                        running: isPlaying && visualizerContainer.opacity > 0.1
                         loops: Animation.Infinite
 
                         NumberAnimation {
                             to: bar.targetHeight
                             duration: bar.animDuration
-                            easing.type: Easing.InOutSine
+                            easing.type: Easing.OutCubic
                         }
                         NumberAnimation {
                             to: 4
