@@ -20,7 +20,7 @@ PopupBase {
     property string hoveredText: ""
     property real tipX: 0
     property real tipY: 0
-    
+
     Timer { id: showTimer; interval: 450; onTriggered: showAnim.start() }
     NumberAnimation { id: showAnim; target: tooltip; property: "opacity"; to: 1.0; duration: 150; easing.type: Easing.OutCubic }
     NumberAnimation { id: hideAnim; target: tooltip; property: "opacity"; to: 0.0; duration: 150; easing.type: Easing.InCubic }
@@ -57,6 +57,35 @@ PopupBase {
         return unique.join(" ").replace(/[()[\]\-_]/g, " ").replace(/\s{2,}/g, " ").trim() || desc
     }
 
+    // ── Icon Toggle Button ────────────────────────
+    // active   (unmuted): PanelColors.audio bg         + PanelColors.pillForeground icon
+    // inactive (muted):   PanelColors.trackBackground bg + PanelColors.audio icon
+    component IconButton: Rectangle {
+        id: btn
+        property string icon: ""
+        property bool active: true
+        signal clicked()
+
+        width: height       // always square; callers set height to match sibling slider
+        radius: 6
+        color: btn.active ? PanelColors.audio : PanelColors.trackBackground
+        Behavior on color { ColorAnimation { duration: 150 } }
+
+        Text {
+            anchors.centerIn: parent
+            text: btn.icon
+            font.pixelSize: 16
+            font.family: "JetBrainsMono Nerd Font"
+            color: btn.active ? PanelColors.pillForeground : PanelColors.audio
+            Behavior on color { ColorAnimation { duration: 150 } }
+        }
+
+        MouseArea {
+            anchors.fill: parent
+            onClicked: btn.clicked()
+        }
+    }
+
     Column {
         id: popupColumn
         anchors { top: parent.top; left: parent.left; right: parent.right; margins: root.padding }
@@ -89,16 +118,13 @@ PopupBase {
                 Text {
                     anchors { left: parent.left; verticalCenter: parent.verticalCenter; leftMargin: 14; right: parent.right; rightMargin: 8 }
                     text: root.shortName(modelData.description)
-                    font.pixelSize: 13
-                    font.bold: true
-                    font.family: "JetBrainsMono Nerd Font"
+                    font.pixelSize: 13; font.bold: true; font.family: "JetBrainsMono Nerd Font"
                     color: isActive ? PanelColors.pillForeground : PanelColors.textMain
                     elide: Text.ElideRight
                 }
                 MouseArea {
                     id: sinkMouse
-                    anchors.fill: parent
-                    hoverEnabled: true
+                    anchors.fill: parent; hoverEnabled: true
                     onEntered: { root.updateTip(parent, modelData.description) }
                     onExited: { root.clearTip() }
                     onClicked: AudioState.setDefaultSink(modelData.name)
@@ -133,16 +159,13 @@ PopupBase {
                 Text {
                     anchors { left: parent.left; verticalCenter: parent.verticalCenter; leftMargin: 14; right: parent.right; rightMargin: 8 }
                     text: root.shortName(modelData.description)
-                    font.pixelSize: 13
-                    font.bold: true
-                    font.family: "JetBrainsMono Nerd Font"
+                    font.pixelSize: 13; font.bold: true; font.family: "JetBrainsMono Nerd Font"
                     color: isActive ? PanelColors.pillForeground : PanelColors.textMain
                     elide: Text.ElideRight
                 }
                 MouseArea {
                     id: sourceMouse
-                    anchors.fill: parent
-                    hoverEnabled: true
+                    anchors.fill: parent; hoverEnabled: true
                     onEntered: { root.updateTip(parent, modelData.description) }
                     onExited: { root.clearTip() }
                     onClicked: AudioState.setDefaultSource(modelData.name)
@@ -150,80 +173,65 @@ PopupBase {
             }
         }
 
-        Rectangle { 
+        Rectangle {
             visible: AudioState.sinks.length > 1 || AudioState.sources.length > 1
             width: parent.width
             height: visible ? 2 : 0
-            color: PanelColors.rowBackground 
+            color: PanelColors.rowBackground
         }
 
-        Rectangle {
-            width: parent.width
+        // ── Volume row ────────────────────────────
+        Row {
+            width: popupColumn.width
             height: 34
-            radius: 6
-            color: PanelColors.rowBackground
-            Row {
-                anchors { fill: parent; margins: root.padding }
-                spacing: 8
-                Text {
-                    text: AudioState.muted ? "󰝟" : "󰕾"
-                    font.pixelSize: 16
-                    font.family: "JetBrainsMono Nerd Font"
-                    color: AudioState.muted ? PanelColors.textDim : PanelColors.audio
-                    anchors.verticalCenter: parent.verticalCenter
-                    MouseArea { anchors.fill: parent; onClicked: AudioState.setMute(!AudioState.muted) }
-                }
-                PanelSlider {
-                    width: parent.width - 64
-                    anchors.verticalCenter: parent.verticalCenter
-                    value: AudioState.volume
-                    accentColor: AudioState.muted ? PanelColors.textDim : PanelColors.audio
-                    onMoved: (v) => AudioState.setVolume(v)
-                }
-                Text { 
-                    text: AudioState.volume + "%"
-                    width: 32
-                    font.pixelSize: 12
-                    font.family: "JetBrainsMono Nerd Font"
-                    color: PanelColors.textMain
-                    horizontalAlignment: Text.AlignRight
-                    anchors.verticalCenter: parent.verticalCenter
-                }
+            spacing: 6
+
+            IconButton {
+                // height binds to the slider's actual height — if slider implicitHeight
+                // ever changes, the button tracks it automatically
+                height: volSlider.height
+                active: !AudioState.muted
+                icon: AudioState.muted ? "󰝟" : "󰕾"
+                anchors.verticalCenter: parent.verticalCenter
+                onClicked: AudioState.setMute(!AudioState.muted)
+            }
+
+            PanelSlider {
+                id: volSlider
+                // width accounts for the square button (== its own height) + spacing
+                width: parent.width - height - parent.spacing
+                anchors.verticalCenter: parent.verticalCenter
+                clickable: true
+                label: AudioState.volume + "%"
+                value: AudioState.volume
+                accentColor: AudioState.muted ? PanelColors.textDim : PanelColors.audio
+                onMoved: (v) => AudioState.setVolume(v)
             }
         }
 
-        Rectangle {
-            width: parent.width
+        // ── Mic row ───────────────────────────────
+        Row {
+            width: popupColumn.width
             height: 34
-            radius: 6
-            color: PanelColors.rowBackground
-            Row {
-                anchors { fill: parent; margins: root.padding }
-                spacing: 8
-                Text {
-                    text: AudioState.micMuted ? "󰍭" : "󰍬"
-                    font.pixelSize: 16
-                    font.family: "JetBrainsMono Nerd Font"
-                    color: AudioState.micMuted ? PanelColors.textDim : PanelColors.audio
-                    anchors.verticalCenter: parent.verticalCenter
-                    MouseArea { anchors.fill: parent; onClicked: AudioState.setMicMute(!AudioState.micMuted) }
-                }
-                PanelSlider {
-                    width: parent.width - 64
-                    anchors.verticalCenter: parent.verticalCenter
-                    value: AudioState.micVolume
-                    accentColor: AudioState.micMuted ? PanelColors.textDim : PanelColors.audio
-                    onMoved: (v) => AudioState.setMicVolume(v)
-                }
-                Text { 
-                    text: AudioState.micVolume + "%"
-                    width: 32
-                    font.pixelSize: 12
-                    font.family: "JetBrainsMono Nerd Font"
-                    color: PanelColors.textMain
-                    horizontalAlignment: Text.AlignRight
-                    anchors.verticalCenter: parent.verticalCenter
-                }
+            spacing: 6
+
+            IconButton {
+                height: micSlider.height
+                active: !AudioState.micMuted
+                icon: AudioState.micMuted ? "󰍭" : "󰍬"
+                anchors.verticalCenter: parent.verticalCenter
+                onClicked: AudioState.setMicMute(!AudioState.micMuted)
+            }
+
+            PanelSlider {
+                id: micSlider
+                width: parent.width - height - parent.spacing
+                anchors.verticalCenter: parent.verticalCenter
+                clickable: true
+                label: AudioState.micVolume + "%"
+                value: AudioState.micVolume
+                accentColor: AudioState.micMuted ? PanelColors.textDim : PanelColors.audio
+                onMoved: (v) => AudioState.setMicVolume(v)
             }
         }
     }
