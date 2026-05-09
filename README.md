@@ -49,11 +49,17 @@ workspace pills that slide in when you open something and slide out when you clo
 
 all animated — slide down from the top when they open, slide back up when they close. all share the same design language so they feel like they belong together.
 
+### 🎼 media player
+
+![media player](assets/media.png)
+
+a simple media player. supports shuffle and repeat on supported apps. uses the material expressive 3 progress bar. 
+
 ### 🔊 audio
 
 ![audio popup](assets/audio.png)
 
-device selection for output and input. volume and mic sliders side by side. click the icon to mute — everything dims when muted. if you only have one audio device, the selector hides itself.
+device selection for output and input. volume and mic sliders side by side. click the icon to mute. everything dims when muted. if you only have one audio device, the selector hides itself.
 
 ### 🦷 bluetooth
 
