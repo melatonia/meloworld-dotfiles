@@ -11,7 +11,10 @@ Rectangle {
     readonly property int cardWidth:          400
     readonly property int dismissMs:          4000
     readonly property int collapsedBodyLines: 3
+
     property bool expanded: false
+    property bool isExiting: false
+
     visible: notification !== null
 
     width:          cardWidth
@@ -27,7 +30,8 @@ Rectangle {
 
     // ── Enter animation ───────────────────────────
     opacity: 0
-    y:       20 // Increased slightly to give a bit more runway for the smoother curve
+    x:       cardWidth + 40 // Start completely off-screen to the right
+    y:       0              // Start at y:0 so the wrapper handles the vertical push
 
     ParallelAnimation {
         id: enterAnim
@@ -41,11 +45,11 @@ Rectangle {
         }
         NumberAnimation {
             target:      root
-            property:    "y"
-            from:        20
+            property:    "x"
+            from:        cardWidth + 40
             to:          0
             duration:    500
-            easing.type: Easing.OutQuart // Provides a much smoother, longer deceleration
+            easing.type: Easing.OutQuart
         }
     }
 
@@ -53,8 +57,7 @@ Rectangle {
     readonly property color accentColor: {
         if (!notification) return Colors.blueGrey300
         if (notification.urgency === Notification.Critical) return PanelColors.error
-        if (notification.hints["x-hint-color"])
-              return notification.hints["x-hint-color"]
+        if (notification.hints["x-hint-color"]) return notification.hints["x-hint-color"]
         return hashColor(notification.appName)
     }
 
@@ -144,6 +147,7 @@ Rectangle {
         id: exitAnim
         property bool dismissMode: false
 
+        // Step 1: Slide out cleanly (Visuals left entirely untouched)
         ParallelAnimation {
             NumberAnimation {
                 target:      root
@@ -161,6 +165,13 @@ Rectangle {
             }
         }
 
+        // Step 2: Signal the wrapper in NotificationPopup to smoothly close the layout gap
+        ScriptAction { script: { root.isExiting = true } }
+
+        // Step 3: Wait for the gap to close (matches wrapper height animation duration)
+        PauseAnimation { duration: 400 }
+
+        // Step 4: Safely destroy the data
         ScriptAction {
             script: {
                 if (root.pendingAction) {
@@ -348,7 +359,6 @@ Rectangle {
                     elide:            Text.ElideRight
                 }
 
-                // Wrapper item that handles the smooth height interpolation and clipping
                 Item {
                     id:               bodyTextContainer
                     visible:          (notification?.body ?? "") !== ""
