@@ -47,14 +47,17 @@ PanelWindow {
             model: server.trackedNotifications
 
             Item {
-                id:       wrapper
+                id:      wrapper
                 required property var modelData
                 width:    400
 
-                // Synchronized height: Match duration/easing with the card's expansion
+                // Link height directly to the card's animated implicitHeight.
+                // This forces the Column to layout every frame during expansion.
                 height:   card.isExiting ? 0 : card.implicitHeight
 
                 Behavior on height {
+                    // Only animate height here when exiting (sliding away)
+                    enabled: card.isExiting
                     NumberAnimation {
                         duration: 250
                         easing.type: Easing.OutCubic
@@ -64,7 +67,6 @@ PanelWindow {
                 NotificationCard {
                     id:           card
                     notification: wrapper.modelData
-                    // Ensure the card is aligned to the bottom of the wrapper
                     anchors.bottom: parent.bottom
                 }
             }

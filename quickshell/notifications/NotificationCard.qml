@@ -17,9 +17,18 @@ Rectangle {
     visible: notification !== null
 
     width:          cardWidth
-    // The height follows the cardContent size
-    height:         cardContent.implicitHeight + 28
+    // Bind height to implicitHeight for external layout tracking [cite: 2]
+    height:         implicitHeight
     implicitHeight: cardContent.implicitHeight + 28
+
+    // Syncs the card expansion with the parent Column
+    Behavior on implicitHeight {
+        NumberAnimation {
+            duration: 250
+            easing.type: Easing.OutCubic
+        }
+    }
+
     radius: 10
     color:  PanelColors.popupBackground
 
@@ -222,11 +231,10 @@ Rectangle {
     Column {
         id: cardContent
         anchors {
-            // BEST PRACTICE: Anchor to bottom for upward expansion
             bottom:       parent.bottom
             left:         parent.left
             right:        parent.right
-            bottomMargin: 14
+            bottomMargin: 14 // Matches top margin for symmetry
             leftMargin:   24
             rightMargin:  16
         }
@@ -334,10 +342,6 @@ Rectangle {
                     height:           bodyText.implicitHeight
                     clip:             true
 
-                    Behavior on height {
-                        NumberAnimation { duration: 250; easing.type: Easing.OutCubic }
-                    }
-
                     Text {
                         id:               bodyText
                         text:             notification?.body ?? ""
@@ -375,7 +379,10 @@ Rectangle {
             }
         }
 
-        Item { width: 1; height: 10 }
+        Item {
+            width: 1;
+            height: (expandButton.visible || actionArea.visible) ? 10 : 0
+        }
 
         Item {
             id:      expandButton
@@ -429,9 +436,10 @@ Rectangle {
         }
 
         Item {
+            id:      actionArea
             visible: (notification?.actions?.length ?? 0) > 0
             width:   parent.width
-            height:  visible ? actionsRow.implicitHeight + 24 : 0
+            height:  visible ? actionsRow.implicitHeight + 12 : 0 // Margin match strip [cite: 73]
 
             Rectangle {
                 width:   parent.width
