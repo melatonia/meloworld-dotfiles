@@ -51,7 +51,8 @@ if ask_permission "Install required packages?"; then
     wireplumber bluez bluez-utils brightnessctl ghostty power-profiles-daemon \
     polkit-gnome ttf-jetbrains-mono-nerd rofi rofimoji grim slurp awww \
     bibata-cursor-theme-bin papirus-icon-theme zed zsh zsh-autosuggestions \
-    zsh-syntax-highlighting eza sddm adw-gtk-theme xdg-desktop-portal-wlr hypridle
+    zsh-syntax-highlighting eza sddm adw-gtk-theme xdg-desktop-portal-wlr \
+    hypridle playerctl
 fi
 
 # ── 3. Targeted Symlinking ────────────────────────────────────────────────────
