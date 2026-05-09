@@ -20,7 +20,17 @@ Rectangle {
     property int effectiveMinWidth: Math.max(minWidth, widestLabel !== "" ? widestMetric.width + 16 : 0)
 
     implicitHeight: 28
-    implicitWidth: Math.max(effectiveMinWidth, contentRow.implicitWidth + 16)
+    property real targetWidth: Math.max(effectiveMinWidth, contentRow.implicitWidth + 16)
+    property bool isGrowing: targetWidth > width
+    implicitWidth: targetWidth
+
+    Behavior on targetWidth {
+        NumberAnimation {
+            duration: root.isGrowing ? 180 : 120
+            easing.type: Easing.OutQuart
+        }
+    }
+
     radius: 5
     color: mouseArea.containsMouse ? Qt.lighter(pillColor, 1.15) : pillColor
     scale: mouseArea.containsMouse ? 1.03 : 1.0
