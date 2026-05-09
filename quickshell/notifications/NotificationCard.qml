@@ -17,11 +17,9 @@ Rectangle {
     visible: notification !== null
 
     width:          cardWidth
-    // Bind height to implicitHeight for external layout tracking [cite: 2]
     height:         implicitHeight
     implicitHeight: cardContent.implicitHeight + 28
 
-    // Syncs the card expansion with the parent Column
     Behavior on implicitHeight {
         NumberAnimation {
             duration: 250
@@ -216,6 +214,7 @@ Rectangle {
     }
 
     Rectangle {
+        id: leftStrip
         width:  4
         height: parent.height - 24
         radius: 2
@@ -231,10 +230,12 @@ Rectangle {
     Column {
         id: cardContent
         anchors {
-            bottom:       parent.bottom
+            // FIX: Anchor to TOP instead of BOTTOM to prevent internal "sinking"
+            // content will now expand downwards relative to the card's head.
+            top:          parent.top
+            topMargin:    14
             left:         parent.left
             right:        parent.right
-            bottomMargin: 14 // Matches top margin for symmetry
             leftMargin:   24
             rightMargin:  16
         }
@@ -342,6 +343,13 @@ Rectangle {
                     height:           bodyText.implicitHeight
                     clip:             true
 
+                    Behavior on height {
+                        NumberAnimation {
+                            duration: 250
+                            easing.type: Easing.OutCubic
+                        }
+                    }
+
                     Text {
                         id:               bodyText
                         text:             notification?.body ?? ""
@@ -439,7 +447,8 @@ Rectangle {
             id:      actionArea
             visible: (notification?.actions?.length ?? 0) > 0
             width:   parent.width
-            height:  visible ? actionsRow.implicitHeight + 12 : 0 // Margin match strip [cite: 73]
+            // Bottom margin fixed to 12px to match the accent strip
+            height:  visible ? actionsRow.implicitHeight + 12 : 0
 
             Rectangle {
                 width:   parent.width

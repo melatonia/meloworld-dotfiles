@@ -51,12 +51,9 @@ PanelWindow {
                 required property var modelData
                 width:    400
 
-                // Link height directly to the card's animated implicitHeight.
-                // This forces the Column to layout every frame during expansion.
                 height:   card.isExiting ? 0 : card.implicitHeight
 
                 Behavior on height {
-                    // Only animate height here when exiting (sliding away)
                     enabled: card.isExiting
                     NumberAnimation {
                         duration: 250
