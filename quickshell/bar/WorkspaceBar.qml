@@ -7,23 +7,35 @@ Row {
     id: root
     spacing: 4
 
-    property var tags: ({})
-
-    // Find the currently focused tag number
-    function focusedTag() {
-        for (var i = 1; i <= 9; i++) {
-            if (tags[i] && tags[i].focused) return i
+    ListModel {
+        id: tagsModel
+        Component.onCompleted: {
+            for (let i = 1; i <= 9; i++) {
+                append({ tagNum: i, focused: false, clients: 0 })
+            }
         }
-        return 1
     }
 
-    // Get sorted list of visible tag numbers
-    function visibleTags() {
-        var result = []
-        for (var i = 1; i <= 9; i++) {
-            if (tags[i] && (tags[i].focused || tags[i].clients > 0)) result.push(i)
+    property var cachedVisibleTags: []
+    property int cachedFocusedTag: 1
+
+    function updateCache() {
+        var visible = []
+        var focused = 1
+        for (var i = 0; i < tagsModel.count; i++) {
+            var item = tagsModel.get(i)
+            if (item.focused) focused = item.tagNum
+            if (item.focused || item.clients > 0) visible.push(item.tagNum)
         }
-        return result
+        root.cachedVisibleTags = visible
+        root.cachedFocusedTag = focused
+    }
+
+    property bool canScroll: true
+    Timer {
+        id: scrollThrottle
+        interval: 30
+        onTriggered: root.canScroll = true
     }
 
     Timer {
@@ -46,21 +58,20 @@ Row {
                     var num     = parseInt(match[1])
                     var focused = parseInt(match[2]) === 1
                     var clients = parseInt(match[3])
-                    var newTags = Object.assign({}, root.tags)
-                    newTags[num] = { focused: focused, clients: clients }
-                    root.tags = newTags
+                    var idx = num - 1
+                    if (idx >= 0 && idx < 9) {
+                        tagsModel.setProperty(idx, "focused", focused)
+                        tagsModel.setProperty(idx, "clients", clients)
+                    }
+                    root.updateCache()
                 }
             }
         }
     }
 
     Repeater {
-        model: 9
+        model: tagsModel
         delegate: Rectangle {
-            required property int index
-            property int  tagNum:     index + 1
-            property bool focused:    root.tags[tagNum] ? root.tags[tagNum].focused : false
-            property int  clients:    root.tags[tagNum] ? root.tags[tagNum].clients : 0
             property bool shouldShow: focused || clients > 0
             property bool hovered:    false
 
@@ -100,12 +111,13 @@ Row {
                 onEntered:     parent.hovered = true
                 onExited:      parent.hovered = false
                 onClicked: {
-                    Quickshell.execDetached(["mmsg", "-s", "-t", parent.tagNum.toString()])
+                    Quickshell.execDetached(["mmsg", "-s", "-t", tagNum.toString()])
                 }
                 onWheel: (event) => {
-                    var visible = root.visibleTags()
+                    if (!root.canScroll) return
+                    var visible = root.cachedVisibleTags
                     if (visible.length === 0) return
-                    var current = root.focusedTag()
+                    var current = root.cachedFocusedTag
                     var idx     = visible.indexOf(current)
                     // scroll down → next tag, scroll up → previous tag
                     if (event.angleDelta.y < 0) {
@@ -114,6 +126,8 @@ Row {
                         idx = Math.max(idx - 1, 0)
                     }
                     Quickshell.execDetached(["mmsg", "-s", "-t", visible[idx].toString()])
+                    root.canScroll = false
+                    scrollThrottle.start()
                 }
             }
         }

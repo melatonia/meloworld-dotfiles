@@ -141,6 +141,31 @@ Singleton {
         onTriggered: subscribeProc.running = true
     }
 
+    Timer {
+        id: debounceTimer
+        interval: 50
+        running: false
+        repeat: false
+        property bool sinkChanged: false
+        property bool sourceChanged: false
+        onTriggered: {
+            if (sinkChanged) {
+                sinksProc.running = true
+                defaultSinkProc.running = true
+                volProc.running = true
+                muteProc.running = true
+                sinkChanged = false
+            }
+            if (sourceChanged) {
+                sourcesProc.running = true
+                defaultSourceProc.running = true
+                micVolProc.running = true
+                micMuteProc.running = true
+                sourceChanged = false
+            }
+        }
+    }
+
     Process {
         id: subscribeProc
         command: ["pactl", "subscribe"]
@@ -153,16 +178,12 @@ Singleton {
         stdout: SplitParser {
             onRead: (line) => {
                 if (line.indexOf("sink") !== -1) {
-                    sinksProc.running = true
-                    defaultSinkProc.running = true
-                    volProc.running = true
-                    muteProc.running = true
+                    debounceTimer.sinkChanged = true
+                    debounceTimer.restart()
                 }
                 if (line.indexOf("source") !== -1) {
-                    sourcesProc.running = true
-                    defaultSourceProc.running = true
-                    micVolProc.running = true
-                    micMuteProc.running = true
+                    debounceTimer.sourceChanged = true
+                    debounceTimer.restart()
                 }
             }
         }

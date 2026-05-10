@@ -32,45 +32,32 @@ ShellRoot {
                 return Math.round(panelWin.screen.width / 2 - pWidth / 2)
             }
 
-            AudioPopup {
-                anchor.window: panelWin
-                anchor.rect.x: panelWin.popupX(bar.rightBar.audioWidget, implicitWidth)
-                anchor.rect.y: panelWin.height
+            Repeater {
+                model: [
+                    { "source": "osd/AudioPopup.qml", "widget": bar.rightBar.audioWidget },
+                    { "source": "osd/BrightnessPopup.qml", "widget": bar.rightBar.brightnessWidget },
+                    { "source": "osd/PowerProfilePopup.qml", "widget": bar.rightBar.batteryWidget },
+                    { "source": "osd/BluetoothPopup.qml", "widget": bar.rightBar.bluetoothWidget },
+                    { "source": "osd/SessionPopup.qml", "widget": bar.rightBar.sessionWidget },
+                    { "source": "osd/TrayPopup.qml", "widget": bar.rightBar.trayBar },
+                    { "source": "osd/CalendarPopup.qml", "widget": bar.rightBar.dateWidget }
+                ]
+                delegate: Loader {
+                    required property var modelData
+                    source: modelData.source
+                    asynchronous: true
+                    onLoaded: {
+                        item.anchor.window = panelWin
+                        item.anchor.rect.y = Qt.binding(function() { return panelWin.height })
+                        item.anchor.rect.x = Qt.binding(function() { return panelWin.popupX(modelData.widget, item.implicitWidth) })
+                    }
+                }
             }
-            BrightnessPopup {
-                anchor.window: panelWin
-                anchor.rect.x: panelWin.popupX(bar.rightBar.brightnessWidget, implicitWidth)
-                anchor.rect.y: panelWin.height
-            }
-            PowerProfilePopup {
-                anchor.window: panelWin
-                anchor.rect.x: panelWin.popupX(bar.rightBar.batteryWidget, implicitWidth)
-                anchor.rect.y: panelWin.height
-            }
-            BluetoothPopup {
-                anchor.window: panelWin
-                anchor.rect.x: panelWin.popupX(bar.rightBar.bluetoothWidget, implicitWidth)
-                anchor.rect.y: panelWin.height
-            }
+
             WifiPopup {
                 screenObj: modelData
                 xPos: panelWin.popupX(bar.rightBar.networkWidget, implicitWidth)
                 anchorWindow: panelWin
-            }
-            SessionPopup {
-                anchor.window: panelWin
-                anchor.rect.x: panelWin.popupX(bar.rightBar.sessionWidget, implicitWidth)
-                anchor.rect.y: panelWin.height
-            }
-            TrayPopup {
-                anchor.window: panelWin
-                anchor.rect.x: panelWin.popupX(bar.rightBar.trayBar, implicitWidth)
-                anchor.rect.y: panelWin.height
-            }
-            CalendarPopup {
-                anchor.window: panelWin
-                anchor.rect.x: panelWin.popupX(bar.rightBar.dateWidget, implicitWidth)
-                anchor.rect.y: panelWin.height
             }
 
             MediaPopup {

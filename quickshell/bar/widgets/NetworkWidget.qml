@@ -10,7 +10,7 @@ Pill {
     readonly property string ssid: NetworkState.activeSSID
     readonly property int signal: NetworkState.activeSignal
 
-    function getIcon() {
+    readonly property string iconText: {
         if (!wifiEnabled) return "󰤭"
         if (!connected) return "󰤯"
         
@@ -22,13 +22,12 @@ Pill {
     }
 
     label: {
-        var ico = getIcon()
-        if (!wifiEnabled && !NetworkState.ethernetConnected) return ico + " Off"
+        if (!wifiEnabled && !NetworkState.ethernetConnected) return iconText + " Off"
         if (NetworkState.ethernetConnected) return "󰈀 ETH"
-        if (!connected) return ico + " Dis"
+        if (!connected) return iconText + " Dis"
         
         var shortSSID = ssid.length > 8 ? ssid.substring(0, 8) + ".." : ssid
-        return ico + " " + shortSSID
+        return iconText + " " + shortSSID
     }
 
     pillColor: (connected || NetworkState.ethernetConnected) ? PanelColors.network : PanelColors.rowBackground

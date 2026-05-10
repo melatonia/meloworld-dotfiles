@@ -1,4 +1,5 @@
 import QtQuick
+import QtQuick.Layouts
 import Quickshell
 import Quickshell.Wayland
 import "../theme"
@@ -8,7 +9,10 @@ PanelWindow {
 
     property var screenObj: null
     property int barHeight: 55
-    property string animState: "closed"
+    readonly property int stateClosed: 0
+    readonly property int stateOpen: 1
+    readonly property int stateClosing: 2
+    property int animState: stateClosed
 
     // Best Practice: Standardized spacing values
     readonly property int cardGap: 10
@@ -29,19 +33,19 @@ PanelWindow {
     exclusiveZone: 0
     WlrLayershell.layer: WlrLayershell.Overlay
     WlrLayershell.keyboardFocus: WlrKeyboardFocus.OnDemand
-    visible: animState !== "closed"
+    visible: animState !== stateClosed
 
     Connections {
         target: SessionState
         function onDashboardVisibleChanged() {
-            root.animState = SessionState.dashboardVisible ? "open" : "closing"
+            root.animState = SessionState.dashboardVisible ? stateOpen : stateClosing
         }
     }
 
     HoverHandler { id: rootHover }
     Timer {
         interval: 3000
-        running: root.animState === "open" && !rootHover.hovered
+        running: root.animState === stateOpen && !rootHover.hovered
         onTriggered: SessionState.dashboardVisible = false
     }
 
@@ -49,7 +53,6 @@ PanelWindow {
     component DashCard: Rectangle {
         id: dashCard
 
-        property int staggerMs: 0
         property color accent: PanelColors.launcher
         property string label: ""
         property alias header: cardHeader
@@ -62,18 +65,40 @@ PanelWindow {
         border.width: 2
         clip: true
 
-        property real slide: -24
-        property real fade: 0.0
-        opacity: fade
-        transform: Translate { x: dashCard.slide }
+        opacity: 0.0
+        transform: Translate { id: dashCardTranslate; x: -24 }
 
-        function animIn() { slideIn.start(); fadeIn.start() }
-        function animOut() { slideOut.start(); fadeOut.start() }
+        state: "closed"
 
-        NumberAnimation { id: slideIn;  target: dashCard; property: "slide"; to: 0;   duration: 260; easing.type: Easing.OutExpo }
-        NumberAnimation { id: slideOut; target: dashCard; property: "slide"; to: -24; duration: 200; easing.type: Easing.InCubic }
-        NumberAnimation { id: fadeIn;   target: dashCard; property: "fade";  to: 1.0; duration: 200; easing.type: Easing.OutCubic }
-        NumberAnimation { id: fadeOut;  target: dashCard; property: "fade";  to: 0.0; duration: 160; easing.type: Easing.InCubic }
+        states: [
+            State {
+                name: "open"
+                PropertyChanges { target: dashCard; opacity: 1.0 }
+                PropertyChanges { target: dashCardTranslate; x: 0 }
+            },
+            State {
+                name: "closed"
+                PropertyChanges { target: dashCard; opacity: 0.0 }
+                PropertyChanges { target: dashCardTranslate; x: -24 }
+            }
+        ]
+
+        transitions: [
+            Transition {
+                to: "open"
+                ParallelAnimation {
+                    NumberAnimation { target: dashCardTranslate; property: "x"; duration: 260; easing.type: Easing.OutExpo }
+                    NumberAnimation { target: dashCard; property: "opacity"; duration: 200; easing.type: Easing.OutCubic }
+                }
+            },
+            Transition {
+                to: "closed"
+                ParallelAnimation {
+                    NumberAnimation { target: dashCardTranslate; property: "x"; duration: 200; easing.type: Easing.InCubic }
+                    NumberAnimation { target: dashCard; property: "opacity"; duration: 160; easing.type: Easing.InCubic }
+                }
+            }
+        ]
 
         default property alias content: inner.data
 
@@ -129,51 +154,41 @@ PanelWindow {
     }
 
     // ── Unified Layout ────────────────────────────────────────────────────────
-    Column {
+    ColumnLayout {
         anchors.fill: parent
         spacing: root.cardGap
 
-        // Top section with fixed heights
-        Column {
-            id: topCards
-            width: parent.width
-            spacing: root.cardGap
+        DashCard {
+            id: profileCard
+            accent: PanelColors.profile; label: "meloworld"
+            Layout.fillWidth: true
+            implicitHeight: profileCard.header.implicitHeight + profileInner.implicitHeight + (root.cardPad * 2)
+            ProfileSection { id: profileInner; width: parent.width }
+        }
 
-            DashCard {
-                id: profileCard
-                accent: PanelColors.profile; label: "meloworld"; staggerMs: 0
-                width: parent.width
-                // Account for top AND bottom margins:
-                height: profileCard.header.implicitHeight + profileInner.implicitHeight + (root.cardPad * 2)
-                ProfileSection { id: profileInner; width: parent.width }
-            }
-
-            DashCard {
-                id: statsCard
-                accent: PanelColors.system; label: "system"; staggerMs: 60
-                width: parent.width
-                // Account for top AND bottom margins:
-                height: statsCard.header.implicitHeight + statsInner.implicitHeight + (root.cardPad * 2)
-                SystemStatsSection {
-                    id: statsInner
-                    anchors.left: parent.left
-                    anchors.right: parent.right
-                }
+        DashCard {
+            id: statsCard
+            accent: PanelColors.system; label: "system"
+            Layout.fillWidth: true
+            implicitHeight: statsCard.header.implicitHeight + statsInner.implicitHeight + (root.cardPad * 2)
+            SystemStatsSection {
+                id: statsInner
+                anchors.left: parent.left
+                anchors.right: parent.right
             }
         }
 
-        // Bottom section: shrinks when empty, fills when content present
         DashCard {
             id: notifCard
-            accent: PanelColors.network; label: "notifications"; staggerMs: 120
-            width: parent.width
-            height: {
+            accent: PanelColors.network; label: "notifications"
+            Layout.fillWidth: true
+            Layout.preferredHeight: {
                 const base = notifCard.header.implicitHeight + (root.cardPad * 2)
-                const maxH = root.height - topCards.height - root.cardGap
+                const maxH = root.height - profileCard.implicitHeight - statsCard.implicitHeight - (root.cardGap * 2)
                 return Math.min(base + notifInner.totalHeight + root.cardPad, maxH)
             }
 
-            Behavior on height {
+            Behavior on Layout.preferredHeight {
                 NumberAnimation { duration: 220; easing.type: Easing.OutExpo }
             }
 
@@ -194,29 +209,43 @@ PanelWindow {
 
             NotificationSection { id: notifInner }
         }
-    }
 
-    // ── Stagger Logic ────────────────────────────────────────────────────────
-    readonly property var allCards: [profileCard, statsCard, notifCard]
-
-    onAnimStateChanged: {
-        if (animState === "open") {
-            for (let i = 0; i < allCards.length; i++)
-                staggerFactory.createObject(root, { card: allCards[i], delay: allCards[i].staggerMs })
-        } else if (animState === "closing") {
-            for (let i = 0; i < allCards.length; i++) allCards[i].animOut()
-            closingTimer.restart()
+        Item {
+            Layout.fillHeight: true
         }
     }
 
-    Timer { id: closingTimer; interval: 280; onTriggered: root.animState = "closed" }
+    // ── Stagger Logic ────────────────────────────────────────────────────────
+    // ── Stagger Logic ────────────────────────────────────────────────────────
+    SequentialAnimation {
+        id: openAnim
+        ScriptAction { script: profileCard.state = "open" }
+        PauseAnimation { duration: 60 }
+        ScriptAction { script: statsCard.state = "open" }
+        PauseAnimation { duration: 60 }
+        ScriptAction { script: notifCard.state = "open" }
+    }
 
-    Component {
-        id: staggerFactory
-        Timer {
-            property var card: null; property int delay: 0
-            interval: delay; running: true; repeat: false
-            onTriggered: { if (card) card.animIn(); destroy() }
+    SequentialAnimation {
+        id: closeAnim
+        ScriptAction {
+            script: {
+                profileCard.state = "closed"
+                statsCard.state = "closed"
+                notifCard.state = "closed"
+            }
+        }
+        PauseAnimation { duration: 280 }
+        ScriptAction { script: root.animState = stateClosed }
+    }
+
+    onAnimStateChanged: {
+        if (animState === stateOpen) {
+            closeAnim.stop()
+            openAnim.start()
+        } else if (animState === stateClosing) {
+            openAnim.stop()
+            closeAnim.start()
         }
     }
 }

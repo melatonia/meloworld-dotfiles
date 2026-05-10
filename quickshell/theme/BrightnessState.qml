@@ -42,9 +42,24 @@ Singleton {
     }
 
     Timer {
-        interval: 500
+        id: udevRestartTimer
+        interval: 1000
+        onTriggered: udevProc.running = true
+    }
+
+    Process {
+        id: udevProc
+        command: ["udevadm", "monitor", "-s", "backlight"]
         running: true
-        repeat: true
-        onTriggered: brightnessProc.running = true
+        onRunningChanged: {
+            if (!running) udevRestartTimer.start()
+        }
+        stdout: SplitParser {
+            onRead: (line) => {
+                if (line.indexOf("change") !== -1) {
+                    brightnessProc.running = true
+                }
+            }
+        }
     }
 }
