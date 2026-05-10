@@ -166,6 +166,18 @@ PanelWindow {
         }
 
         DashCard {
+            id: togglesCard
+            accent: PanelColors.audio; label: "quick settings"
+            Layout.fillWidth: true
+            implicitHeight: togglesCard.header.implicitHeight + togglesInner.implicitHeight + (root.cardPad * 2)
+            QuickTogglesSection {
+                id: togglesInner
+                anchors.left: parent.left
+                anchors.right: parent.right
+            }
+        }
+
+        DashCard {
             id: statsCard
             accent: PanelColors.system; label: "system"
             Layout.fillWidth: true
@@ -183,7 +195,7 @@ PanelWindow {
             Layout.fillWidth: true
             Layout.preferredHeight: {
                 const base = notifCard.header.implicitHeight + (root.cardPad * 2)
-                const maxH = root.height - profileCard.implicitHeight - statsCard.implicitHeight - (root.cardGap * 2)
+                const maxH = root.height - profileCard.implicitHeight - togglesCard.implicitHeight - statsCard.implicitHeight - (root.cardGap * 3)
                 return Math.min(base + notifInner.totalHeight + root.cardPad, maxH)
             }
 
@@ -219,6 +231,8 @@ PanelWindow {
         id: openAnim
         ScriptAction { script: profileCard.state = "open" }
         PauseAnimation { duration: 60 }
+        ScriptAction { script: togglesCard.state = "open" }
+        PauseAnimation { duration: 60 }
         ScriptAction { script: statsCard.state = "open" }
         PauseAnimation { duration: 60 }
         ScriptAction { script: notifCard.state = "open" }
@@ -229,6 +243,7 @@ PanelWindow {
         ScriptAction {
             script: {
                 profileCard.state = "closed"
+                togglesCard.state = "closed"
                 statsCard.state = "closed"
                 notifCard.state = "closed"
             }

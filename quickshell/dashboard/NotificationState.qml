@@ -11,6 +11,12 @@ Singleton {
         id: historyModel
     }
 
+    property bool dndOn: false
+
+    function toggleDnd() {
+        dndOn = !dndOn
+    }
+
     function add(n) {
         historyModel.insert(0, {
             appName: n.appName,

@@ -33,9 +33,11 @@ PanelWindow {
         bodyHyperlinksSupported: true
 
         onNotification: (notif) => {
-            notif.tracked = true
             NotificationState.add(notif)
-            Quickshell.execDetached(["pw-play", root.soundPath])
+            if (!NotificationState.dndOn) {
+                notif.tracked = true
+                Quickshell.execDetached(["pw-play", root.soundPath])
+            }
         }
     }
 
