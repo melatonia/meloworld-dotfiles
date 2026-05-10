@@ -7,6 +7,7 @@ PopupBase {
     borderColor:    PanelColors.date
     clipContent:    false
     contentHeight:  contentCol.implicitHeight
+    autoDismiss:    false  // user actively browses months; don't auto-close
 
     // ── State ─────────────────────────────────────
     property int _viewYear:  new Date().getFullYear()

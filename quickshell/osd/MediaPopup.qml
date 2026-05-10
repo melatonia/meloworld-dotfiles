@@ -45,20 +45,19 @@ PopupBase {
 
     readonly property bool isPlaying: activePlayer?.playbackState === MprisPlaybackState.Playing
     readonly property bool hasContent: activePlayer !== null
-    readonly property MprisPlayer shownPlayer: activePlayer
 
-    property real livePosition: shownPlayer?.position ?? 0
+    property real livePosition: activePlayer?.position ?? 0
     property bool userSeeking: false
 
     Timer {
         interval: 1000
         repeat: true
         running: root.isPlaying && !root.userSeeking
-        onTriggered: { if (root.shownPlayer) root.livePosition = root.shownPlayer.position }
+        onTriggered: { if (root.activePlayer) root.livePosition = root.activePlayer.position }
     }
 
     Connections {
-        target: root.shownPlayer
+        target: root.activePlayer
         function onTrackChanged() { root.livePosition = 0 }
     }
 
@@ -101,7 +100,7 @@ PopupBase {
                     id: artImage
                     anchors.fill: parent
                     anchors.margins: 2
-                    source: root.shownPlayer?.trackArtUrl ?? ""
+                    source: root.activePlayer?.trackArtUrl ?? ""
                     fillMode: Image.PreserveAspectCrop
                     asynchronous: true
                     visible: status === Image.Ready
@@ -140,7 +139,7 @@ PopupBase {
 
                     Text {
                         id: titleText
-                        text: root.shownPlayer?.trackTitle || "Unknown Title"
+                        text: root.activePlayer?.trackTitle || "Unknown Title"
                         font.pixelSize: 15
                         font.bold: true
                         font.family: "JetBrainsMono Nerd Font"
@@ -192,7 +191,7 @@ PopupBase {
 
                 Text {
                     width: parent.width
-                    text: root.shownPlayer?.trackArtist || "Unknown Artist"
+                    text: root.activePlayer?.trackArtist || "Unknown Artist"
                     font.pixelSize: 12
                     font.family: "JetBrainsMono Nerd Font"
                     color: PanelColors.textDim
@@ -201,7 +200,7 @@ PopupBase {
 
                 Rectangle {
                     id: identityPill
-                    visible: (root.shownPlayer?.identity ?? "") !== ""
+                    visible: (root.activePlayer?.identity ?? "") !== ""
                     height: 18
                     width: pillRow.implicitWidth + 12
                     radius: height / 2
@@ -213,7 +212,7 @@ PopupBase {
                         spacing: 4
 
                         Text {
-                            text: root.getPlayerIcon(root.shownPlayer?.identity)
+                            text: root.getPlayerIcon(root.activePlayer?.identity)
                             font.pixelSize: 10
                             font.family: "JetBrainsMono Nerd Font"
                             color: PanelColors.textAccent
@@ -221,7 +220,7 @@ PopupBase {
                         }
 
                         Text {
-                            text: root.shownPlayer?.identity ?? ""
+                            text: root.activePlayer?.identity ?? ""
                             font.pixelSize: 9
                             font.bold: true
                             font.family: "JetBrainsMono Nerd Font"
@@ -234,7 +233,7 @@ PopupBase {
         }
 
         Column {
-            visible: root.hasContent && (root.shownPlayer?.positionSupported ?? false)
+            visible: root.hasContent && (root.activePlayer?.positionSupported ?? false)
             width: parent.width
             spacing: 4
 
@@ -243,13 +242,13 @@ PopupBase {
                 width: parent.width
                 accentColor: PanelColors.clock
                 from: 0
-                to: Math.max(1, root.shownPlayer?.length ?? 1)
+                to: Math.max(1, root.activePlayer?.length ?? 1)
                 value: root.livePosition
                 playing: root.isPlaying
-                seekable: root.shownPlayer?.canSeek ?? false
+                seekable: root.activePlayer?.canSeek ?? false
                 onSeeked: (v) => {
                     root.userSeeking = true
-                    root.shownPlayer.position = v
+                    root.activePlayer.position = v
                     root.livePosition = v
                     seekReleaseTimer.restart()
                 }
@@ -273,7 +272,7 @@ PopupBase {
                 Item { width: parent.width - posLeft.implicitWidth - posRight.implicitWidth; height: 1 }
                 Text {
                     id: posRight
-                    text: root.fmtTime(root.shownPlayer?.length ?? 0)
+                    text: root.fmtTime(root.activePlayer?.length ?? 0)
                     font.pixelSize: 11
                     font.family: "JetBrainsMono Nerd Font"
                     color: PanelColors.textDim
@@ -290,13 +289,13 @@ PopupBase {
                 id: shuffleBtn
                 anchors.left: parent.left
                 anchors.verticalCenter: parent.verticalCenter
-                visible: root.shownPlayer?.shuffleSupported ?? false
+                visible: root.activePlayer?.shuffleSupported ?? false
                 icon: "󰒝"
                 accentColor: PanelColors.clock
-                highlighted: root.shownPlayer?.shuffle ?? false
+                highlighted: root.activePlayer?.shuffle ?? false
                 onClicked: {
-                    if (root.shownPlayer)
-                        root.shownPlayer.shuffle = !(root.shownPlayer.shuffle ?? false)
+                    if (root.activePlayer)
+                        root.activePlayer.shuffle = !(root.activePlayer.shuffle ?? false)
                 }
             }
 
@@ -306,8 +305,8 @@ PopupBase {
                 MediaButton {
                     icon: "󰒮"
                     accentColor: PanelColors.clock
-                    enabled: root.shownPlayer?.canGoPrevious ?? false
-                    onClicked: root.shownPlayer?.previous()
+                    enabled: root.activePlayer?.canGoPrevious ?? false
+                    onClicked: root.activePlayer?.previous()
                 }
                 MediaButton {
                     id: playPauseBtn
@@ -315,17 +314,17 @@ PopupBase {
                     highlighted: true
                     accentColor: PanelColors.clock
                     enabled: root.isPlaying
-                        ? (root.shownPlayer?.canPause ?? false)
-                        : (root.shownPlayer?.canPlay ?? false)
+                        ? (root.activePlayer?.canPause ?? false)
+                        : (root.activePlayer?.canPlay ?? false)
                     onClicked: root.isPlaying
-                        ? root.shownPlayer?.pause()
-                        : root.shownPlayer?.play()
+                        ? root.activePlayer?.pause()
+                        : root.activePlayer?.play()
                 }
                 MediaButton {
                     icon: "󰒭"
                     accentColor: PanelColors.clock
-                    enabled: root.shownPlayer?.canGoNext ?? false
-                    onClicked: root.shownPlayer?.next()
+                    enabled: root.activePlayer?.canGoNext ?? false
+                    onClicked: root.activePlayer?.next()
                 }
             }
 
@@ -333,20 +332,20 @@ PopupBase {
                 id: repeatBtn
                 anchors.right: parent.right
                 anchors.verticalCenter: parent.verticalCenter
-                visible: root.shownPlayer?.loopSupported ?? false
-                icon: (root.shownPlayer?.loopState ?? MprisLoopState.None) === MprisLoopState.Track
+                visible: root.activePlayer?.loopSupported ?? false
+                icon: (root.activePlayer?.loopState ?? MprisLoopState.None) === MprisLoopState.Track
                     ? "󰑘" : "󰑖"
                 accentColor: PanelColors.clock
-                highlighted: (root.shownPlayer?.loopState ?? MprisLoopState.None) !== MprisLoopState.None
+                highlighted: (root.activePlayer?.loopState ?? MprisLoopState.None) !== MprisLoopState.None
                 onClicked: {
-                    if (!root.shownPlayer) return
-                    const s = root.shownPlayer.loopState ?? MprisLoopState.None
+                    if (!root.activePlayer) return
+                    const s = root.activePlayer.loopState ?? MprisLoopState.None
                     if (s === MprisLoopState.None)
-                        root.shownPlayer.loopState = MprisLoopState.Playlist
+                        root.activePlayer.loopState = MprisLoopState.Playlist
                     else if (s === MprisLoopState.Playlist)
-                        root.shownPlayer.loopState = MprisLoopState.Track
+                        root.activePlayer.loopState = MprisLoopState.Track
                     else
-                        root.shownPlayer.loopState = MprisLoopState.None
+                        root.activePlayer.loopState = MprisLoopState.None
                 }
             }
         }

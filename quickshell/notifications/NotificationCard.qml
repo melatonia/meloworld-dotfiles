@@ -33,23 +33,7 @@ Item {
         if (!notification)                                   return Colors.blueGrey300
         if (notification.urgency === Notification.Critical)  return PanelColors.error
         if (notification.hints["x-hint-color"])              return notification.hints["x-hint-color"]
-        return hashColor(notification.appName)
-    }
-
-    function hashColor(str) {
-        if (!str || str === "") return Colors.blueGrey300
-        var hash = 0
-        for (var i = 0; i < str.length; i++) {
-            hash = str.charCodeAt(i) + ((hash << 5) - hash)
-            hash = hash & hash
-        }
-        var palette = [
-            Colors.teal200,    Colors.lightBlue200, Colors.green200,
-            Colors.purple200,  Colors.orange200,    Colors.pink200,
-            Colors.yellow200,  Colors.cyan200,      Colors.deepPurple200,
-            Colors.blueGrey300,
-        ]
-        return palette[Math.abs(hash) % palette.length]
+        return PanelColors.hashColor(notification.appName)
     }
 
     readonly property bool bodyIsLong: {
@@ -75,7 +59,7 @@ Item {
         ringTimer.start()
     }
 
-    function dismiss() {
+    function _doExit() {
         if (root.dismissing) return
         root.dismissing = true
         dismissTimer.stop()
@@ -83,21 +67,14 @@ Item {
         exitAnim.start()
     }
 
-    function expire() {
-        if (root.dismissing) return
-        root.dismissing = true
-        dismissTimer.stop()
-        ringTimer.running = false
-        exitAnim.start()
-    }
+    function dismiss() { _doExit() }
+
+    function expire() { _doExit() }
 
     function invokeAction(action) {
         if (root.dismissing) return
-        root.dismissing = true
-        dismissTimer.stop()
-        ringTimer.running = false
         root.pendingAction = action
-        exitAnim.start()
+        _doExit()
     }
 
     // ─── Lifecycle ───────────────────────────────────────────────────────────
@@ -401,8 +378,6 @@ Item {
                         fillMode:     Image.PreserveAspectCrop
                         source:       notification?.image ?? ""
                         smooth:       true
-                        layer.enabled: true
-                        layer.effect: null
                     }
 
                     Rectangle {

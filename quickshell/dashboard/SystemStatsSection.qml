@@ -15,15 +15,15 @@ SectionBase {
 
         StatRing {
             id: cpuRing
-            label: "CPU"; icon: ""; value: SystemStatsState.cpuUsage; color: Colors.red200
+            label: "CPU"; icon: ""; value: SystemStatsState.cpuUsage; color: PanelColors.cpuRing
         }
         StatRing {
             id: ramRing
-            label: "RAM"; icon: ""; value: SystemStatsState.ramUsage; color: Colors.blue200
+            label: "RAM"; icon: ""; value: SystemStatsState.ramUsage; color: PanelColors.ramRing
         }
         StatRing {
             id: gpuRing
-            label: "GPU"; icon: "󰢮"; value: SystemStatsState.gpuUsage; color: Colors.green200
+            label: "GPU"; icon: "󰢮"; value: SystemStatsState.gpuUsage; color: PanelColors.gpuRing
         }
     }
 }

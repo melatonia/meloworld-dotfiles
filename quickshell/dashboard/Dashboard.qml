@@ -8,7 +8,6 @@ PanelWindow {
     id: root
 
     property var screenObj: null
-    property int barHeight: 55
     readonly property int stateClosed: 0
     readonly property int stateOpen: 1
     readonly property int stateClosing: 2
@@ -215,7 +214,6 @@ PanelWindow {
         }
     }
 
-    // ── Stagger Logic ────────────────────────────────────────────────────────
     // ── Stagger Logic ────────────────────────────────────────────────────────
     SequentialAnimation {
         id: openAnim

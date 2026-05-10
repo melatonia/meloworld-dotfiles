@@ -41,6 +41,18 @@ Singleton {
         }
     }
 
+    // Debounce udevadm — it fires both "add" and "change" events per key
+    // press, so without this the read would fire twice and could race the
+    // brightnessctl set that just ran.
+    Timer {
+        id: brightnessDebounce
+        interval: 75
+        repeat: false
+        onTriggered: {
+            if (!brightnessProc.running) brightnessProc.running = true
+        }
+    }
+
     Timer {
         id: udevRestartTimer
         interval: 1000
@@ -57,7 +69,7 @@ Singleton {
         stdout: SplitParser {
             onRead: (line) => {
                 if (line.indexOf("change") !== -1) {
-                    brightnessProc.running = true
+                    brightnessDebounce.restart()
                 }
             }
         }

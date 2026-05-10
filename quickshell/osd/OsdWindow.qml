@@ -1,4 +1,5 @@
 import QtQuick
+import QtQuick.Layouts
 import Quickshell
 import Quickshell.Wayland
 import "../theme"
@@ -72,7 +73,7 @@ PanelWindow {
     // ── Card ──────────────────────────────────────────
     Rectangle {
         id: osdRect
-        width:  260
+        width:  root.implicitWidth
         height: 52
         anchors.horizontalCenter: parent.horizontalCenter
         y:      root.implicitHeight   // starts off-screen (80 px below visible area)
@@ -82,13 +83,13 @@ PanelWindow {
         border.color: root.osdType === "brightness" ? PanelColors.brightness : PanelColors.audio
         opacity: 0
 
-        Row {
+        RowLayout {
             anchors.centerIn: parent
             spacing: 12
 
             // ── Icon ──────────────────────────────────
             Text {
-                anchors.verticalCenter: parent.verticalCenter
+                Layout.alignment: Qt.AlignVCenter
                 font.pixelSize: 20
                 font.family: "JetBrainsMono Nerd Font"
                 color: {
@@ -111,8 +112,8 @@ PanelWindow {
             // ── Progress track (hidden when muted) ────
             Rectangle {
                 visible: !(root.osdType === "audio" && AudioState.muted)
-                anchors.verticalCenter: parent.verticalCenter
-                width:  150
+                Layout.alignment: Qt.AlignVCenter
+                Layout.preferredWidth: 150
                 height: 6
                 radius: 3
                 color:  PanelColors.trackBackground
@@ -132,18 +133,18 @@ PanelWindow {
             // ── "Muted" label ─────────────────────────
             Text {
                 visible: root.osdType === "audio" && AudioState.muted
-                anchors.verticalCenter: parent.verticalCenter
+                Layout.alignment: Qt.AlignVCenter
+                Layout.fillWidth: true
                 text: "Muted"
                 font.pixelSize: 13; font.bold: true; font.family: "JetBrainsMono Nerd Font"
                 color: PanelColors.textDim
-                width: 186
             }
 
             // ── Percentage ────────────────────────────
             Text {
                 visible: !(root.osdType === "audio" && AudioState.muted)
-                anchors.verticalCenter: parent.verticalCenter
-                width: 24
+                Layout.alignment: Qt.AlignVCenter
+                Layout.preferredWidth: 24
                 horizontalAlignment: Text.AlignRight
                 text: (root.osdType === "brightness" ? BrightnessState.brightness : AudioState.volume)
                 font.pixelSize: 12; font.bold: true; font.family: "JetBrainsMono Nerd Font"

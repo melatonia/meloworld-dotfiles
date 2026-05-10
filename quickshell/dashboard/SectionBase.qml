@@ -3,8 +3,6 @@ import "../theme"
 
 Item {
     id: root
-    property string title: ""
-    property string icon: ""
     property color accent: PanelColors.launcher
     default property alias content: container.data
 

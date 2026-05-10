@@ -45,6 +45,10 @@ Singleton {
     readonly property color profile:           Colors.green200
     readonly property color system:            Colors.blue200
 
+    readonly property color cpuRing:           Colors.red200
+    readonly property color ramRing:           Colors.blue200
+    readonly property color gpuRing:           Colors.green200
+
 
     // Returns the accent color for a given PowerProfile value.
     // Used by BatteryWidget (pill) and PowerProfilePopup (border + row highlight)
@@ -53,5 +57,24 @@ Singleton {
         if (profile === PowerProfile.PowerSaver)  return Colors.green200
         if (profile === PowerProfile.Performance) return Colors.red200
         return Colors.orange200
+    }
+
+    property var _hashCache: ({})
+    function hashColor(str) {
+        if (!str || str === "") return Colors.blueGrey300
+        if (_hashCache[str]) return _hashCache[str]
+        
+        var hash = 0
+        for (var i = 0; i < str.length; i++) {
+            hash = str.charCodeAt(i) + ((hash << 5) - hash)
+            hash = hash & hash
+        }
+        var palette = [ Colors.teal200, Colors.lightBlue200, Colors.green200,
+                        Colors.purple200, Colors.orange200, Colors.pink200,
+                        Colors.yellow200, Colors.cyan200, Colors.deepPurple200,
+                        Colors.blueGrey300 ]
+        var result = palette[Math.abs(hash) % palette.length]
+        _hashCache[str] = result
+        return result
     }
 }

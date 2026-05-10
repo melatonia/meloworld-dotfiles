@@ -20,7 +20,7 @@ import "../theme"
 PopupWindow {
     id: root
 
-    // ── Configuration ─────────────────────────────
+    // ── Configuration ─────────────────────────────────────────────────────
     property string animState:     "closed"
     property color  borderColor:   PanelColors.border
     property bool   clipContent:   true

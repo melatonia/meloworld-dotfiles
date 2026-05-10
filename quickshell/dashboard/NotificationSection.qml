@@ -18,22 +18,7 @@ Item {
     // ── Accent color logic ────────────────────────────────────────────────────
     function accentForEntry(entry) {
         if (entry.urgency === Notification.Critical) return PanelColors.error
-        return hashColor(entry.appName)
-    }
-
-    function hashColor(str) {
-        var hash = 0
-        for (var i = 0; i < str.length; i++) {
-            hash = str.charCodeAt(i) + ((hash << 5) - hash)
-            hash = hash & hash
-        }
-        var colors = [
-            Colors.teal200, Colors.lightBlue200, Colors.green200,
-            Colors.purple200, Colors.orange200, Colors.pink200,
-            Colors.yellow200, Colors.cyan200, Colors.deepPurple200,
-            Colors.blueGrey300,
-        ]
-        return colors[Math.abs(hash) % colors.length]
+        return PanelColors.hashColor(entry.appName)
     }
 
     // ── Empty state — single centered row ────────────────────────────────────

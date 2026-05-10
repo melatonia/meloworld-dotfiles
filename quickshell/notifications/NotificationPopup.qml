@@ -8,6 +8,11 @@ PanelWindow {
     id: root
     required property var screen
 
+    // ─── Notification sound ─────────────────────────────────────────────────
+    // Change this path to point at any file pw-play can handle.
+    readonly property string soundPath:
+        Quickshell.env("HOME") + "/.config/quickshell/assets/sounds/notification.flac"
+
     anchors { bottom: true; right: true }
 
     implicitWidth:  440
@@ -30,9 +35,7 @@ PanelWindow {
         onNotification: (notif) => {
             notif.tracked = true
             NotificationState.add(notif)
-            const home = Quickshell.env("HOME")
-            const path = home + "/.config/quickshell/assets/sounds/notification.flac"
-            Quickshell.execDetached(["pw-play", path])
+            Quickshell.execDetached(["pw-play", root.soundPath])
         }
     }
 

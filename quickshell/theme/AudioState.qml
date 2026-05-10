@@ -27,14 +27,14 @@ Singleton {
     }
 
     function refresh() {
-        sinksProc.running = true
-        sourcesProc.running = true
-        defaultSinkProc.running = true
-        defaultSourceProc.running = true
-        volProc.running = true
-        muteProc.running = true
-        micVolProc.running = true
-        micMuteProc.running = true
+        if (!sinksProc.running)         sinksProc.running = true
+        if (!sourcesProc.running)       sourcesProc.running = true
+        if (!defaultSinkProc.running)   defaultSinkProc.running = true
+        if (!defaultSourceProc.running) defaultSourceProc.running = true
+        if (!volProc.running)           volProc.running = true
+        if (!muteProc.running)          muteProc.running = true
+        if (!micVolProc.running)        micVolProc.running = true
+        if (!micMuteProc.running)       micMuteProc.running = true
     }
 
     function setDefaultSink(name) {
@@ -150,17 +150,17 @@ Singleton {
         property bool sourceChanged: false
         onTriggered: {
             if (sinkChanged) {
-                sinksProc.running = true
-                defaultSinkProc.running = true
-                volProc.running = true
-                muteProc.running = true
+                if (!sinksProc.running)       sinksProc.running = true
+                if (!defaultSinkProc.running) defaultSinkProc.running = true
+                if (!volProc.running)         volProc.running = true
+                if (!muteProc.running)        muteProc.running = true
                 sinkChanged = false
             }
             if (sourceChanged) {
-                sourcesProc.running = true
-                defaultSourceProc.running = true
-                micVolProc.running = true
-                micMuteProc.running = true
+                if (!sourcesProc.running)       sourcesProc.running = true
+                if (!defaultSourceProc.running) defaultSourceProc.running = true
+                if (!micVolProc.running)        micVolProc.running = true
+                if (!micMuteProc.running)       micMuteProc.running = true
                 sourceChanged = false
             }
         }
