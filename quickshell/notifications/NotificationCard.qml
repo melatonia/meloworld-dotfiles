@@ -388,23 +388,29 @@ Item {
                 }
 
                 // Thumbnail
-                Rectangle {
-                    id:           notifImageFrame
-                    visible:      (notification?.image ?? "") !== "" && notifImageInner.status === Image.Ready
-                    width:        visible ? 60 : 0
-                    height:       60
-                    radius:       8
-                    color:        "transparent"
-                    border.color: root.accentColor
-                    border.width: 3
-                    clip:         true
+                Item {
+                    id:      notifImageFrame
+                    visible: (notification?.image ?? "") !== "" && notifImageInner.status === Image.Ready
+                    width:   visible ? 60 : 0
+                    height:  60
 
                     Image {
                         id:           notifImageInner
-                        anchors.fill: parent; anchors.margins: 3
+                        anchors.fill: parent
+                        anchors.margins: 2
                         fillMode:     Image.PreserveAspectCrop
                         source:       notification?.image ?? ""
                         smooth:       true
+                        layer.enabled: true
+                        layer.effect: null
+                    }
+
+                    Rectangle {
+                        anchors.fill: parent
+                        color:        "transparent"
+                        radius:       8
+                        border.color: root.accentColor
+                        border.width: 2
                     }
                 }
             }
