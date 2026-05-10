@@ -30,7 +30,7 @@ Item {
         opacity: 0.3
 
         Text {
-            text: "󰂛"
+            text: ""
             font.pixelSize: 16                          // smaller icon
             font.family: root.monoFont
             color: PanelColors.textDim
@@ -38,7 +38,7 @@ Item {
         }
 
         Text {
-            text: "no notifications"
+            text: "there is nothing to see here.."
             font.pixelSize: 12
             font.family: root.monoFont
             color: PanelColors.textDim

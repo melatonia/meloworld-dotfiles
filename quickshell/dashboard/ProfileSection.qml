@@ -12,6 +12,22 @@ SectionBase {
     property string avatarPath: ""
     property string localAvatar: Quickshell.env("HOME") + "/.config/quickshell/avatar.png"
 
+    property int currentHour: new Date().getHours()
+
+    Timer {
+        interval: 60000
+        running: true
+        repeat: true
+        onTriggered: root.currentHour = new Date().getHours()
+    }
+
+    readonly property string greeting: {
+        if (currentHour >= 5 && currentHour < 12) return "the wind is rising,"
+        if (currentHour >= 12 && currentHour < 18) return "the rose is watered,"
+        if (currentHour >= 18 && currentHour < 23) return "one more sunset,"
+        return "you tamed the stars,"
+    }
+
     Process {
         command: ["whoami"]
         running: true
@@ -151,7 +167,7 @@ SectionBase {
             anchors.verticalCenter: parent.verticalCenter
             spacing: 0
             Text {
-                text: "Welcome back,"
+                text: root.greeting
                 font.pixelSize: 13
                 font.family: "JetBrainsMono Nerd Font"
                 color: PanelColors.textDim

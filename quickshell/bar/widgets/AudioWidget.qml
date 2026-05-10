@@ -23,7 +23,13 @@ Pill {
     textColor: isEffectivelyMuted ? PanelColors.textMain : PanelColors.pillForeground
 
     widestLabel: "󰕾 100%"
-    label: isEffectivelyMuted ? "󰝟 Muted" : "󰕾 " + displayVolume + "%"
+    label: {
+        if (isEffectivelyMuted) return "󰝟 Muted"
+        let ico = "󰕿"
+        if (displayVolume >= 66) ico = "󰕾"
+        else if (displayVolume >= 33) ico = "󰖀"
+        return ico + " " + displayVolume + "%"
+    }
 
     mouseArea.onClicked: AudioState.popupVisible ? AudioState.hide() : AudioState.show()
 
