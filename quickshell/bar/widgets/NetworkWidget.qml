@@ -4,6 +4,8 @@ import "../../theme"
 
 Pill {
     id: root
+    hoverReveal: true
+    forceReveal: SessionState.wifiPopupVisible
 
     readonly property bool wifiEnabled: NetworkState.wifiEnabled
     readonly property bool connected: NetworkState.connected

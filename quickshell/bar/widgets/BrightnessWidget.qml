@@ -4,6 +4,8 @@ import "../../theme"
 
 Pill {
     id: root
+    //hoverReveal: true
+    //forceReveal: BrightnessState.popupVisible
     pillColor: PanelColors.brightness
 
     // -- Optimistic State Logic --

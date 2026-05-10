@@ -6,6 +6,8 @@ import "../../theme"
 
 Pill {
     id: root
+    //hoverReveal: true
+    //forceReveal: SessionState.powerPopupVisible
     property var battery: UPower.displayDevice
     property bool hasBattery: battery && battery.ready
     property int pct: hasBattery ? Math.round(battery.percentage * 100) : 0

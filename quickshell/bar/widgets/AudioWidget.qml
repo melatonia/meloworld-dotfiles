@@ -3,6 +3,8 @@ import "../../theme"
 
 Pill {
     id: root
+    //hoverReveal: true
+    //forceReveal: AudioState.popupVisible
 
     // ── Optimistic State ──────────────────────────
     // Tracks the value the user is currently scrolling to

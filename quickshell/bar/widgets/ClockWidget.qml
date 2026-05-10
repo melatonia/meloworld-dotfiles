@@ -20,7 +20,11 @@ Pill {
     SystemClock { id: clock; precision: SystemClock.Minutes }
 
     Text {
-        text: ""
+        text: {
+            const h = clock.date.getHours() % 12
+            const icons = ["󱑖","󱑋","󱑌","󱑍","󱑎","󱑏","󱑐","󱑑","󱑒","󱑓","󱑔","󱑕"]
+            return icons[h]
+        }
         font.pixelSize: 16
         font.bold: true
         font.family: "JetBrainsMono Nerd Font"

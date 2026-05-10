@@ -4,6 +4,8 @@ import "../../theme"
 
 Pill {
     id: root
+    hoverReveal: true
+    forceReveal: SessionState.bluetoothPopupVisible
     pillColor: (adapter && adapter.enabled) ? PanelColors.bluetooth : PanelColors.rowBackground
     textColor: (adapter && adapter.enabled) ? PanelColors.pillForeground : PanelColors.textMain
     property var adapter: Bluetooth.defaultAdapter

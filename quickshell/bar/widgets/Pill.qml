@@ -11,13 +11,51 @@ Rectangle {
     property alias mouseArea: mouseArea
     default property alias content: contentRow.data
 
+    property bool hoverReveal: false
+    property bool forceReveal: false
+    
+    property bool isHovered: mouseArea.containsMouse
+    property bool _delayedHover: false
+    
+    Timer {
+        id: hoverTimer
+        interval: 250
+        onTriggered: root._delayedHover = false
+    }
+
+    onIsHoveredChanged: {
+        if (isHovered) {
+            hoverTimer.stop()
+            _delayedHover = true
+        } else {
+            hoverTimer.restart()
+        }
+    }
+    
+    readonly property bool isRevealed: !hoverReveal || forceReveal || _delayedHover
+
+    property string labelIcon: {
+        if (label === "") return ""
+        let idx = label.indexOf(" ")
+        return idx !== -1 ? label.substring(0, idx) : label
+    }
+    
+    property string labelInfo: {
+        if (label === "") return ""
+        let idx = label.indexOf(" ")
+        return idx !== -1 ? label.substring(idx + 1) : ""
+    }
+
     TextMetrics {
         id: widestMetric
         font.pixelSize: 16; font.bold: true; font.family: "JetBrainsMono Nerd Font"
         text: root.widestLabel
     }
 
-    property int effectiveMinWidth: Math.max(minWidth, widestLabel !== "" ? widestMetric.width + 16 : 0)
+    property int effectiveMinWidth: {
+        if (hoverReveal && !isRevealed) return minWidth;
+        return Math.max(minWidth, widestLabel !== "" ? widestMetric.width + 16 : 0)
+    }
 
     implicitHeight: 28
     property real targetWidth: Math.max(effectiveMinWidth, contentRow.implicitWidth + 16)
@@ -26,17 +64,18 @@ Rectangle {
 
     Behavior on targetWidth {
         NumberAnimation {
-            duration: root.isGrowing ? 120 : 100
-            easing.type: Easing.OutQuart
+            duration: root.isGrowing ? 250 : 200
+            easing.type: Easing.OutExpo
         }
     }
 
     radius: 5
     color: mouseArea.containsMouse ? Qt.lighter(pillColor, 1.15) : pillColor
     scale: mouseArea.containsMouse ? 1.03 : 1.0
+    clip: true
 
-    Behavior on color { ColorAnimation { duration: 150 } }
-    Behavior on scale { NumberAnimation { duration: 150; easing.type: Easing.OutSine } }
+    Behavior on color { ColorAnimation { duration: 200 } }
+    Behavior on scale { NumberAnimation { duration: 200; easing.type: Easing.OutCubic } }
 
     MouseArea {
         id: mouseArea
@@ -52,13 +91,25 @@ Rectangle {
         Behavior on spacing { NumberAnimation { duration: 150 } }
 
         Text {
-            id: pillLabel
-            visible: root.label !== ""
-            text: root.label
+            id: iconLabel
+            visible: root.labelIcon !== ""
+            text: root.labelIcon
             font.pixelSize: 16
             font.bold: true
             font.family: "JetBrainsMono Nerd Font"
             color: root.textColor
+        }
+
+        Text {
+            id: infoLabel
+            visible: root.labelInfo !== "" && (!root.hoverReveal || root.isRevealed)
+            text: root.labelInfo
+            font.pixelSize: 16
+            font.bold: true
+            font.family: "JetBrainsMono Nerd Font"
+            color: root.textColor
+            opacity: (!root.hoverReveal || root.isRevealed) ? 1 : 0
+            Behavior on opacity { NumberAnimation { duration: 150 } }
         }
     }
 }
