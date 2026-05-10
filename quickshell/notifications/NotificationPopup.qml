@@ -9,10 +9,13 @@ PanelWindow {
     required property var screen
 
     anchors { bottom: true; right: true }
+
     implicitWidth:  440
     implicitHeight: 1000
-    color:          "transparent"
-    exclusiveZone:  0
+
+    color:         "transparent"
+    exclusiveZone: 0
+
     mask: Region { item: cardColumn }
 
     NotificationServer {
@@ -33,6 +36,7 @@ PanelWindow {
         }
     }
 
+    // ─── Card stack ────────────────────────────────────────────────────────
     Column {
         id: cardColumn
         spacing: 8
@@ -47,23 +51,28 @@ PanelWindow {
             model: server.trackedNotifications
 
             Item {
-                id:      wrapper
+                id:       wrapper
                 required property var modelData
                 width:    400
 
-                height:   card.isExiting ? 0 : card.implicitHeight
+                // Track card height while alive; collapse to 0 on exit.
+                // The null guard prevents a binding error during the brief
+                // window between model removal and delegate destruction.
+                height: (card && card.isExiting) ? 0 : (card ? card.implicitHeight : 0)
 
                 Behavior on height {
-                    enabled: card.isExiting
+                    enabled: card ? card.isExiting : false
                     NumberAnimation {
-                        duration: 250
-                        easing.type: Easing.OutCubic
+                        duration:    300
+                        easing.type: Easing.OutQuart
                     }
                 }
 
                 NotificationCard {
                     id:           card
                     notification: wrapper.modelData
+                    // Cards grow upward: anchor to bottom of wrapper so
+                    // expansion pushes neighbours above, not below.
                     anchors.bottom: parent.bottom
                 }
             }
