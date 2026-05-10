@@ -24,9 +24,9 @@ PopupWindow {
     property string animState:     "closed"
     property color  borderColor:   PanelColors.border
     property bool   clipContent:   true
-    // Bind this to your content Column's implicitHeight:
     property int    contentHeight: 0
     property int    padding:       12
+    property bool   autoDismiss:   true
 
     // ── Children go directly into the inner panel ──
     default property alias panelContent: innerRect.data
@@ -94,7 +94,7 @@ PopupWindow {
 
         Timer {
             interval: 3000
-            running: root.animState === "open" && !hover.hovered
+            running: root.animState === "open" && !hover.hovered && root.autoDismiss
             onTriggered: SessionState.closeAllPopups()
         }
     }
