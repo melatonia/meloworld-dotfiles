@@ -6,7 +6,16 @@ Pill {
     id: root
     pillColor: PanelColors.launcher
     textColor: PanelColors.textAccent
-    label: ""
+
+    SystemClock { id: clock; precision: SystemClock.Hours }
+
+    label: {
+        const h = clock.date.getHours()
+        if (h >= 5 && h < 11) return ""
+        if (h >= 11 && h < 17) return ""
+        if (h >= 17 && h < 22) return "󰖚"
+        return "󰖔"
+    }
 
     mouseArea.onClicked: {
         if (SessionState.dashboardVisible) {

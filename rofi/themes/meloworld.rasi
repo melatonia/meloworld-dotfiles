@@ -26,7 +26,7 @@ entry {
     background-color:  transparent;
     text-color:        @fg;
     placeholder-color: @fg-dim;
-    placeholder:       " Search...";
+    placeholder:       " Search...";
     cursor:            text;
     font:              "JetBrainsMono Nerd Font Bold 13";
 }

@@ -9,7 +9,7 @@ Item {
     property string label: ""
 
     implicitWidth: 80
-    implicitHeight: 100
+    implicitHeight: 80
 
     // This animates any change to 'value' over 500ms
     Behavior on value {
@@ -58,8 +58,7 @@ Item {
     onValueChanged: canvas.requestPaint()
 
     Column {
-        anchors.horizontalCenter: parent.horizontalCenter
-        y: 20
+        anchors.centerIn: parent
         spacing: -4
 
         Text {
@@ -73,7 +72,7 @@ Item {
 
         Text {
             anchors.horizontalCenter: parent.horizontalCenter
-            text: Math.round(root.value) + "%"
+            text: root.label
             font.pixelSize: 14
             font.bold: true
             font.family: "JetBrainsMono Nerd Font"
@@ -81,16 +80,4 @@ Item {
         }
     }
 
-    Text {
-        anchors {
-            top: canvas.bottom
-            topMargin: -2
-            horizontalCenter: parent.horizontalCenter
-        }
-        text: root.label
-        font.pixelSize: 12
-        font.bold: true
-        font.family: "JetBrainsMono Nerd Font"
-        color: PanelColors.textDim
-    }
 }
