@@ -14,7 +14,7 @@ ShellRoot {
             required property var modelData
             screen: modelData
             anchors { top: true; left: true; right: true }
-            implicitHeight: 55
+            implicitHeight: 50
             color: "transparent"
             exclusiveZone: implicitHeight
             Bar { id: bar; anchors.fill: parent }

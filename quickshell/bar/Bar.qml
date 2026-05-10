@@ -15,8 +15,9 @@ Item {
         id: leftContainer
         anchors.left: parent.left
         anchors.leftMargin: 12
-        anchors.verticalCenter: parent.verticalCenter
-        height: parent.height - 15
+        anchors.top: parent.top
+        anchors.topMargin: 10
+        height: 40
         color: PanelColors.barBackground
         radius: 8
         width: leftBar.implicitWidth + 12
@@ -29,8 +30,10 @@ Item {
 
     Rectangle {
         id: centerContainer
-        anchors.centerIn: parent
-        height: parent.height - 15
+        anchors.horizontalCenter: parent.horizontalCenter
+        anchors.top: parent.top
+        anchors.topMargin: 10
+        height: 40
         color: PanelColors.barBackground
         radius: 8
         width: centerBar.implicitWidth + 12
@@ -45,8 +48,9 @@ Item {
         id: rightContainer
         anchors.right: parent.right
         anchors.rightMargin: 12
-        anchors.verticalCenter: parent.verticalCenter
-        height: parent.height - 15
+        anchors.top: parent.top
+        anchors.topMargin: 10
+        height: 40
         color: PanelColors.barBackground
         radius: 8
         width: rightBar.implicitWidth + 12
