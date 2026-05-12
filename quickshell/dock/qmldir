@@ -1,0 +1,5 @@
+module dock
+
+DockWidget 1.0 DockWidget.qml
+AppIcon    1.0 AppIcon.qml
+singleton PinnedApps 1.0 PinnedApps.qml

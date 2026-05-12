@@ -5,6 +5,7 @@ import "bar"
 import "notifications"
 import "osd"
 import "dashboard"
+import "dock"
 
 ShellRoot {
     Variants {
@@ -81,6 +82,13 @@ ShellRoot {
     Variants {
         model: Quickshell.screens
         OsdWindow {
+            required property var modelData
+            screen: modelData
+        }
+    }
+    Variants {
+        model: Quickshell.screens
+        DockWidget {
             required property var modelData
             screen: modelData
         }
