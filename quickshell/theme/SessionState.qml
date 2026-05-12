@@ -19,8 +19,6 @@ Singleton {
         powerPopupVisible = false
         bluetoothPopupVisible = false
         wifiPopupVisible = false
-        dashboardVisible = false
-        mediaPopupVisible = false
         visible = false
         AudioState.hide()
         BrightnessState.hide()

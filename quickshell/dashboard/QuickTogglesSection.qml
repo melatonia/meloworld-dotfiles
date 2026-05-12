@@ -1,10 +1,16 @@
 import QtQuick
 import QtQuick.Layouts
+import Quickshell.Wayland
 import "../theme"
 
 Item {
     id: root
     implicitHeight: grid.implicitHeight
+
+    IdleInhibitor {
+        window: root.Window.window
+        enabled: SystemTogglesState.caffeineOn
+    }
 
     component QuickToggle: Rectangle {
         id: toggle
@@ -13,6 +19,7 @@ Item {
         property bool active: false
         property color accentColor: PanelColors.launcher
         signal clicked()
+        signal rightClicked()
 
         Layout.fillWidth: true
         Layout.preferredHeight: 42
@@ -56,7 +63,13 @@ Item {
             anchors.fill: parent
             hoverEnabled: true
             cursorShape: Qt.PointingHandCursor
-            onClicked: toggle.clicked()
+            acceptedButtons: Qt.LeftButton | Qt.RightButton
+            onClicked: (mouse) => {
+                if (mouse.button === Qt.RightButton)
+                    toggle.rightClicked()
+                else
+                    toggle.clicked()
+            }
         }
 
         Rectangle {
@@ -86,10 +99,13 @@ Item {
 
         QuickToggle {
             icon: "󰅶"
-            label: "Caffeine"
+            label: SystemTogglesState.caffeineOn
+                ? "Caffeine  " + SystemTogglesState.caffeineCountdown
+                : "Caffeine"
             active: SystemTogglesState.caffeineOn
             accentColor: Colors.orange200
-            onClicked: SystemTogglesState.toggleCaffeine()
+            onClicked: SystemTogglesState.cycleCaffeine()
+            onRightClicked: SystemTogglesState.disableCaffeine()
         }
 
         QuickToggle {

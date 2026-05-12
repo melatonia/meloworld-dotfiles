@@ -48,7 +48,7 @@ ShellRoot {
                     asynchronous: true
                     onLoaded: {
                         item.anchor.window = panelWin
-                        item.anchor.rect.y = Qt.binding(function() { return panelWin.height })
+                        item.anchor.rect.y = Qt.binding(function() { return panelWin.height + 6 })
                         item.anchor.rect.x = Qt.binding(function() { return panelWin.popupX(modelData.widget, item.implicitWidth) })
                     }
                 }
@@ -63,7 +63,7 @@ ShellRoot {
             MediaPopup {
                 anchor.window: panelWin
                 anchor.rect.x: panelWin.centerPopupX(implicitWidth)
-                anchor.rect.y: panelWin.height
+                anchor.rect.y: panelWin.height + 6
             }
 
             Dashboard {

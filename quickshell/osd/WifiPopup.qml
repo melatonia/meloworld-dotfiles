@@ -1,6 +1,7 @@
 import QtQuick
 import Quickshell
 import Quickshell.Wayland
+import Quickshell.Networking
 import "../theme"
 
 PanelWindow {
@@ -9,7 +10,7 @@ PanelWindow {
     implicitHeight: 600
     color: "transparent"
 
-    property color borderColor: NetworkState.wifiEnabled ? PanelColors.network : PanelColors.border
+    property color borderColor: Networking.wifiEnabled ? PanelColors.network : PanelColors.border
     property bool clipContent: true
     property int padding: 12
     property int contentHeight: Math.min(contentCol.implicitHeight, 480)
@@ -27,20 +28,34 @@ PanelWindow {
     anchors.top: anchorWindow && anchorWindow.anchors.top ? true : false
     anchors.bottom: anchorWindow && anchorWindow.anchors.bottom ? true : false
     anchors.left: true
-    
-    // The usable area automatically accounts for the bar's exclusive zone.
-    // Margin 0 makes it perfectly flush with the bar.
-    margins.top: 0
+    margins.top: 6
     margins.bottom: 0
     margins.left: xPos
 
     visible: animState !== "closed"
 
-    // ── UI State ─────────────────────────────────────
+    // ── First WiFi device from Networking ─────────────────────────────────
+    readonly property var wifiDevice: {
+        for (let i = 0; i < Networking.devices.values.length; i++) {
+            const d = Networking.devices.values[i]
+            if (d.type === DeviceType.Wifi) return d
+        }
+        return null
+    }
+
+    // ── Currently connected network ───────────────────────────────────────
+    readonly property var activeNetwork: {
+        if (!wifiDevice) return null
+        for (let i = 0; i < wifiDevice.networks.values.length; i++) {
+            if (wifiDevice.networks.values[i].connected) return wifiDevice.networks.values[i]
+        }
+        return null
+    }
+
     property string viewState: "list"
-    property string targetSSID: ""
-    property string targetSecurity: ""
+    property var targetNetwork: null
     property string passwordText: ""
+    property string connectError: ""
     readonly property int maxListHeight: 5 * 34 + 4 * 4
 
     Connections {
@@ -49,11 +64,22 @@ PanelWindow {
             if (SessionState.wifiPopupVisible) {
                 viewState = "list"
                 passwordText = ""
+                connectError = ""
                 root.animState = "open"
-                NetworkState.rescan()
+                if (root.wifiDevice) root.wifiDevice.scannerEnabled = true
             } else {
                 root.animState = "closing"
             }
+        }
+    }
+
+    // Listen for wrong password / failed connection on the target network
+    Connections {
+        target: root.targetNetwork
+        enabled: root.targetNetwork !== null
+        function onConnectionFailed(reason) {
+            root.connectError = (reason === ConnectionFailReason.NoSecrets)
+                ? "Wrong password" : "Connection failed"
         }
     }
 
@@ -65,17 +91,17 @@ PanelWindow {
         else return "󰤯"
     }
 
-    function isSecured(sec) {
-        return sec !== "" && sec !== "--"
+    function isSecured(network) {
+        return network.security !== WifiSecurityType.None
     }
 
-    function handleNetworkClick(ssid, security, known) {
-        if (known || !isSecured(security)) {
-            NetworkState.connect(ssid)
+    function handleNetworkClick(network) {
+        if (network.known || !isSecured(network)) {
+            network.connect()
         } else {
-            targetSSID = ssid
-            targetSecurity = security
+            targetNetwork = network
             passwordText = ""
+            connectError = ""
             viewState = "password"
         }
     }
@@ -136,12 +162,6 @@ PanelWindow {
 
         HoverHandler { id: hover }
 
-        Timer {
-            interval: 3000
-            running: root.animState === "open" && !hover.hovered
-            onTriggered: SessionState.closeAllPopups()
-        }
-
     Column {
         id: contentCol
         anchors {
@@ -165,7 +185,7 @@ PanelWindow {
             Rectangle {
                 width: parent.width; height: 34; radius: 6
                 color: {
-                    let base = NetworkState.wifiEnabled ? PanelColors.network : PanelColors.rowBackground
+                    let base = Networking.wifiEnabled ? PanelColors.network : PanelColors.rowBackground
                     return toggleMouse.containsMouse ? Qt.lighter(base, 1.15) : base
                 }
                 Behavior on color { ColorAnimation { duration: 150 } }
@@ -174,38 +194,38 @@ PanelWindow {
                     anchors { left: parent.left; leftMargin: 14; verticalCenter: parent.verticalCenter }
                     spacing: 8
                     Text {
-                        text: NetworkState.wifiEnabled ? "󰤨" : "󰤭"
+                        text: Networking.wifiEnabled ? "󰤨" : "󰤭"
                         font.pixelSize: 15; font.family: "JetBrainsMono Nerd Font"
-                        color: NetworkState.wifiEnabled ? PanelColors.pillForeground : PanelColors.textMain
+                        color: Networking.wifiEnabled ? PanelColors.pillForeground : PanelColors.textMain
                     }
                     Text {
-                        text: NetworkState.wifiEnabled ? "WiFi On" : "WiFi Off"
+                        text: Networking.wifiEnabled ? "WiFi On" : "WiFi Off"
                         font.pixelSize: 13; font.bold: true; font.family: "JetBrainsMono Nerd Font"
-                        color: NetworkState.wifiEnabled ? PanelColors.pillForeground : PanelColors.textMain
+                        color: Networking.wifiEnabled ? PanelColors.pillForeground : PanelColors.textMain
                     }
                 }
                 MouseArea {
                     id: toggleMouse
                     anchors.fill: parent; hoverEnabled: true
-                    onClicked: NetworkState.toggleWifi()
+                    onClicked: Networking.wifiEnabled = !Networking.wifiEnabled
                 }
             }
 
             // 2. Active Connection
             Rectangle {
-                visible: NetworkState.wifiEnabled && NetworkState.activeSSID !== ""
+                visible: Networking.wifiEnabled && root.activeNetwork !== null
                 width: parent.width; height: visible ? 34 : 0; radius: 6
                 color: PanelColors.network
                 Row {
                     anchors { left: parent.left; leftMargin: 14; right: parent.right; rightMargin: 10; verticalCenter: parent.verticalCenter }
                     spacing: 8
                     Text {
-                        text: root.signalIcon(NetworkState.activeSignal)
+                        text: root.activeNetwork ? root.signalIcon(root.activeNetwork.signalStrength * 100) : ""
                         font.pixelSize: 15; font.family: "JetBrainsMono Nerd Font"
                         color: PanelColors.pillForeground
                     }
                     Text {
-                        text: NetworkState.activeSSID
+                        text: root.activeNetwork ? root.activeNetwork.name : ""
                         font.pixelSize: 13; font.bold: true; font.family: "JetBrainsMono Nerd Font"
                         color: PanelColors.pillForeground
                         elide: Text.ElideRight
@@ -213,7 +233,7 @@ PanelWindow {
                     }
                     Text {
                         id: activeSigText
-                        text: NetworkState.activeSignal + "%"
+                        text: root.activeNetwork ? Math.round(root.activeNetwork.signalStrength * 100) + "%" : ""
                         font.pixelSize: 12; font.family: "JetBrainsMono Nerd Font"
                         color: PanelColors.pillForeground
                     }
@@ -221,17 +241,17 @@ PanelWindow {
             }
 
             Rectangle {
-                visible: NetworkState.wifiEnabled
+                visible: Networking.wifiEnabled
                 width: parent.width; height: visible ? 2 : 0
                 color: PanelColors.rowBackground
             }
 
             // 3. Known Networks
             Repeater {
-                model: NetworkState.networks
+                model: root.wifiDevice ? root.wifiDevice.networks : null
                 delegate: Rectangle {
                     required property var modelData
-                    visible: modelData.known && modelData.ssid !== NetworkState.activeSSID
+                    visible: modelData.known && !modelData.connected
                     width: parent.width; height: visible ? 34 : 0; radius: 6
                     color: knownMouse.containsMouse ? Qt.lighter(PanelColors.rowBackground, 1.15) : PanelColors.rowBackground
                     Behavior on color { ColorAnimation { duration: 150 } }
@@ -245,12 +265,12 @@ PanelWindow {
                         anchors { left: parent.left; leftMargin: 14; right: parent.right; rightMargin: 10; verticalCenter: parent.verticalCenter }
                         spacing: 8
                         Text {
-                            text: root.signalIcon(modelData.signal)
+                            text: root.signalIcon(modelData.signalStrength * 100)
                             font.pixelSize: 15; font.family: "JetBrainsMono Nerd Font"
                             color: PanelColors.textMain
                         }
                         Text {
-                            text: modelData.ssid
+                            text: modelData.name
                             font.pixelSize: 13; font.bold: true; font.family: "JetBrainsMono Nerd Font"
                             color: PanelColors.textMain
                             elide: Text.ElideRight
@@ -266,29 +286,30 @@ PanelWindow {
                     MouseArea {
                         id: knownMouse
                         anchors.fill: parent; hoverEnabled: true
-                        onClicked: root.handleNetworkClick(modelData.ssid, modelData.security, true)
+                        onClicked: root.handleNetworkClick(modelData)
                     }
                 }
             }
 
             Rectangle {
-                visible: NetworkState.wifiEnabled && NetworkState.networks.some(function(n){ return n.known && n.ssid !== NetworkState.activeSSID })
+                visible: Networking.wifiEnabled && root.wifiDevice !== null &&
+                         root.wifiDevice.networks.values.some(function(n){ return n.known && !n.connected })
                 width: parent.width; height: visible ? 2 : 0
                 color: PanelColors.rowBackground
             }
 
             // 4. Scan Button
             Rectangle {
-                visible: NetworkState.wifiEnabled
+                visible: Networking.wifiEnabled
                 width: parent.width; height: visible ? 34 : 0; radius: 6
                 color: {
-                    let base = NetworkState.isScanning ? PanelColors.networkScanning : PanelColors.rowBackground
+                    let base = (root.wifiDevice && root.wifiDevice.scannerEnabled) ? PanelColors.networkScanning : PanelColors.rowBackground
                     return scanMouse.containsMouse ? Qt.lighter(base, 1.15) : base
                 }
                 Behavior on color { ColorAnimation { duration: 150 } }
 
                 Rectangle {
-                    visible: !NetworkState.isScanning
+                    visible: !(root.wifiDevice && root.wifiDevice.scannerEnabled)
                     width: 3; height: parent.height - 10; radius: 2
                     anchors { left: parent.left; leftMargin: 4; verticalCenter: parent.verticalCenter }
                     color: PanelColors.networkScanning
@@ -299,30 +320,30 @@ PanelWindow {
                     Text {
                         text: "󰑐"
                         font.pixelSize: 15; font.family: "JetBrainsMono Nerd Font"
-                        color: NetworkState.isScanning ? PanelColors.pillForeground : PanelColors.textMain
+                        color: (root.wifiDevice && root.wifiDevice.scannerEnabled) ? PanelColors.pillForeground : PanelColors.textMain
                         SequentialAnimation on opacity {
-                            running: NetworkState.isScanning
+                            running: root.wifiDevice && root.wifiDevice.scannerEnabled
                             loops: Animation.Infinite
                             NumberAnimation { to: 0.3; duration: 600; easing.type: Easing.InOutSine }
                             NumberAnimation { to: 1.0; duration: 600; easing.type: Easing.InOutSine }
                         }
                     }
                     Text {
-                        text: NetworkState.isScanning ? "Scanning..." : "Scan"
+                        text: (root.wifiDevice && root.wifiDevice.scannerEnabled) ? "Scanning..." : "Scan"
                         font.pixelSize: 13; font.bold: true; font.family: "JetBrainsMono Nerd Font"
-                        color: NetworkState.isScanning ? PanelColors.pillForeground : PanelColors.textMain
+                        color: (root.wifiDevice && root.wifiDevice.scannerEnabled) ? PanelColors.pillForeground : PanelColors.textMain
                     }
                 }
                 MouseArea {
                     id: scanMouse
                     anchors.fill: parent; hoverEnabled: true
-                    onClicked: NetworkState.rescan()
+                    onClicked: { if (root.wifiDevice) root.wifiDevice.scannerEnabled = true }
                 }
             }
 
             // 5. Connecting State
             Rectangle {
-                visible: NetworkState.connecting
+                visible: root.activeNetwork !== null && root.activeNetwork.stateChanging
                 width: parent.width; height: visible ? 34 : 0; radius: 6
                 color: PanelColors.rowBackground
                 Row {
@@ -333,7 +354,7 @@ PanelWindow {
                         font.pixelSize: 15; font.family: "JetBrainsMono Nerd Font"
                         color: PanelColors.network
                         SequentialAnimation on opacity {
-                            running: NetworkState.connecting
+                            running: root.activeNetwork !== null && root.activeNetwork.stateChanging
                             loops: Animation.Infinite
                             NumberAnimation { to: 0.3; duration: 500; easing.type: Easing.InOutSine }
                             NumberAnimation { to: 1.0; duration: 500; easing.type: Easing.InOutSine }
@@ -349,7 +370,7 @@ PanelWindow {
 
             // 6. nmtui
             Rectangle {
-                visible: NetworkState.wifiEnabled
+                visible: Networking.wifiEnabled
                 width: parent.width; height: visible ? 34 : 0; radius: 6
                 color: nmtuiMouse.containsMouse ? Qt.lighter(PanelColors.rowBackground, 1.15) : PanelColors.rowBackground
                 Behavior on color { ColorAnimation { duration: 150 } }
@@ -380,12 +401,12 @@ PanelWindow {
                         SessionState.wifiPopupVisible = false
                     }
                 }
-
             }
 
             // 7. Other Networks
             Item {
-                visible: NetworkState.wifiEnabled && NetworkState.networks.some(function(n){ return !n.known })
+                visible: Networking.wifiEnabled && root.wifiDevice !== null &&
+                         root.wifiDevice.networks.values.some(function(n){ return !n.known })
                 width: parent.width
                 height: visible ? root.maxListHeight : 0
 
@@ -401,7 +422,7 @@ PanelWindow {
                         width: parent.width
                         spacing: 4
                         Repeater {
-                            model: NetworkState.networks
+                            model: root.wifiDevice ? root.wifiDevice.networks : null
                             delegate: Rectangle {
                                 required property var modelData
                                 visible: !modelData.known
@@ -418,12 +439,12 @@ PanelWindow {
                                     anchors { left: parent.left; leftMargin: 14; right: parent.right; rightMargin: 10; verticalCenter: parent.verticalCenter }
                                     spacing: 8
                                     Text {
-                                        text: root.signalIcon(modelData.signal)
+                                        text: root.signalIcon(modelData.signalStrength * 100)
                                         font.pixelSize: 15; font.family: "JetBrainsMono Nerd Font"
                                         color: PanelColors.textMain
                                     }
                                     Text {
-                                        text: modelData.ssid
+                                        text: modelData.name
                                         font.pixelSize: 13; font.bold: true; font.family: "JetBrainsMono Nerd Font"
                                         color: PanelColors.textMain
                                         elide: Text.ElideRight
@@ -431,7 +452,7 @@ PanelWindow {
                                     }
                                     Text {
                                         id: lockIcon
-                                        text: root.isSecured(modelData.security) ? "󰌾" : ""
+                                        text: root.isSecured(modelData) ? "󰌾" : ""
                                         font.pixelSize: 12; font.family: "JetBrainsMono Nerd Font"
                                         color: PanelColors.textDim
                                     }
@@ -439,7 +460,7 @@ PanelWindow {
                                 MouseArea {
                                     id: otherMouse
                                     anchors.fill: parent; hoverEnabled: true
-                                    onClicked: root.handleNetworkClick(modelData.ssid, modelData.security, false)
+                                    onClicked: root.handleNetworkClick(modelData)
                                 }
                             }
                         }
@@ -522,7 +543,7 @@ PanelWindow {
                     spacing: 8
                     Text { text: "󰤨"; font.pixelSize: 15; font.family: "JetBrainsMono Nerd Font"; color: PanelColors.pillForeground }
                     Text {
-                        text: root.targetSSID
+                        text: root.targetNetwork ? root.targetNetwork.name : ""
                         font.pixelSize: 13; font.bold: true; font.family: "JetBrainsMono Nerd Font"
                         color: PanelColors.pillForeground
                         elide: Text.ElideRight
@@ -535,8 +556,8 @@ PanelWindow {
             Rectangle {
                 width: parent.width; height: 34; radius: 6
                 color: pwInput.activeFocus ? Qt.lighter(PanelColors.rowBackground, 1.15) : PanelColors.rowBackground
-                border.color: NetworkState.connectError !== "" ? PanelColors.error : (pwInput.activeFocus ? PanelColors.network : "transparent")
-                border.width: pwInput.activeFocus || NetworkState.connectError !== "" ? 1 : 0
+                border.color: root.connectError !== "" ? PanelColors.error : (pwInput.activeFocus ? PanelColors.network : "transparent")
+                border.width: pwInput.activeFocus || root.connectError !== "" ? 1 : 0
                 Row {
                     anchors { left: parent.left; leftMargin: 14; right: parent.right; rightMargin: 10; verticalCenter: parent.verticalCenter }
                     spacing: 8
@@ -553,11 +574,11 @@ PanelWindow {
                         text: root.passwordText
                         onTextChanged: {
                             root.passwordText = text
-                            NetworkState.connectError = ""
+                            root.connectError = ""
                         }
                         onAccepted: {
-                            if (root.passwordText.length > 0) {
-                                NetworkState.connect(root.targetSSID, root.passwordText)
+                            if (root.passwordText.length > 0 && root.targetNetwork) {
+                                root.targetNetwork.connectWithPsk(root.passwordText)
                                 root.viewState = "list"
                             }
                         }
@@ -588,12 +609,12 @@ PanelWindow {
 
             // Error
             Rectangle {
-                visible: NetworkState.connectError !== ""
+                visible: root.connectError !== ""
                 width: parent.width; height: visible ? 26 : 0; radius: 6
                 color: "transparent"
                 Text {
                     anchors.centerIn: parent
-                    text: NetworkState.connectError
+                    text: root.connectError
                     font.pixelSize: 11; font.bold: true; font.family: "JetBrainsMono Nerd Font"
                     color: PanelColors.error
                 }
@@ -618,8 +639,8 @@ PanelWindow {
                     id: connectMouse
                     anchors.fill: parent; hoverEnabled: true
                     onClicked: {
-                        if (root.passwordText.length > 0) {
-                            NetworkState.connect(root.targetSSID, root.passwordText)
+                        if (root.passwordText.length > 0 && root.targetNetwork) {
+                            root.targetNetwork.connectWithPsk(root.passwordText)
                             root.viewState = "list"
                         }
                     }
