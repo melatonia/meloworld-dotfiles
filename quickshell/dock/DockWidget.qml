@@ -29,8 +29,6 @@ PanelWindow {
     property bool hovering:       false
     readonly property bool dockVisible: !windowsPresent || hovering
 
-    property var instanceCounts: ({})
-
     // ── hide debounce ──────────────────────────────────────────────
     Timer {
         id: hideTimer
@@ -75,30 +73,7 @@ PanelWindow {
                 var focused = parseInt(match[1]) === 1
                 var clients = parseInt(match[2])
                 if (focused) dock.windowsPresent = clients > 0
-
-                pollProc.running = false
-                pollProc.running = true
             }
-        }
-    }
-
-    // ── mmsg -g : one-shot poll to get all client appids ──────────
-    Process {
-        id: pollProc
-        command: ["mmsg", "-g"]
-        running: false
-        stdout: SplitParser {
-            onRead: (line) => {
-                var m = line.match(/\S+\s+client\s+\S+\s+(\S+)/)
-                if (!m) return
-                var appId = m[1]
-                var counts = dock.instanceCounts
-                counts[appId] = (counts[appId] || 0) + 1
-                dock.instanceCounts = counts
-            }
-        }
-        onStarted: {
-            dock.instanceCounts = ({})
         }
     }
 
@@ -149,7 +124,7 @@ PanelWindow {
                     appId:         modelData.id
                     appLabel:      modelData.label
                     iconName:      modelData.icon
-                    instanceCount: dock.instanceCounts[modelData.id] || 0
+                    steamId:       modelData.steamId ?? ""
                 }
             }
         }

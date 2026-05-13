@@ -10,7 +10,7 @@ Item {
     property string appId:         ""
     property string appLabel:      ""
     property string iconName:      ""
-    property int    instanceCount: 0
+    property string steamId:       ""
 
     implicitWidth:  56
     implicitHeight: 64
@@ -44,11 +44,12 @@ Item {
         anchors.fill: parent
         cursorShape:  Qt.PointingHandCursor
         onClicked: {
-            var entry = DesktopEntries.byId(root.appId)
-            if (entry) {
-                entry.execute()
+            if (root.steamId !== "") {
+                Quickshell.execDetached(["xdg-open", "steam://rungameid/" + root.steamId])
             } else {
-                Quickshell.execDetached([root.appId])
+                var entry = DesktopEntries.byId(root.appId)
+                if (entry) entry.execute()
+                else Quickshell.execDetached([root.appId])
             }
         }
     }
