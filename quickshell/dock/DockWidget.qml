@@ -3,29 +3,75 @@ import QtQuick.Layouts
 import Quickshell
 import Quickshell.Io
 import "."
+import "../theme"
 
 PanelWindow {
     id: dock
 
-    // Only anchor bottom — no left/right — so the window is pill-width
-    // and floats centered. With left+right it would stretch the full screen.
     anchors.bottom: true
+    anchors.left:   true
+    anchors.right:  true
 
-    // ExclusionMode.Ignore means: don't push tiling windows, don't
-    // reserve any strut. The dock floats over everything, purely visual.
     exclusionMode: ExclusionMode.Ignore
+    color:         "transparent"
 
-    color: "transparent"
+    // Surface is always fullHeight and never resizes.
+    // The mask switches between the pill's resting rect and the trigger strip —
+    // but crucially we use `pillMask` (a static Item at the pill's resting
+    // position) rather than `pill` itself, so the Translate animation never
+    // affects the mask geometry and there is no feedback loop.
+    readonly property int margin:     8
+    readonly property int pillHeight: 64
+    readonly property int fullHeight: pillHeight + margin * 2
+    implicitHeight: fullHeight
 
-    implicitWidth:  row.implicitWidth + 48
-    implicitHeight: 64 + 12   // pill + bottom gap
+    mask: Region {
+        item: dockVisible ? pillMask : triggerStrip
+    }
 
-    // ── autohide state ────────────────────────────────────────────
+    // ── state ──────────────────────────────────────────────────────
     property bool windowsPresent: false
     property bool hovering:       false
     readonly property bool dockVisible: !windowsPresent || hovering
 
-    // ── MangoWM watcher ──────────────────────────────────────────
+    // Map of appId -> instance count, rebuilt on every tag event
+    property var instanceCounts: ({})
+
+    // ── hide debounce ──────────────────────────────────────────────
+    Timer {
+        id: hideTimer
+        interval: 300
+        onTriggered: dock.hovering = false
+    }
+
+    // ── trigger strip: thin hotzone at screen edge when dock is hidden ─
+    Item {
+        id: triggerStrip
+        anchors.left:   parent.left
+        anchors.right:  parent.right
+        anchors.bottom: parent.bottom
+        height: 4
+
+        HoverHandler {
+            onHoveredChanged: {
+                if (hovered) { hideTimer.stop(); dock.hovering = true }
+                else hideTimer.restart()
+            }
+        }
+    }
+
+    // ── pillMask: static rect at the pill's resting position ───────
+    // Used only as a mask geometry reference — never animated, never moved.
+    Item {
+        id: pillMask
+        anchors.horizontalCenter: parent.horizontalCenter
+        anchors.bottom:           parent.bottom
+        anchors.bottomMargin:     dock.margin
+        width:  pill.width
+        height: dock.pillHeight
+    }
+
+    // ── mmsg -w -t : watch tag changes, update windowsPresent ─────
     Timer {
         id: watchRestartTimer
         interval: 1000
@@ -41,84 +87,97 @@ PanelWindow {
         }
         stdout: SplitParser {
             onRead: (line) => {
-                var match = line.match(/\S+\s+tag\s+(\d+)\s+(\d+)\s+(\d+)\s+(\d+)/)
+                var match = line.match(/\S+\s+tag\s+\d+\s+(\d+)\s+(\d+)\s+\d+/)
                 if (!match) return
-                var focused = parseInt(match[2]) === 1
-                var clients = parseInt(match[3])
+                var focused = parseInt(match[1]) === 1
+                var clients = parseInt(match[2])
                 if (focused) dock.windowsPresent = clients > 0
+
+                pollProc.running = false
+                pollProc.running = true
             }
         }
     }
 
-    // ── slide animation ──────────────────────────────────────────
-    // We translate the pill downward rather than hiding it, so the
-    // hover strip at the very bottom remains active even when hidden.
-    readonly property real hiddenY: 64 + 12 + 4
-
-    property real slideY: dockVisible ? 0 : hiddenY
-    Behavior on slideY {
-        NumberAnimation { duration: 220; easing.type: Easing.InOutCubic }
+    // ── mmsg -g : one-shot poll to get all client appids ──────────
+    Process {
+        id: pollProc
+        command: ["mmsg", "-g"]
+        running: false
+        stdout: SplitParser {
+            onRead: (line) => {
+                var m = line.match(/\S+\s+client\s+\S+\s+(\S+)/)
+                if (!m) return
+                var appId = m[1]
+                var counts = dock.instanceCounts
+                counts[appId] = (counts[appId] || 0) + 1
+                dock.instanceCounts = counts
+            }
+        }
+        onStarted: {
+            dock.instanceCounts = ({})
+        }
     }
 
-    // ── hover strip ───────────────────────────────────────────────
-    // Thin invisible strip at the bottom edge. When the pill is slid
-    // away, this is still here and catches the cursor entering.
-    MouseArea {
-        anchors { left: parent.left; right: parent.right; bottom: parent.bottom }
-        height:                  10
-        hoverEnabled:            true
-        propagateComposedEvents: true
-        onEntered: dock.hovering = true
-    }
-
-    // ── pill ─────────────────────────────────────────────────────
+    // ── pill ───────────────────────────────────────────────────────
     Item {
         id: pill
 
-        anchors {
-            horizontalCenter: parent.horizontalCenter
-            bottom:           parent.bottom
-            bottomMargin:     6
+        anchors.horizontalCenter: parent.horizontalCenter
+        anchors.bottom:           parent.bottom
+        anchors.bottomMargin:     dock.margin
+
+        width:  row.implicitWidth + dock.margin * 2
+        height: dock.pillHeight
+
+        // Slide: 0 = resting position, positive = pushed down (hidden)
+        readonly property real hiddenOffset: dock.fullHeight + 8
+        property real slideOffset: dock.dockVisible ? 0 : hiddenOffset
+
+        Behavior on slideOffset {
+            NumberAnimation {
+                duration: 260
+                easing.type: Easing.OutCubic
+            }
         }
 
-        implicitWidth:  row.implicitWidth + 24
-        implicitHeight: 64
+        transform: Translate { y: pill.slideOffset }
 
-        transform: Translate { y: dock.slideY }
+        opacity: dock.dockVisible ? 1.0 : 0.0
+        Behavior on opacity {
+            NumberAnimation { duration: 200; easing.type: Easing.OutCubic }
+        }
 
-        // Background — radius 6 as requested
         Rectangle {
             anchors.fill: parent
             color:        PanelColors.barBackground
-            radius:       6
+            radius:       10
             border.color: PanelColors.border
-            border.width: 1
+            border.width: 3
             opacity:      0.95
         }
 
-        // Icons
         RowLayout {
             id: row
             anchors.centerIn: parent
-            spacing:          8
+            spacing: 6
 
             Repeater {
                 model: PinnedApps.apps
                 AppIcon {
-                    appId:    modelData.id
-                    appLabel: modelData.label
-                    iconName: modelData.icon
+                    appId:         modelData.id
+                    appLabel:      modelData.label
+                    iconName:      modelData.icon
+                    instanceCount: dock.instanceCounts[modelData.id] || 0
                 }
             }
         }
 
-        // Hover area covering the pill — onExited clears hovering
-        MouseArea {
-            anchors.fill:            parent
-            hoverEnabled:            true
-            propagateComposedEvents: true
-            onEntered: dock.hovering = true
-            onExited:  dock.hovering = false
+        HoverHandler {
+            onHoveredChanged: {
+                if (hovered) { hideTimer.stop(); dock.hovering = true }
+                else hideTimer.restart()
+            }
         }
     }
 }

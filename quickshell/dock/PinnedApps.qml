@@ -4,9 +4,11 @@ import Quickshell
 
 Singleton {
     readonly property var apps: [
+        { id: "ghostty",            label: "Ghostty", icon: "com.mitchellh.ghostty"             },
         { id: "zen-browser",        label: "Zen",     icon: "zen-browser"         },
-        { id: "zed",                label: "Zed",     icon: "zed"                 },
-        { id: "spotify",            label: "Spotify", icon: "spotify"             },
+        { id: "zeditor",            label: "Zed",     icon: "zed"                 },
+        { id: "spotify-launcher",   label: "Spotify", icon: "spotify"             },
+        { id: "bitwig-studio",      label: "Bitwig Studio",     icon: "bitwig-studio"},
         { id: "org.gnome.Nautilus", label: "Files",   icon: "system-file-manager" }
     ]
 }
