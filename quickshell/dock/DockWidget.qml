@@ -15,18 +15,13 @@ PanelWindow {
     exclusionMode: ExclusionMode.Ignore
     color:         "transparent"
 
-    // Surface is always fullHeight and never resizes.
-    // The mask switches between the pill's resting rect and the trigger strip —
-    // but crucially we use `pillMask` (a static Item at the pill's resting
-    // position) rather than `pill` itself, so the Translate animation never
-    // affects the mask geometry and there is no feedback loop.
     readonly property int margin:     8
     readonly property int pillHeight: 64
     readonly property int fullHeight: pillHeight + margin * 2
     implicitHeight: fullHeight
 
     mask: Region {
-        item: dockVisible ? pillMask : triggerStrip
+        item: dockVisible ? pill : triggerStrip
     }
 
     // ── state ──────────────────────────────────────────────────────
@@ -34,7 +29,6 @@ PanelWindow {
     property bool hovering:       false
     readonly property bool dockVisible: !windowsPresent || hovering
 
-    // Map of appId -> instance count, rebuilt on every tag event
     property var instanceCounts: ({})
 
     // ── hide debounce ──────────────────────────────────────────────
@@ -44,7 +38,7 @@ PanelWindow {
         onTriggered: dock.hovering = false
     }
 
-    // ── trigger strip: thin hotzone at screen edge when dock is hidden ─
+    // ── trigger strip ──────────────────────────────────────────────
     Item {
         id: triggerStrip
         anchors.left:   parent.left
@@ -58,17 +52,6 @@ PanelWindow {
                 else hideTimer.restart()
             }
         }
-    }
-
-    // ── pillMask: static rect at the pill's resting position ───────
-    // Used only as a mask geometry reference — never animated, never moved.
-    Item {
-        id: pillMask
-        anchors.horizontalCenter: parent.horizontalCenter
-        anchors.bottom:           parent.bottom
-        anchors.bottomMargin:     dock.margin
-        width:  pill.width
-        height: dock.pillHeight
     }
 
     // ── mmsg -w -t : watch tag changes, update windowsPresent ─────
@@ -123,25 +106,23 @@ PanelWindow {
     Item {
         id: pill
 
-        anchors.horizontalCenter: parent.horizontalCenter
-        anchors.bottom:           parent.bottom
-        anchors.bottomMargin:     dock.margin
-
+        // No anchors — position is managed entirely by y so that layout
+        // geometry always matches visual position, letting the mask track
+        // pill directly without a shadow item.
+        x: (parent.width - width) / 2
         width:  row.implicitWidth + dock.margin * 2
         height: dock.pillHeight
 
-        // Slide: 0 = resting position, positive = pushed down (hidden)
-        readonly property real hiddenOffset: dock.fullHeight + 8
-        property real slideOffset: dock.dockVisible ? 0 : hiddenOffset
+        readonly property real restingY: parent.height - dock.pillHeight - dock.margin
+        readonly property real hiddenY:  parent.height + dock.margin
+        y: dock.dockVisible ? restingY : hiddenY
 
-        Behavior on slideOffset {
+        Behavior on y {
             NumberAnimation {
                 duration: 260
                 easing.type: Easing.OutCubic
             }
         }
-
-        transform: Translate { y: pill.slideOffset }
 
         opacity: dock.dockVisible ? 1.0 : 0.0
         Behavior on opacity {
