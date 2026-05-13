@@ -12,7 +12,7 @@
 
 ---
 
-![desktop preview](assets/desktop.png?v=2)
+![desktop preview](assets/desktop.png?v=3)
 
 ---
 
@@ -42,6 +42,14 @@ every popup, widget, and notification is part of the same visual system. same ro
 ## 🌸 the bar
 
 workspace pills that slide in when you open something and slide out when you close it. scroll the mouse wheel to switch workspaces.
+
+---
+
+## ☀️ the dashboard
+
+![dashboard](assets/dashboard.png)
+
+a left panel with quick toggles and notification history. the greetings change dynamically based on the time.
 
 ---
 
