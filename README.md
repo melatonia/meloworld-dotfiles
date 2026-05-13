@@ -12,7 +12,7 @@
 
 ---
 
-![desktop preview](assets/desktop.png?v=3)
+![desktop preview](assets/desktop.png)
 
 ---
 
