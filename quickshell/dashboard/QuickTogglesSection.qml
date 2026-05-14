@@ -115,13 +115,5 @@ Item {
             accentColor: Colors.purple200
             onClicked: NotificationState.toggleDnd()
         }
-
-        QuickToggle {
-            icon: "󰢮"
-            label: "Effects"
-            active: SystemTogglesState.compositorEffectsOn
-            accentColor: PanelColors.gpuRing
-            onClicked: SystemTogglesState.toggleCompositorEffects()
-        }
     }
 }

@@ -472,7 +472,7 @@ Item {
                 spacing:          6
 
                 Text {
-                    text:           root.expanded ? "󰅃" : "󰅀"
+                    text:           root.expanded ? "" : ""
                     font.pixelSize: 17
                     font.family:    "JetBrainsMono Nerd Font"
                     color:          root.accentColor

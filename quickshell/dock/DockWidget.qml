@@ -2,6 +2,7 @@ import QtQuick
 import QtQuick.Layouts
 import Quickshell
 import Quickshell.Io
+import Quickshell.Wayland
 import "."
 import "../theme"
 
@@ -13,6 +14,7 @@ PanelWindow {
     anchors.right:  true
 
     exclusionMode: ExclusionMode.Ignore
+    WlrLayershell.layer: WlrLayershell.Overlay
     color:         "transparent"
 
     readonly property int margin:     8

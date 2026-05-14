@@ -96,7 +96,7 @@ PopupBase {
                 Behavior on color { ColorAnimation { duration: 150 } }
                 Text {
                     anchors.centerIn: parent
-                    text: ""
+                    text: ""
                     font.pixelSize: 13; font.family: "JetBrainsMono Nerd Font"
                     color: prevArea.containsMouse ? PanelColors.textAccent : PanelColors.textDim
                     Behavior on color { ColorAnimation { duration: 150 } }
@@ -124,7 +124,7 @@ PopupBase {
                 Behavior on color { ColorAnimation { duration: 150 } }
                 Text {
                     anchors.centerIn: parent
-                    text: ""
+                    text: ""
                     font.pixelSize: 13; font.family: "JetBrainsMono Nerd Font"
                     color: nextArea.containsMouse ? PanelColors.textAccent : PanelColors.textDim
                     Behavior on color { ColorAnimation { duration: 150 } }
