@@ -1,10 +1,24 @@
 pragma Singleton
 import QtQuick
+import Qt.labs.settings
 import Quickshell
 
 Singleton {
+    id: root
     property bool nightLightOn: true
     property bool compositorEffectsOn: false
+
+    Settings {
+        category: "System"
+        property alias nightLightOn: root.nightLightOn
+    }
+
+    Component.onCompleted: {
+        // Apply night light state on startup
+        if (nightLightOn) {
+            Quickshell.execDetached(["/bin/bash", "-c", "~/.local/bin/nightlight.sh"])
+        }
+    }
 
     readonly property var caffeineModes: [0, 5, 10, 30, -1]
     property int caffeineModeIndex: 0
