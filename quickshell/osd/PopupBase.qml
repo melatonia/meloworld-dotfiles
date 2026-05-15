@@ -42,7 +42,9 @@ PopupWindow {
         height: root.contentHeight + (root.padding * 2)
         radius: 10
         color:  PanelColors.popupBackground
+        Behavior on color { ColorAnimation { duration: PanelColors.transitionDuration } }
         border.color: root.borderColor
+        Behavior on border.color { ColorAnimation { duration: PanelColors.transitionDuration } }
         border.width: 2
         clip:   root.clipContent
 

@@ -19,6 +19,7 @@ Item {
         anchors.topMargin: 10
         height: 40
         color: PanelColors.barBackground
+        Behavior on color { ColorAnimation { duration: PanelColors.transitionDuration } }
         radius: 8
         width: leftBar.implicitWidth + 12
 
@@ -35,6 +36,7 @@ Item {
         anchors.topMargin: 10
         height: 40
         color: PanelColors.barBackground
+        Behavior on color { ColorAnimation { duration: PanelColors.transitionDuration } }
         radius: 8
         width: centerBar.implicitWidth + 12
 
@@ -52,6 +54,7 @@ Item {
         anchors.topMargin: 10
         height: 40
         color: PanelColors.barBackground
+        Behavior on color { ColorAnimation { duration: 250 } }
         radius: 8
         width: rightBar.implicitWidth + 12
 

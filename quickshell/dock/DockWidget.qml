@@ -109,8 +109,10 @@ PanelWindow {
         Rectangle {
             anchors.fill: parent
             color:        PanelColors.barBackground
+            Behavior on color { ColorAnimation { duration: PanelColors.transitionDuration } }
             radius:       10
             border.color: PanelColors.border
+            Behavior on border.color { ColorAnimation { duration: PanelColors.transitionDuration } }
             border.width: 3
             opacity:      0.95
         }

@@ -19,6 +19,14 @@ Item {
         }
     }
 
+    Behavior on color {
+        ColorAnimation { duration: PanelColors.transitionDuration }
+    }
+
+    onColorChanged: canvas.requestPaint()
+    readonly property color trackColor: PanelColors.rowBackground
+    onTrackColorChanged: canvas.requestPaint()
+
     Canvas {
         id: canvas
         width: parent.width; height: 80
@@ -68,6 +76,7 @@ Item {
             font.pixelSize: 20
             font.family: "JetBrainsMono Nerd Font"
             color: root.color
+            Behavior on color { ColorAnimation { duration: PanelColors.transitionDuration } }
         }
 
         Text {
@@ -77,6 +86,7 @@ Item {
             font.bold: true
             font.family: "JetBrainsMono Nerd Font"
             color: PanelColors.textAccent
+            Behavior on color { ColorAnimation { duration: PanelColors.transitionDuration } }
         }
     }
 

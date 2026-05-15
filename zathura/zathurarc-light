@@ -1,0 +1,71 @@
+# ─────────────────────────────────────────────
+#  Zathura — Light Theme
+#  Matched to meloworld / PanelColors-light.qml
+# ─────────────────────────────────────────────
+
+# ── UI chrome ────────────────────────────────
+set default-bg                  "#fafafa"   # grey50   — main background
+set default-fg                  "#455a64"   # blueGrey700 — primary text
+
+set statusbar-bg                "#eeeeee"   # grey200
+set statusbar-fg                "#455a64"   # blueGrey700
+set statusbar-h-padding         8
+set statusbar-v-padding         4
+
+set inputbar-bg                 "#fafafa"   # grey50
+set inputbar-fg                 "#546e7a"   # blueGrey600
+
+set notification-bg             "#eeeeee"   # grey200
+set notification-fg             "#455a64"   # blueGrey700
+set notification-error-bg       "#ef5350"   # red400
+set notification-error-fg       "#fafafa"   # grey50
+set notification-warning-bg     "#ffa726"   # orange300
+set notification-warning-fg     "#fafafa"   # grey50
+
+set completion-bg               "#eeeeee"   # grey200
+set completion-fg               "#455a64"   # blueGrey700
+set completion-group-bg         "#fafafa"   # grey50
+set completion-group-fg         "#26a69a"   # teal400
+set completion-highlight-bg     "#26a69a"   # teal300 (audio accent)
+set completion-highlight-fg     "#fafafa"   # grey50
+
+set tabbar-bg                   "#fafafa"   # grey50
+set tabbar-fg                   "#90a4ae"   # blueGrey300
+set tabbar-focus-bg             "#eeeeee"   # grey200
+set tabbar-focus-fg             "#455a64"   # blueGrey700
+
+# ── Selection & search ───────────────────────
+set highlight-color             "#80cbc4"   # teal200  — soft selection
+set highlight-active-color      "#26a69a"   # teal400  — active match
+
+# ── Recolor (light-mode document rendering) ──
+set recolor                     "false"     # let the PDF render naturally
+set recolor-lightcolor          "#fafafa"   # grey50   — if toggled on
+set recolor-darkcolor           "#455a64"   # blueGrey700
+
+# ── Index / TOC ──────────────────────────────
+set index-bg                    "#fafafa"
+set index-fg                    "#455a64"
+set index-active-bg             "#26a69a"   # teal400
+set index-active-fg             "#fafafa"
+
+# ── Render quality ───────────────────────────
+set render-loading              "true"
+set render-loading-bg           "#fafafa"
+set render-loading-fg           "#26a69a"   # teal400
+
+# ── Misc ─────────────────────────────────────
+set window-title-home-tilde     "true"
+set statusbar-basename          "true"
+set scroll-page-aware           "true"
+set adjust-open                 "best-fit"
+set zoom-min                    10
+set zoom-max                    1000
+set pages-per-row               1
+
+# ── Keybindings ──────────────────────────────
+map [normal] r reload
+map [normal] R rotate
+map [normal] K zoom in
+map [normal] J zoom out
+map [normal] i recolor

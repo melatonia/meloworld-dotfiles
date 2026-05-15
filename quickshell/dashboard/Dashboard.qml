@@ -60,7 +60,9 @@ PanelWindow {
 
         radius: 10
         color: PanelColors.popupBackground
+        Behavior on color { ColorAnimation { duration: PanelColors.transitionDuration } }
         border.color: accent
+        Behavior on border.color { ColorAnimation { duration: PanelColors.transitionDuration } }
         border.width: 2
         clip: true
 
@@ -136,7 +138,7 @@ PanelWindow {
                 }
             }
             Item { width: 1; height: 6 }
-            Rectangle { width: parent.width; height: 2; color: PanelColors.rowBackground; opacity: 0.6 }
+            Rectangle { width: parent.width; height: 2; color: PanelColors.rowBackground; opacity: 0.6; Behavior on color { ColorAnimation { duration: 250 } } }
             Item { width: 1; height: 10 }
         }
 

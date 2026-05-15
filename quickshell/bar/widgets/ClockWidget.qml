@@ -29,6 +29,9 @@ Pill {
         property var timeDate: clock.date
         onTimeDateChanged: requestPaint()
 
+        readonly property color fgColor: PanelColors.pillForeground
+        onFgColorChanged: requestPaint()
+
         onPaint: {
             var ctx = getContext("2d")
             ctx.reset()
@@ -74,6 +77,7 @@ Pill {
         font.bold: true
         font.family: "JetBrainsMono Nerd Font"
         color: PanelColors.pillForeground
+        Behavior on color { ColorAnimation { duration: PanelColors.transitionDuration } }
     }
 
     // Smooth Expanding Visualizer
@@ -103,6 +107,7 @@ Pill {
                     width: 2.2
                     radius: width / 2
                     color: PanelColors.pillForeground
+                    Behavior on color { ColorAnimation { duration: PanelColors.transitionDuration } }
                     anchors.verticalCenter: parent.verticalCenter
 
                     readonly property int targetHeight: index === 0 ? 14 : (index === 1 ? 10 : 16)

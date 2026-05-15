@@ -107,7 +107,9 @@ Item {
         opacity:       1
         radius:        10
         color:         PanelColors.popupBackground
+        Behavior on color { ColorAnimation { duration: PanelColors.transitionDuration } }
         border.color:  root.accentColor
+        Behavior on border.color { ColorAnimation { duration: PanelColors.transitionDuration } }
         border.width:  2
         clip:          true
         layer.enabled: true

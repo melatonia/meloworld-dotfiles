@@ -1,0 +1,18 @@
+// ── Meloworld shared colour tokens (Light) ───────────────────────────────────
+* {
+    bg:        #fafafa;
+    bg-alt:    #f5f5f5;
+    fg:        #37474f;
+    fg-dim:    #78909c;
+    accent:    #80cbc4;
+    accent-fg: #263238;
+    urgent:    #ef9a9a;
+    win-border:#cfd8dc;
+
+    background-color: transparent;
+    text-color:       @fg;
+    border:           0px;
+    margin:           0px;
+    padding:          0px;
+    spacing:          0px;
+}

@@ -98,6 +98,7 @@ Rectangle {
             font.bold: true
             font.family: "JetBrainsMono Nerd Font"
             color: root.textColor
+            Behavior on color { ColorAnimation { duration: PanelColors.transitionDuration } }
         }
 
         Text {
@@ -109,6 +110,7 @@ Rectangle {
             font.family: "JetBrainsMono Nerd Font"
             color: root.textColor
             opacity: (!root.hoverReveal || root.isRevealed) ? 1 : 0
+            Behavior on color { ColorAnimation { duration: PanelColors.transitionDuration } }
             Behavior on opacity { NumberAnimation { duration: 150 } }
         }
     }
