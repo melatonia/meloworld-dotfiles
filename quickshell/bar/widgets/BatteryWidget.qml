@@ -6,26 +6,90 @@ import "../../theme"
 
 Pill {
     id: root
-    //hoverReveal: true
-    //forceReveal: SessionState.powerPopupVisible
     property var battery: UPower.displayDevice
     property bool hasBattery: battery && battery.ready
     property int pct: hasBattery ? Math.round(battery.percentage * 100) : 0
-    property int prevPct: 0
     property bool charging: hasBattery && (
         battery.state === UPowerDeviceState.Charging ||
         battery.state === UPowerDeviceState.FullyCharged
     )
+    property int prevPct: 0
 
     pillColor: PanelColors.profileColor(PowerProfiles.profile)
 
+    property int brightnessTarget: BrightnessState.brightness
+    property bool isInternalChange: false
+
+    Timer {
+        id: brightnessTimer
+        interval: 30
+        repeat: true
+        onTriggered: {
+            if (BrightnessState.brightness === root.brightnessTarget) {
+                stop()
+                return
+            }
+            var next = BrightnessState.brightness > root.brightnessTarget
+                ? Math.max(BrightnessState.brightness - 5, root.brightnessTarget)
+                : Math.min(BrightnessState.brightness + 5, root.brightnessTarget)
+            root.isInternalChange = true
+            BrightnessState.setBrightness(next)
+        }
+    }
+
+    function transitionBrightness(targetPct) {
+        root.brightnessTarget = targetPct
+        brightnessTimer.restart()
+    }
+
+    Connections {
+        target: BrightnessState
+        function onBrightnessChanged() {
+            if (!root.isInternalChange && SystemTogglesState.isBatterySaverActive) {
+                SystemTogglesState.wasManuallyOverridden = true
+            }
+            SystemTogglesState.lastBrightness = BrightnessState.brightness
+            root.isInternalChange = false
+        }
+    }
+
+    Connections {
+        target: PowerProfiles
+        function onProfileChanged() {
+            if (!root.isInternalChange && SystemTogglesState.isBatterySaverActive) {
+                SystemTogglesState.wasManuallyOverridden = true
+            }
+            root.isInternalChange = false
+        }
+    }
 
     onPctChanged: {
-        if (hasBattery && prevPct > 20 && pct <= 20 && !charging) {
-            PowerProfiles.profile = PowerProfile.PowerSaver
-            Quickshell.execDetached(["brightnessctl", "set", "50%"])
+        if (hasBattery) {
+            // Entering Battery Saver
+            if (prevPct > 20 && pct <= 20 && !charging && !SystemTogglesState.isBatterySaverActive) {
+                SystemTogglesState.preSaverBrightness = BrightnessState.brightness
+                SystemTogglesState.preSaverProfile = PowerProfiles.profile
+                SystemTogglesState.isBatterySaverActive = true
+                SystemTogglesState.wasManuallyOverridden = false
+
+                root.isInternalChange = true
+                transitionBrightness(60)
+                PowerProfiles.profile = PowerProfile.PowerSaver
+            }
         }
         prevPct = pct
+    }
+
+    onChargingChanged: {
+        // Exiting Battery Saver when plugged in
+        if (charging && SystemTogglesState.isBatterySaverActive) {
+            if (!SystemTogglesState.wasManuallyOverridden) {
+                root.isInternalChange = true
+                transitionBrightness(SystemTogglesState.preSaverBrightness)
+                PowerProfiles.profile = SystemTogglesState.preSaverProfile
+            }
+            SystemTogglesState.isBatterySaverActive = false
+        }
     }
 
     widestLabel: "󰁹 100%"

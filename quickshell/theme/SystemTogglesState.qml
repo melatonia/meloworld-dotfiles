@@ -2,16 +2,28 @@ pragma Singleton
 import QtQuick
 import Qt.labs.settings
 import Quickshell
+import Quickshell.Services.UPower
 
 Singleton {
     id: root
     property bool nightLightOn: true
     property bool compositorEffectsOn: false
 
+    property int lastBrightness: 100
+    property int preSaverBrightness: 100
+    property int preSaverProfile: PowerProfile.Balanced
+    property bool isBatterySaverActive: false
+    property bool wasManuallyOverridden: false
+
     Settings {
         fileName: Quickshell.env("HOME") + "/.config/meloworld-dotfiles/settings.conf"
         category: "System"
         property alias nightLightOn: root.nightLightOn
+        property alias lastBrightness: root.lastBrightness
+        property alias preSaverBrightness: root.preSaverBrightness
+        property alias preSaverProfile: root.preSaverProfile
+        property alias isBatterySaverActive: root.isBatterySaverActive
+        property alias wasManuallyOverridden: root.wasManuallyOverridden
     }
 
     Component.onCompleted: {
@@ -19,6 +31,9 @@ Singleton {
         if (nightLightOn) {
             Quickshell.execDetached(["/bin/bash", "-c", "~/.local/bin/nightlight.sh"])
         }
+
+        // Apply last known brightness
+        BrightnessState.setBrightness(lastBrightness)
     }
 
     readonly property var caffeineModes: [0, 5, 10, 30, -1]
