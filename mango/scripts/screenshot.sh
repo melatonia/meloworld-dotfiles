@@ -1,5 +1,6 @@
 #!/bin/bash
-mkdir -p ~/Pictures/Screenshots
-FILE=~/Pictures/Screenshots/Screenshot\ From\ $(date +%Y-%m-%d\ %H-%M-%S).png
-grim -g "$(slurp)" "$FILE" && wl-copy < "$FILE" && notify-send "Screenshot Captured" "Saved to Pictures/Screenshots"
-pw-play ~/.config/mango/assets/sounds/screenshot.flac
+# 1. Instant capture to avoid "behind" frames
+grim /tmp/qs-master.png
+
+# 2. Open the Quickshell UI
+quickshell -c ~/.config/quickshell/screenshot/
