@@ -78,7 +78,7 @@ PopupBase {
         root._playerSwitching = true
         root.livePosition = root.activePlayer?.position ?? 0
         playerSwitchSettleTimer.restart()
-        root._startTextTransition()
+        root._crossfadeText()
     }
 
     // Brief window while we suppress smooth animation after a player switch
@@ -90,50 +90,32 @@ PopupBase {
     }
 
     // ── Text crossfade state ───────────────────────────────────────────────
-    // Flips false→true around track/player changes so title, artist and pill
-    // all fade out then fade back in with the new content.
-    property bool _textVisible: true
-    property string _displayedTitle:    ""
-    property string _displayedArtist:   ""
-    property string _displayedIdentity: ""
+    property bool _textShowA: true
 
-    function _startTextTransition() {
-        root._textVisible = false
-        textFadeInTimer.restart()
-    }
-
-    Timer {
-        id: textFadeInTimer
-        interval: 80
-        onTriggered: {
-            root._displayedTitle    = root.activePlayer?.trackTitle    ?? ""
-            root._displayedArtist   = root.activePlayer?.trackArtist   ?? ""
-            root._displayedIdentity = root.activePlayer?.identity      ?? ""
-            root._textVisible = true
+    function _crossfadeText() {
+        if (_textShowA) {
+            textSlotB.title    = root.activePlayer?.trackTitle    ?? ""
+            textSlotB.artist   = root.activePlayer?.trackArtist   ?? ""
+            textSlotB.identity = root.activePlayer?.identity      ?? ""
+        } else {
+            textSlotA.title    = root.activePlayer?.trackTitle    ?? ""
+            textSlotA.artist   = root.activePlayer?.trackArtist   ?? ""
+            textSlotA.identity = root.activePlayer?.identity      ?? ""
         }
+        _textShowA = !_textShowA
     }
 
     Connections {
         target: root.activePlayer
         function onTrackChanged() {
             root.livePosition = 0
-            root._startTextTransition()
+            root._crossfadeText()
         }
     }
 
     readonly property bool isPlaying:   activePlayer?.playbackState === MprisPlaybackState.Playing
     readonly property bool hasContent:  activePlayer !== null
     readonly property bool multiPlayer: root.playerList.length > 1
-
-    // Detect "passive" players — playing but fully non-interactive (e.g. Blanket)
-    readonly property bool isPassivePlayer: {
-        if (!activePlayer) return false
-        const noSeek  = !(activePlayer.canSeek        ?? false)
-        const noNext  = !(activePlayer.canGoNext       ?? false)
-        const noPrev  = !(activePlayer.canGoPrevious   ?? false)
-        const noPause = !(activePlayer.canPause        ?? false)
-        return noSeek && noNext && noPrev && noPause
-    }
 
     property real livePosition: activePlayer?.position ?? 0
     property bool userSeeking:  false
@@ -271,111 +253,102 @@ PopupBase {
                     }
                 }
 
-                Column {
+                // ── Text A/B crossfade stack ────────────────────────────────
+                Item {
+                    id: textStack
                     width: parent.width - artContainer.width - parent.spacing
                     anchors.verticalCenter: parent.verticalCenter
-                    spacing: 6
+                    // Height tracks whichever slot is currently visible
+                    height: root._textShowA ? textSlotA.implicitHeight : textSlotB.implicitHeight
 
-                    // ── Title ───────────────────────────────────────────────
-                    Item {
+                    component TextSlot: Column {
+                        id: slot
+                        property string title:    ""
+                        property string artist:   ""
+                        property string identity: ""
                         width: parent.width
-                        height: 20
-                        clip: true
+                        spacing: 6
 
-                        opacity: root._textVisible ? 1.0 : 0.0
-                        Behavior on opacity { NumberAnimation { duration: 80; easing.type: Easing.InOutSine } }
+                        Item {
+                            width: parent.width
+                            height: 20
+                            clip: true
+                            Text {
+                                id: slotTitle
+                                text: slot.title || "Unknown Title"
+                                font.pixelSize: 15
+                                font.bold: true
+                                font.family: "JetBrainsMono Nerd Font"
+                                color: PanelColors.textAccent
+                                readonly property bool overflow: implicitWidth > parent.width
+                                onOverflowChanged: { slotMarquee.stop(); slotTitle.x = 0; if (overflow) slotMarquee.start() }
+                                onTextChanged:     { slotMarquee.stop(); slotTitle.x = 0; if (overflow) slotMarquee.start() }
+                                SequentialAnimation {
+                                    id: slotMarquee
+                                    running: false; loops: Animation.Infinite
+                                    PauseAnimation { duration: 1200 }
+                                    NumberAnimation { target: slotTitle; property: "x"; from: 0; to: -slotTitle.implicitWidth; duration: slotTitle.implicitWidth * 14; easing.type: Easing.Linear }
+                                    PropertyAction  { target: slotTitle; property: "x"; value: slotTitle.parent.width }
+                                    NumberAnimation { target: slotTitle; property: "x"; from: slotTitle.parent.width; to: 0; duration: slotTitle.implicitWidth * 10; easing.type: Easing.Linear }
+                                    PauseAnimation { duration: 1200 }
+                                }
+                            }
+                        }
 
                         Text {
-                            id: titleText
-                            text: root._displayedTitle || "Unknown Title"
-                            font.pixelSize: 15
-                            font.bold: true
+                            width: parent.width
+                            text: slot.artist || "Unknown Artist"
+                            font.pixelSize: 12
                             font.family: "JetBrainsMono Nerd Font"
-                            color: PanelColors.textAccent
+                            color: PanelColors.textDim
+                            elide: Text.ElideRight
+                        }
 
-                            readonly property bool overflow: implicitWidth > parent.width
-
-                            onOverflowChanged: {
-                                marqueeAnim.stop(); titleText.x = 0
-                                if (overflow) marqueeAnim.start()
-                            }
-                            onTextChanged: {
-                                marqueeAnim.stop(); titleText.x = 0
-                                if (overflow) marqueeAnim.start()
-                            }
-
-                            SequentialAnimation {
-                                id: marqueeAnim
-                                running: false
-                                loops: Animation.Infinite
-                                PauseAnimation { duration: 1200 }
-                                NumberAnimation {
-                                    target: titleText; property: "x"
-                                    from: 0; to: -titleText.implicitWidth
-                                    duration: titleText.implicitWidth * 14
-                                    easing.type: Easing.Linear
+                        Rectangle {
+                            visible: slot.identity !== ""
+                            height: 18
+                            width: slotPillRow.implicitWidth + 12
+                            radius: height / 2
+                            color: Qt.rgba(PanelColors.clock.r, PanelColors.clock.g, PanelColors.clock.b, 0.15)
+                            Row {
+                                id: slotPillRow
+                                anchors.centerIn: parent
+                                spacing: 4
+                                Text {
+                                    text: root.getPlayerIcon(slot.identity)
+                                    font.pixelSize: 10; font.family: "JetBrainsMono Nerd Font"
+                                    color: PanelColors.textAccent
+                                    anchors.verticalCenter: parent.verticalCenter
                                 }
-                                PropertyAction { target: titleText; property: "x"; value: titleText.parent.width }
-                                NumberAnimation {
-                                    target: titleText; property: "x"
-                                    from: titleText.parent.width; to: 0
-                                    duration: titleText.implicitWidth * 10
-                                    easing.type: Easing.Linear
+                                Text {
+                                    text: slot.identity
+                                    font.pixelSize: 9; font.bold: true; font.family: "JetBrainsMono Nerd Font"
+                                    color: PanelColors.textAccent
+                                    anchors.verticalCenter: parent.verticalCenter
                                 }
-                                PauseAnimation { duration: 1200 }
                             }
                         }
                     }
 
-                    // ── Artist ──────────────────────────────────────────────
-                    Text {
-                        width: parent.width
-                        text: root._displayedArtist || "Unknown Artist"
-                        font.pixelSize: 12
-                        font.family: "JetBrainsMono Nerd Font"
-                        color: PanelColors.textDim
-                        elide: Text.ElideRight
-                        opacity: root._textVisible ? 1.0 : 0.0
-                        Behavior on opacity { NumberAnimation { duration: 80; easing.type: Easing.InOutSine } }
+                    TextSlot {
+                        id: textSlotA
+                        title:    root.activePlayer?.trackTitle    ?? ""
+                        artist:   root.activePlayer?.trackArtist   ?? ""
+                        identity: root.activePlayer?.identity      ?? ""
+                        opacity: root._textShowA ? 1.0 : 0.0
+                        Behavior on opacity { NumberAnimation { duration: 120; easing.type: Easing.InOutSine } }
                     }
 
-                    // ── App pill ────────────────────────────────────────────
-                    Rectangle {
-                        visible: root._displayedIdentity !== ""
-                        height: 18
-                        width: pillRow.implicitWidth + 12
-                        radius: height / 2
-                        color: Qt.rgba(PanelColors.clock.r, PanelColors.clock.g, PanelColors.clock.b, 0.15)
-                        opacity: root._textVisible ? 1.0 : 0.0
-                        Behavior on opacity { NumberAnimation { duration: 80; easing.type: Easing.InOutSine } }
-
-                        Row {
-                            id: pillRow
-                            anchors.centerIn: parent
-                            spacing: 4
-                            Text {
-                                text: root.getPlayerIcon(root._displayedIdentity)
-                                font.pixelSize: 10
-                                font.family: "JetBrainsMono Nerd Font"
-                                color: PanelColors.textAccent
-                                anchors.verticalCenter: parent.verticalCenter
-                            }
-                            Text {
-                                text: root._displayedIdentity
-                                font.pixelSize: 9; font.bold: true
-                                font.family: "JetBrainsMono Nerd Font"
-                                color: PanelColors.textAccent
-                                anchors.verticalCenter: parent.verticalCenter
-                            }
-                        }
+                    TextSlot {
+                        id: textSlotB
+                        opacity: root._textShowA ? 0.0 : 1.0
+                        Behavior on opacity { NumberAnimation { duration: 120; easing.type: Easing.InOutSine } }
                     }
                 }
             }
 
-            // Progress bar — visible for normal players with position support,
-            // OR always visible for passive players (Blanket etc.)
             Column {
-                visible: root.hasContent && (root.isPassivePlayer || (root.activePlayer?.positionSupported ?? false))
+                visible: root.hasContent && (root.activePlayer?.positionSupported ?? false)
                 width: parent.width
                 spacing: 4
 
@@ -384,11 +357,11 @@ PopupBase {
                     width: parent.width
                     accentColor: PanelColors.clock
                     from: 0
-                    to: root.isPassivePlayer ? 1 : Math.max(1, root.activePlayer?.length ?? 1)
-                    value: root.isPassivePlayer ? 1 : root.livePosition
+                    to: Math.max(1, root.activePlayer?.length ?? 1)
+                    value: root.livePosition
                     playing: root.isPlaying
-                    forceNoNeedle: root.isPassivePlayer
-                    seekable: !root.isPassivePlayer && (root.activePlayer?.canSeek ?? false)
+                    forceNoNeedle: false
+                    seekable: root.activePlayer?.canSeek ?? false
                     suppressSmooth: root._playerSwitching
                     onSeeked: (v) => {
                         root.userSeeking = true
@@ -406,12 +379,9 @@ PopupBase {
 
                 Row {
                     width: parent.width
-                    opacity: root.isPassivePlayer ? 0.0 : 1.0
-                    Behavior on opacity { NumberAnimation { duration: 200 } }
                     Text {
                         id: posLeft
-                        // ∞ for passive players; kept in DOM so layout doesn't shift
-                        text: root.isPassivePlayer ? "∞" : root.fmtTime(root.livePosition)
+                        text: root.fmtTime(root.livePosition)
                         font.pixelSize: 11
                         font.family: "JetBrainsMono Nerd Font"
                         color: PanelColors.textDim
