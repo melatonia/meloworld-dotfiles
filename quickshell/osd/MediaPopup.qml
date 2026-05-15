@@ -74,11 +74,56 @@ PopupBase {
     onActivePlayerChanged: {
         const idx = root.playerList.indexOf(root.activePlayer)
         if (idx !== -1) root.selectedIndex = idx
+        root.userSeeking = false
+        root._playerSwitching = true
+        root.livePosition = root.activePlayer?.position ?? 0
+        playerSwitchSettleTimer.restart()
+        // Trigger text crossfade on player switch
+        root._textVisible = false
+        textFadeInTimer.restart()
+    }
+
+    // Brief window while we suppress smooth animation after a player switch
+    property bool _playerSwitching: false
+    Timer {
+        id: playerSwitchSettleTimer
+        interval: 50
+        onTriggered: root._playerSwitching = false
+    }
+
+    // ── Text crossfade state ───────────────────────────────────────────────
+    // Flips false→true around track/player changes so title, artist and pill
+    // all fade out then fade back in with the new content.
+    property bool _textVisible: true
+    Timer {
+        id: textFadeInTimer
+        // Wait for the fade-out (160 ms) to finish before showing new content
+        interval: 160
+        onTriggered: root._textVisible = true
+    }
+
+    Connections {
+        target: root.activePlayer
+        function onTrackChanged() {
+            root.livePosition = 0
+            root._textVisible = false
+            textFadeInTimer.restart()
+        }
     }
 
     readonly property bool isPlaying:   activePlayer?.playbackState === MprisPlaybackState.Playing
     readonly property bool hasContent:  activePlayer !== null
     readonly property bool multiPlayer: root.playerList.length > 1
+
+    // Detect "passive" players — playing but fully non-interactive (e.g. Blanket)
+    readonly property bool isPassivePlayer: {
+        if (!activePlayer) return false
+        const noSeek  = !(activePlayer.canSeek        ?? false)
+        const noNext  = !(activePlayer.canGoNext       ?? false)
+        const noPrev  = !(activePlayer.canGoPrevious   ?? false)
+        const noPause = !(activePlayer.canPause        ?? false)
+        return noSeek && noNext && noPrev && noPause
+    }
 
     property real livePosition: activePlayer?.position ?? 0
     property bool userSeeking:  false
@@ -88,11 +133,6 @@ PopupBase {
         repeat: true
         running: root.isPlaying && !root.userSeeking
         onTriggered: { if (root.activePlayer) root.livePosition = root.activePlayer.position }
-    }
-
-    Connections {
-        target: root.activePlayer
-        function onTrackChanged() { root.livePosition = 0 }
     }
 
     function fmtTime(secs) {
@@ -137,25 +177,73 @@ PopupBase {
                 width: parent.width
                 spacing: 12
 
+                // Artwork — border stable, images crossfade
                 Item {
                     id: artContainer
                     width: 64
                     height: 64
 
-                    Image {
-                        id: artImage
-                        anchors.fill: parent
-                        anchors.margins: 2
-                        source: root.activePlayer?.trackArtUrl ?? ""
-                        fillMode: Image.PreserveAspectCrop
-                        asynchronous: true
-                        visible: status === Image.Ready
-                        mipmap: true
-                        smooth: true
+                    property string _urlA: root.activePlayer?.trackArtUrl ?? ""
+                    property string _urlB: ""
+                    property bool   _showA: true
+
+                    function _switchArt(newUrl) {
+                        if (_showA) {
+                            _urlB = newUrl
+                            _showA = false
+                        } else {
+                            _urlA = newUrl
+                            _showA = true
+                        }
                     }
 
+                    Connections {
+                        target: root
+                        function onActivePlayerChanged() {
+                            artContainer._switchArt(root.activePlayer?.trackArtUrl ?? "")
+                        }
+                    }
+
+                    Connections {
+                        target: root.activePlayer
+                        function onTrackArtUrlChanged() {
+                            artContainer._switchArt(root.activePlayer?.trackArtUrl ?? "")
+                        }
+                    }
+
+                    // Slot B (bottom layer)
+                    Image {
+                        id: artImageB
+                        anchors.fill: parent
+                        anchors.margins: 2
+                        source: artContainer._urlB
+                        fillMode: Image.PreserveAspectCrop
+                        asynchronous: true
+                        mipmap: true
+                        smooth: true
+                        opacity: artContainer._showA ? 0.0 : 1.0
+                        Behavior on opacity { NumberAnimation { duration: 220; easing.type: Easing.InOutSine } }
+                        visible: opacity > 0
+                    }
+
+                    // Slot A (top layer)
+                    Image {
+                        id: artImageA
+                        anchors.fill: parent
+                        anchors.margins: 2
+                        source: artContainer._urlA
+                        fillMode: Image.PreserveAspectCrop
+                        asynchronous: true
+                        mipmap: true
+                        smooth: true
+                        opacity: artContainer._showA ? 1.0 : 0.0
+                        Behavior on opacity { NumberAnimation { duration: 220; easing.type: Easing.InOutSine } }
+                        visible: opacity > 0
+                    }
+
+                    // Fallback icon
                     Text {
-                        visible: artImage.status !== Image.Ready
+                        visible: artImageA.status !== Image.Ready && artImageB.status !== Image.Ready
                         anchors.centerIn: parent
                         text: "󰎆"
                         font.pixelSize: 24
@@ -163,6 +251,7 @@ PopupBase {
                         color: PanelColors.textDim
                     }
 
+                    // Border — always on top, never fades
                     Rectangle {
                         anchors.fill: parent
                         color: "transparent"
@@ -177,10 +266,14 @@ PopupBase {
                     anchors.verticalCenter: parent.verticalCenter
                     spacing: 6
 
+                    // ── Title ───────────────────────────────────────────────
                     Item {
                         width: parent.width
                         height: 20
                         clip: true
+
+                        opacity: root._textVisible ? 1.0 : 0.0
+                        Behavior on opacity { NumberAnimation { duration: 160; easing.type: Easing.InOutSine } }
 
                         Text {
                             id: titleText
@@ -224,6 +317,7 @@ PopupBase {
                         }
                     }
 
+                    // ── Artist ──────────────────────────────────────────────
                     Text {
                         width: parent.width
                         text: root.activePlayer?.trackArtist || "Unknown Artist"
@@ -231,14 +325,19 @@ PopupBase {
                         font.family: "JetBrainsMono Nerd Font"
                         color: PanelColors.textDim
                         elide: Text.ElideRight
+                        opacity: root._textVisible ? 1.0 : 0.0
+                        Behavior on opacity { NumberAnimation { duration: 160; easing.type: Easing.InOutSine } }
                     }
 
+                    // ── App pill ────────────────────────────────────────────
                     Rectangle {
                         visible: (root.activePlayer?.identity ?? "") !== ""
                         height: 18
                         width: pillRow.implicitWidth + 12
                         radius: height / 2
                         color: Qt.rgba(PanelColors.clock.r, PanelColors.clock.g, PanelColors.clock.b, 0.15)
+                        opacity: root._textVisible ? 1.0 : 0.0
+                        Behavior on opacity { NumberAnimation { duration: 160; easing.type: Easing.InOutSine } }
 
                         Row {
                             id: pillRow
@@ -263,8 +362,10 @@ PopupBase {
                 }
             }
 
+            // Progress bar — visible for normal players with position support,
+            // OR always visible for passive players (Blanket etc.)
             Column {
-                visible: root.hasContent && (root.activePlayer?.positionSupported ?? false)
+                visible: root.hasContent && ((root.activePlayer?.positionSupported ?? false) || root.isPassivePlayer)
                 width: parent.width
                 spacing: 4
 
@@ -273,10 +374,12 @@ PopupBase {
                     width: parent.width
                     accentColor: PanelColors.clock
                     from: 0
-                    to: Math.max(1, root.activePlayer?.length ?? 1)
-                    value: root.livePosition
+                    to: root.isPassivePlayer ? 1 : Math.max(1, root.activePlayer?.length ?? 1)
+                    value: root.isPassivePlayer ? 1 : root.livePosition
                     playing: root.isPlaying
-                    seekable: root.activePlayer?.canSeek ?? false
+                    forceNoNeedle: root.isPassivePlayer
+                    seekable: !root.isPassivePlayer && (root.activePlayer?.canSeek ?? false)
+                    suppressSmooth: root._playerSwitching
                     onSeeked: (v) => {
                         root.userSeeking = true
                         root.activePlayer.position = v
@@ -293,9 +396,12 @@ PopupBase {
 
                 Row {
                     width: parent.width
+                    opacity: root.isPassivePlayer ? 0.0 : 1.0
+                    Behavior on opacity { NumberAnimation { duration: 200 } }
                     Text {
                         id: posLeft
-                        text: root.fmtTime(root.livePosition)
+                        // ∞ for passive players; kept in DOM so layout doesn't shift
+                        text: root.isPassivePlayer ? "∞" : root.fmtTime(root.livePosition)
                         font.pixelSize: 11
                         font.family: "JetBrainsMono Nerd Font"
                         color: PanelColors.textDim
@@ -319,8 +425,10 @@ PopupBase {
                 MediaButton {
                     anchors.left: parent.left
                     anchors.verticalCenter: parent.verticalCenter
-                    visible: root.activePlayer?.shuffleSupported ?? false
-                    icon: "󰒝"
+                    opacity: (root.activePlayer?.shuffleSupported ?? false) ? 1.0 : 0.0
+                    Behavior on opacity { NumberAnimation { duration: 200; easing.type: Easing.InOutSine } }
+                    visible: opacity > 0
+                    icon: ""
                     accentColor: PanelColors.clock
                     highlighted: root.activePlayer?.shuffle ?? false
                     onClicked: {
@@ -332,14 +440,17 @@ PopupBase {
                 Row {
                     anchors.centerIn: parent
                     spacing: 4
+
                     MediaButton {
-                        icon: "󰒮"; accentColor: PanelColors.clock
+                        icon: ""; accentColor: PanelColors.clock
                         enabled: root.activePlayer?.canGoPrevious ?? false
+                        opacity: enabled ? 1.0 : 0.45
+                        Behavior on opacity { NumberAnimation { duration: 180; easing.type: Easing.InOutSine } }
                         onClicked: root.activePlayer?.previous()
                     }
                     MediaButton {
                         id: playPauseBtn
-                        icon: root.isPlaying ? "󰏤" : "󰐊"
+                        icon: root.isPlaying ? "" : ""
                         highlighted: true
                         accentColor: PanelColors.clock
                         enabled: root.isPlaying
@@ -348,8 +459,10 @@ PopupBase {
                         onClicked: root.isPlaying ? root.activePlayer?.pause() : root.activePlayer?.play()
                     }
                     MediaButton {
-                        icon: "󰒭"; accentColor: PanelColors.clock
+                        icon: ""; accentColor: PanelColors.clock
                         enabled: root.activePlayer?.canGoNext ?? false
+                        opacity: enabled ? 1.0 : 0.45
+                        Behavior on opacity { NumberAnimation { duration: 180; easing.type: Easing.InOutSine } }
                         onClicked: root.activePlayer?.next()
                     }
                 }
@@ -357,8 +470,10 @@ PopupBase {
                 MediaButton {
                     anchors.right: parent.right
                     anchors.verticalCenter: parent.verticalCenter
-                    visible: root.activePlayer?.loopSupported ?? false
-                    icon: (root.activePlayer?.loopState ?? MprisLoopState.None) === MprisLoopState.Track ? "󰑘" : "󰑖"
+                    opacity: (root.activePlayer?.loopSupported ?? false) ? 1.0 : 0.0
+                    Behavior on opacity { NumberAnimation { duration: 200; easing.type: Easing.InOutSine } }
+                    visible: opacity > 0
+                    icon: (root.activePlayer?.loopState ?? MprisLoopState.None) === MprisLoopState.Track ? "" : ""
                     accentColor: PanelColors.clock
                     highlighted: (root.activePlayer?.loopState ?? MprisLoopState.None) !== MprisLoopState.None
                     onClicked: {
@@ -373,12 +488,10 @@ PopupBase {
         }
     }
 
-    // ── Arrow buttons — placed inside innerRect but drawn at window edges ──
-    // Because innerRect.width == window.width (full wide window), we use
-    // absolute x positions to place them in the left/right arrowOffset zones.
+    // ── Arrow buttons ──────────────────────────────────────────────────────
     PlayerNavButton {
         visible: root.multiPlayer
-        icon: ""
+        icon: ""
         x: 0
         anchors.verticalCenter: parent.verticalCenter
         accentColor: PanelColors.clock
@@ -387,7 +500,7 @@ PopupBase {
 
     PlayerNavButton {
         visible: root.multiPlayer
-        icon: ""
+        icon: ""
         x: contentCard.x + contentCard.width + root.arrowGap
         anchors.verticalCenter: parent.verticalCenter
         accentColor: PanelColors.clock
@@ -432,19 +545,24 @@ PopupBase {
         property color accentColor: PanelColors.clock
         property bool playing: false
         property bool seekable: true
+        property bool forceNoNeedle: false
+        property bool suppressSmooth: false
         signal seeked(real value)
         implicitWidth: 120
         implicitHeight: 32
         property bool dragging: barMouse.pressed
         property real internalValue: 0
         readonly property bool activeInteraction: dragging
-        readonly property bool isNeedle: activeInteraction || playing
+        readonly property bool isNeedle: !forceNoNeedle && (activeInteraction || playing)
         readonly property bool hovered: barMouse.containsMouse || barMouse.pressed
         readonly property real targetValue: activeInteraction ? internalValue : value
         property real animValue: targetValue
         Behavior on animValue {
-            enabled: !bar.dragging
+            enabled: !bar.dragging && !bar.suppressSmooth
             NumberAnimation { duration: 80; easing.type: Easing.OutCubic }
+        }
+        onTargetValueChanged: {
+            if (bar.suppressSmooth) animValue = targetValue
         }
         readonly property real _fillWidth: ((bar.animValue - bar.from) / (bar.to - bar.from)) * bar.width
         function _updateFromMouse(mouseX) {
@@ -458,7 +576,6 @@ PopupBase {
         onPlayingChanged: _waveAmount = (playing && !activeInteraction) ? 1.0 : 0.0
         onActiveInteractionChanged: _waveAmount = (playing && !activeInteraction) ? 1.0 : 0.0
 
-        // ── Animated stroke color for Canvas (Canvas can't use Behavior directly) ──
         property color _strokeColor: hovered ? Qt.lighter(bar.accentColor, 1.15) : bar.accentColor
         Behavior on _strokeColor { ColorAnimation { duration: 150 } }
 
@@ -499,6 +616,8 @@ PopupBase {
         }
         Item {
             width: 0; height: 0; anchors.verticalCenter: parent.verticalCenter; x: bar._fillWidth
+            opacity: bar.forceNoNeedle ? 0.0 : 1.0
+            Behavior on opacity { NumberAnimation { duration: 250; easing.type: Easing.InOutSine } }
             Rectangle {
                 anchors.centerIn: parent
                 width: bar.isNeedle ? 6 : (bar.hovered ? 18 : 14)
