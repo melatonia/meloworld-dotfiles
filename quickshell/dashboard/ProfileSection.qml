@@ -47,7 +47,7 @@ SectionBase {
     Process {
         id: checkLocalAvatar
         command: ["test", "-f", root.localAvatar]
-        onExited: {
+        onExited: (exitCode) => {
             if (exitCode === 0) {
                 root.avatarPath = "file://" + root.localAvatar;
             } else {

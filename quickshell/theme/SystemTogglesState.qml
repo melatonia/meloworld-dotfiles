@@ -9,6 +9,7 @@ Singleton {
     property bool compositorEffectsOn: false
 
     Settings {
+        fileName: Quickshell.env("HOME") + "/.config/meloworld-dotfiles/settings.conf"
         category: "System"
         property alias nightLightOn: root.nightLightOn
     }
