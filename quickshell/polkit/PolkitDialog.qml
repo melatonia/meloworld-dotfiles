@@ -21,6 +21,13 @@ PanelWindow {
 
     PolkitAgent { id: agent }
 
+    // Shorten "org.freedesktop.policykit.exec" → "policykit.exec"
+    readonly property string shortAction: {
+        var id = agent.flow?.actionId ?? ""
+        var parts = id.split(".")
+        return parts.length > 2 ? parts.slice(-2).join(".") : id
+    }
+
     Connections {
         target: agent
         function onAuthenticationRequestStarted() {
@@ -39,6 +46,7 @@ PanelWindow {
     Connections {
         target: agent.flow
         function onAuthenticationFailed() {
+            shakeAnim.start()
             passField.text = ""
             passField.forceActiveFocus()
         }
@@ -48,114 +56,128 @@ PanelWindow {
         }
     }
 
+    // Dim overlay — #66 = ~40% opacity, lighter than before
     Rectangle {
         anchors.fill: parent
-        color: "#99000000"
+        color: "#66000000"
     }
 
+    // Card
     Rectangle {
+        id: card
         anchors.centerIn: parent
-        width: 360
-        height: contentCol.implicitHeight + 32
-        radius: 10
+        width: 380
+        height: cardCol.implicitHeight + 48
+        radius: 8
         color: PanelColors.popupBackground
-        border.color: PanelColors.border
-        border.width: 1
+        border.width: 4
+        border.color: passField.activeFocus && !shakeAnim.running
+            ? PanelColors.audio
+            : PanelColors.border
+
+        Behavior on border.color { ColorAnimation { duration: 150 } }
+
+        SequentialAnimation {
+            id: shakeAnim
+            NumberAnimation { target: card; property: "anchors.horizontalCenterOffset"; from: 0;   to: 10;  duration: 50; easing.type: Easing.OutQuad }
+            NumberAnimation { target: card; property: "anchors.horizontalCenterOffset"; from: 10;  to: -10; duration: 50; easing.type: Easing.OutQuad }
+            NumberAnimation { target: card; property: "anchors.horizontalCenterOffset"; from: -10; to: 10;  duration: 50; easing.type: Easing.OutQuad }
+            NumberAnimation { target: card; property: "anchors.horizontalCenterOffset"; from: 10;  to: 0;   duration: 50; easing.type: Easing.OutQuad }
+        }
 
         Column {
-            id: contentCol
-            anchors {
-                top: parent.top
-                left: parent.left
-                right: parent.right
-                margins: 16
-            }
-            spacing: 10
+            id: cardCol
+            anchors.centerIn: parent
+            width: parent.width - 48
+            spacing: 14
 
+            // Icon + message
             Row {
                 width: parent.width
-                spacing: 10
+                spacing: 12
 
                 Rectangle {
-                    width: 32; height: 32; radius: 6
+                    width: 36; height: 36; radius: 8
                     anchors.verticalCenter: parent.verticalCenter
                     color: PanelColors.rowBackground
                     Text {
                         anchors.centerIn: parent
-                        text: "󰌾"
-                        font.pixelSize: 16
+                        text: "󰯄"
+                        font.pixelSize: 18
                         font.family: "JetBrainsMono Nerd Font"
-                        color: PanelColors.session
+                        color: PanelColors.audio
                     }
                 }
 
                 Text {
-                    width: parent.width - 42
+                    width: parent.width - 48
                     anchors.verticalCenter: parent.verticalCenter
                     text: agent.flow?.message ?? ""
                     color: PanelColors.textMain
-                    font.pixelSize: 13
+                    font.pixelSize: 14
                     font.family: "JetBrainsMono Nerd Font"
                     wrapMode: Text.WordWrap
                 }
             }
 
+            // Shortened action ID
             Text {
                 width: parent.width
-                text: agent.flow?.actionId ?? ""
+                text: root.shortAction
                 color: PanelColors.textDim
-                font.pixelSize: 10
+                font.pixelSize: 12
                 font.family: "JetBrainsMono Nerd Font"
                 elide: Text.ElideRight
             }
 
+            // Supplementary message (wrong password, PAM messages)
             Text {
                 visible: (agent.flow?.supplementaryMessage ?? "") !== ""
                 width: parent.width
                 text: agent.flow?.supplementaryMessage ?? ""
                 color: (agent.flow?.supplementaryIsError ?? false)
                     ? PanelColors.error : PanelColors.textDim
-                font.pixelSize: 11
+                font.pixelSize: 12
                 font.family: "JetBrainsMono Nerd Font"
                 wrapMode: Text.WordWrap
             }
 
+            // Password field
             Rectangle {
                 width: parent.width
-                height: 34
-                radius: 6
-                color: passField.activeFocus
-                    ? Qt.lighter(PanelColors.rowBackground, 1.15)
-                    : PanelColors.rowBackground
-                border.color: passField.activeFocus ? PanelColors.session : "transparent"
-                border.width: 1
-                Behavior on color { ColorAnimation { duration: 150 } }
+                height: 40
+                radius: 8
+                color: PanelColors.rowBackground
+                border.width: passField.activeFocus && !shakeAnim.running ? 2 : 0
+                border.color: PanelColors.audio
+
+                Behavior on border.color { ColorAnimation { duration: 150 } }
 
                 Row {
                     anchors {
-                        left: parent.left; leftMargin: 12
-                        right: parent.right; rightMargin: 12
+                        left: parent.left; leftMargin: 14
+                        right: parent.right; rightMargin: 14
                         verticalCenter: parent.verticalCenter
                     }
-                    spacing: 8
+                    spacing: 10
 
                     Text {
                         anchors.verticalCenter: parent.verticalCenter
                         text: agent.flow?.inputPrompt ?? "Password:"
                         color: PanelColors.textDim
-                        font.pixelSize: 12
+                        font.pixelSize: 14
                         font.family: "JetBrainsMono Nerd Font"
                     }
 
                     TextInput {
                         id: passField
-                        width: parent.width - parent.spacing - 80
-                        height: 34
+                        width: parent.width - parent.spacing - 90
+                        height: 40
                         verticalAlignment: TextInput.AlignVCenter
                         echoMode: (agent.flow?.responseVisible ?? false)
                             ? TextInput.Normal : TextInput.Password
                         color: PanelColors.textMain
-                        font.pixelSize: 13
+                        font.pixelSize: 14
                         font.bold: true
                         font.family: "JetBrainsMono Nerd Font"
                         focus: true
@@ -178,12 +200,86 @@ PanelWindow {
                 }
             }
 
-            Text {
-                anchors.horizontalCenter: parent.horizontalCenter
-                text: "↵ authenticate   esc cancel"
-                color: PanelColors.textDim
-                font.pixelSize: 10
-                font.family: "JetBrainsMono Nerd Font"
+            // ── Actions (Consistent with SDDM Buttons) ──────────
+            Row {
+                width: parent.width
+                spacing: 12
+
+                // Authenticate Button
+                Rectangle {
+                    id: authBtn
+                    width: (parent.width / 2) - 6
+                    height: 38
+                    radius: 8
+                    color: (authMa.containsMouse || authBtn.activeFocus)
+                           ? Qt.lighter(PanelColors.audio, 1.15) : PanelColors.audio
+                    scale: (authMa.containsMouse || authBtn.activeFocus) ? 1.03 : 1.0
+
+                    Row {
+                        anchors.centerIn: parent
+                        spacing: 8
+                        Text { text: ""; font.family: "JetBrainsMono Nerd Font"; color: PanelColors.popupBackground }
+                        Text {
+                            text: "Authenticate"
+                            font.family: "JetBrainsMono Nerd Font"
+                            font.bold: true
+                            font.pixelSize: 13
+                            color: PanelColors.popupBackground
+                        }
+                    }
+
+                    MouseArea {
+                        id: authMa
+                        anchors.fill: parent
+                        hoverEnabled: true
+                        cursorShape: Qt.PointingHandCursor
+                        onClicked: {
+                            if (agent.flow?.isResponseRequired) {
+                                agent.flow.submit(passField.text)
+                                passField.text = ""
+                            }
+                        }
+                    }
+
+                    Behavior on color { ColorAnimation { duration: 150 } }
+                    Behavior on scale { NumberAnimation { duration: 150; easing.type: Easing.OutSine } }
+                }
+
+                // Cancel Button
+                Rectangle {
+                    id: cancelBtn
+                    width: (parent.width / 2) - 6
+                    height: 38
+                    radius: 8
+                    color: (cancelMa.containsMouse || cancelBtn.activeFocus)
+                           ? "#4d4d4d" : PanelColors.rowBackground // Mimicking a 'dim' or 'alt' background
+                    scale: (cancelMa.containsMouse || cancelBtn.activeFocus) ? 1.03 : 1.0
+                    border.width: 1
+                    border.color: PanelColors.border
+
+                    Row {
+                        anchors.centerIn: parent
+                        spacing: 8
+                        Text { text: "esc"; font.family: "JetBrainsMono Nerd Font"; color: PanelColors.textMain }
+                        Text {
+                            text: "Cancel"
+                            font.family: "JetBrainsMono Nerd Font"
+                            font.pixelSize: 13
+                            color: PanelColors.textMain
+                        }
+                    }
+
+                    MouseArea {
+                        id: cancelMa
+                        anchors.fill: parent
+                        hoverEnabled: true
+                        cursorShape: Qt.PointingHandCursor
+                        onClicked: agent.flow?.cancelAuthenticationRequest()
+                    }
+
+                    Behavior on color { ColorAnimation { duration: 150 } }
+                    Behavior on scale { NumberAnimation { duration: 150; easing.type: Easing.OutSine } }
+                }
             }
         }
     }
