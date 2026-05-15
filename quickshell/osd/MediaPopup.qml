@@ -5,9 +5,17 @@ import "../theme"
 
 PopupBase {
     id: root
-    implicitWidth: 300
-    borderColor: PanelColors.clock
-    clipContent: false
+
+    // Arrow button width + gap on each side
+    readonly property int arrowWidth: 36
+    readonly property int arrowGap:   8
+    readonly property int arrowOffset: arrowWidth + arrowGap
+
+    // Widen the OS window to fit arrows on both sides
+    implicitWidth: 300 + arrowOffset * 2
+
+    borderColor:   PanelColors.clock
+    clipContent:   false
     contentHeight: popupColumn.implicitHeight
 
     function getPlayerIcon(identity) {
@@ -27,27 +35,48 @@ PopupBase {
         }
     }
 
-    readonly property MprisPlayer activePlayer: {
+    // ── Player list ────────────────────────────────────────────────────────
+    readonly property var playerList: {
+        const result = []
         const vals = Mpris.players.values
         for (let i = 0; i < vals.length; i++) {
             const p = vals[i]
-            if (!p) continue
-            if (p.playbackState === MprisPlaybackState.Playing && (p.trackTitle ?? "") !== "")
-                return p
+            if (p && (p.trackTitle ?? "") !== "") result.push(p)
         }
-        for (let i = 0; i < vals.length; i++) {
-            const p = vals[i]
-            if (!p) continue
-            if ((p.trackTitle ?? "") !== "") return p
-        }
-        return null
+        return result
     }
 
-    readonly property bool isPlaying: activePlayer?.playbackState === MprisPlaybackState.Playing
-    readonly property bool hasContent: activePlayer !== null
+    property int selectedIndex: 0
+
+    onPlayerListChanged: {
+        if (root.playerList.length === 0)
+            root.selectedIndex = 0
+        else if (root.selectedIndex >= root.playerList.length)
+            root.selectedIndex = root.playerList.length - 1
+    }
+
+    readonly property MprisPlayer activePlayer: {
+        if (root.playerList.length === 0) return null
+        const sel = root.playerList[root.selectedIndex]
+        if (sel) return sel
+        for (let i = 0; i < root.playerList.length; i++) {
+            if (root.playerList[i].playbackState === MprisPlaybackState.Playing)
+                return root.playerList[i]
+        }
+        return root.playerList[0]
+    }
+
+    onActivePlayerChanged: {
+        const idx = root.playerList.indexOf(root.activePlayer)
+        if (idx !== -1) root.selectedIndex = idx
+    }
+
+    readonly property bool isPlaying:   activePlayer?.playbackState === MprisPlaybackState.Playing
+    readonly property bool hasContent:  activePlayer !== null
+    readonly property bool multiPlayer: root.playerList.length > 1
 
     property real livePosition: activePlayer?.position ?? 0
-    property bool userSeeking: false
+    property bool userSeeking:  false
 
     Timer {
         interval: 1000
@@ -69,285 +98,328 @@ PopupBase {
         return m + ":" + (rem < 10 ? "0" + rem : rem)
     }
 
-    Column {
-        id: popupColumn
-        anchors { top: parent.top; left: parent.left; right: parent.right; margins: root.padding }
-        spacing: 12
+    // ── Shift the inner panel to the center of the wider window ───────────
+    // PopupBase puts innerRect at x:0; we nudge everything right by arrowOffset
+    // by wrapping content in an Item that's offset within the panel.
+    // The panel itself fills parent (the full wide window), so we just
+    // move popupColumn's anchors to account for the offset.
 
-        Text {
-            visible: !root.hasContent
-            width: parent.width
-            text: "No active media session"
-            font.pixelSize: 13
-            font.family: "JetBrainsMono Nerd Font"
-            color: PanelColors.textDim
-            horizontalAlignment: Text.AlignHCenter
-            topPadding: 8
-            bottomPadding: 8
-        }
+    // We place a transparent spacer Item at x=0 so the default-alias content
+    // (popupColumn) is offset correctly inside innerRect.
+    Item {
+        // This Item is placed inside innerRect via the default alias.
+        // It shifts the logical "left edge" so the panel content starts
+        // at arrowOffset from the window left.
+        x: root.arrowOffset
+        width: 300
+        // height is managed by popupColumn
 
-        Row {
-            visible: root.hasContent
-            width: parent.width
+        Column {
+            id: popupColumn
+            anchors { top: parent.top; left: parent.left; right: parent.right; margins: root.padding }
             spacing: 12
 
-            Item {
-                id: artContainer
-                width: 64
-                height: 64
+            Text {
+                visible: !root.hasContent
+                width: parent.width
+                text: "No active media session"
+                font.pixelSize: 13
+                font.family: "JetBrainsMono Nerd Font"
+                color: PanelColors.textDim
+                horizontalAlignment: Text.AlignHCenter
+                topPadding: 8
+                bottomPadding: 8
+            }
 
-                Image {
-                    id: artImage
-                    anchors.fill: parent
-                    anchors.margins: 2
-                    source: root.activePlayer?.trackArtUrl ?? ""
-                    fillMode: Image.PreserveAspectCrop
-                    asynchronous: true
-                    visible: status === Image.Ready
-                    mipmap: true
-                    smooth: true
+            Row {
+                visible: root.hasContent
+                width: parent.width
+                spacing: 12
+
+                Item {
+                    id: artContainer
+                    width: 64
+                    height: 64
+
+                    Image {
+                        id: artImage
+                        anchors.fill: parent
+                        anchors.margins: 2
+                        source: root.activePlayer?.trackArtUrl ?? ""
+                        fillMode: Image.PreserveAspectCrop
+                        asynchronous: true
+                        visible: status === Image.Ready
+                        mipmap: true
+                        smooth: true
+                    }
+
+                    Text {
+                        visible: artImage.status !== Image.Ready
+                        anchors.centerIn: parent
+                        text: "󰎆"
+                        font.pixelSize: 24
+                        font.family: "JetBrainsMono Nerd Font"
+                        color: PanelColors.textDim
+                    }
+
+                    Rectangle {
+                        anchors.fill: parent
+                        color: "transparent"
+                        border.width: 2
+                        border.color: PanelColors.clock
+                        radius: 4
+                    }
                 }
 
-                Text {
-                    visible: artImage.status !== Image.Ready
-                    anchors.centerIn: parent
-                    text: "󰎆"
-                    font.pixelSize: 24
-                    font.family: "JetBrainsMono Nerd Font"
-                    color: PanelColors.textDim
-                }
+                Column {
+                    width: parent.width - artContainer.width - parent.spacing
+                    anchors.verticalCenter: parent.verticalCenter
+                    spacing: 6
 
-                Rectangle {
-                    id: artFrame
-                    anchors.fill: parent
-                    color: "transparent"
-                    border.width: 2
-                    border.color: PanelColors.clock
-                    radius: 4
+                    Item {
+                        width: parent.width
+                        height: 20
+                        clip: true
+
+                        Text {
+                            id: titleText
+                            text: root.activePlayer?.trackTitle || "Unknown Title"
+                            font.pixelSize: 15
+                            font.bold: true
+                            font.family: "JetBrainsMono Nerd Font"
+                            color: PanelColors.textAccent
+
+                            readonly property bool overflow: implicitWidth > parent.width
+
+                            onOverflowChanged: {
+                                marqueeAnim.stop(); titleText.x = 0
+                                if (overflow) marqueeAnim.start()
+                            }
+                            onTextChanged: {
+                                marqueeAnim.stop(); titleText.x = 0
+                                if (overflow) marqueeAnim.start()
+                            }
+
+                            SequentialAnimation {
+                                id: marqueeAnim
+                                running: false
+                                loops: Animation.Infinite
+                                PauseAnimation { duration: 1200 }
+                                NumberAnimation {
+                                    target: titleText; property: "x"
+                                    from: 0; to: -titleText.implicitWidth
+                                    duration: titleText.implicitWidth * 14
+                                    easing.type: Easing.Linear
+                                }
+                                PropertyAction { target: titleText; property: "x"; value: titleText.parent.width }
+                                NumberAnimation {
+                                    target: titleText; property: "x"
+                                    from: titleText.parent.width; to: 0
+                                    duration: titleText.implicitWidth * 10
+                                    easing.type: Easing.Linear
+                                }
+                                PauseAnimation { duration: 1200 }
+                            }
+                        }
+                    }
+
+                    Text {
+                        width: parent.width
+                        text: root.activePlayer?.trackArtist || "Unknown Artist"
+                        font.pixelSize: 12
+                        font.family: "JetBrainsMono Nerd Font"
+                        color: PanelColors.textDim
+                        elide: Text.ElideRight
+                    }
+
+                    Rectangle {
+                        visible: (root.activePlayer?.identity ?? "") !== ""
+                        height: 18
+                        width: pillRow.implicitWidth + 12
+                        radius: height / 2
+                        color: Qt.rgba(PanelColors.clock.r, PanelColors.clock.g, PanelColors.clock.b, 0.15)
+
+                        Row {
+                            id: pillRow
+                            anchors.centerIn: parent
+                            spacing: 4
+                            Text {
+                                text: root.getPlayerIcon(root.activePlayer?.identity)
+                                font.pixelSize: 10
+                                font.family: "JetBrainsMono Nerd Font"
+                                color: PanelColors.textAccent
+                                anchors.verticalCenter: parent.verticalCenter
+                            }
+                            Text {
+                                text: root.activePlayer?.identity ?? ""
+                                font.pixelSize: 9; font.bold: true
+                                font.family: "JetBrainsMono Nerd Font"
+                                color: PanelColors.textAccent
+                                anchors.verticalCenter: parent.verticalCenter
+                            }
+                        }
+                    }
                 }
             }
 
             Column {
-                width: parent.width - artContainer.width - parent.spacing
-                anchors.verticalCenter: parent.verticalCenter
-                spacing: 6
-
-                Item {
-                    width: parent.width
-                    height: 20
-                    clip: true
-
-                    Text {
-                        id: titleText
-                        text: root.activePlayer?.trackTitle || "Unknown Title"
-                        font.pixelSize: 15
-                        font.bold: true
-                        font.family: "JetBrainsMono Nerd Font"
-                        color: PanelColors.textAccent
-
-                        readonly property bool overflow: implicitWidth > parent.width
-
-                        onOverflowChanged: {
-                            marqueeAnim.stop()
-                            titleText.x = 0
-                            if (overflow) marqueeAnim.start()
-                        }
-                        onTextChanged: {
-                            marqueeAnim.stop()
-                            titleText.x = 0
-                            if (overflow) marqueeAnim.start()
-                        }
-
-                        SequentialAnimation {
-                            id: marqueeAnim
-                            running: false
-                            loops: Animation.Infinite
-                            PauseAnimation { duration: 1200 }
-                            NumberAnimation {
-                                target: titleText
-                                property: "x"
-                                from: 0
-                                to: -titleText.implicitWidth
-                                duration: titleText.implicitWidth * 14
-                                easing.type: Easing.Linear
-                            }
-                            PropertyAction {
-                                target: titleText
-                                property: "x"
-                                value: titleText.parent.width
-                            }
-                            NumberAnimation {
-                                target: titleText
-                                property: "x"
-                                from: titleText.parent.width
-                                to: 0
-                                duration: titleText.implicitWidth * 10
-                                easing.type: Easing.Linear
-                            }
-                            PauseAnimation { duration: 1200 }
-                        }
-                    }
-                }
-
-                Text {
-                    width: parent.width
-                    text: root.activePlayer?.trackArtist || "Unknown Artist"
-                    font.pixelSize: 12
-                    font.family: "JetBrainsMono Nerd Font"
-                    color: PanelColors.textDim
-                    elide: Text.ElideRight
-                }
-
-                Rectangle {
-                    id: identityPill
-                    visible: (root.activePlayer?.identity ?? "") !== ""
-                    height: 18
-                    width: pillRow.implicitWidth + 12
-                    radius: height / 2
-                    color: Qt.rgba(PanelColors.clock.r, PanelColors.clock.g, PanelColors.clock.b, 0.15)
-
-                    Row {
-                        id: pillRow
-                        anchors.centerIn: parent
-                        spacing: 4
-
-                        Text {
-                            text: root.getPlayerIcon(root.activePlayer?.identity)
-                            font.pixelSize: 10
-                            font.family: "JetBrainsMono Nerd Font"
-                            color: PanelColors.textAccent
-                            anchors.verticalCenter: parent.verticalCenter
-                        }
-
-                        Text {
-                            text: root.activePlayer?.identity ?? ""
-                            font.pixelSize: 9
-                            font.bold: true
-                            font.family: "JetBrainsMono Nerd Font"
-                            color: PanelColors.textAccent
-                            anchors.verticalCenter: parent.verticalCenter
-                        }
-                    }
-                }
-            }
-        }
-
-        Column {
-            visible: root.hasContent && (root.activePlayer?.positionSupported ?? false)
-            width: parent.width
-            spacing: 4
-
-            WaveBar {
-                id: waveBar
+                visible: root.hasContent && (root.activePlayer?.positionSupported ?? false)
                 width: parent.width
-                accentColor: PanelColors.clock
-                from: 0
-                to: Math.max(1, root.activePlayer?.length ?? 1)
-                value: root.livePosition
-                playing: root.isPlaying
-                seekable: root.activePlayer?.canSeek ?? false
-                onSeeked: (v) => {
-                    root.userSeeking = true
-                    root.activePlayer.position = v
-                    root.livePosition = v
-                    seekReleaseTimer.restart()
-                }
-            }
-
-            Timer {
-                id: seekReleaseTimer
-                interval: 1200
-                onTriggered: root.userSeeking = false
-            }
-
-            Row {
-                width: parent.width
-                Text {
-                    id: posLeft
-                    text: root.fmtTime(root.livePosition)
-                    font.pixelSize: 11
-                    font.family: "JetBrainsMono Nerd Font"
-                    color: PanelColors.textDim
-                }
-                Item { width: parent.width - posLeft.implicitWidth - posRight.implicitWidth; height: 1 }
-                Text {
-                    id: posRight
-                    text: root.fmtTime(root.activePlayer?.length ?? 0)
-                    font.pixelSize: 11
-                    font.family: "JetBrainsMono Nerd Font"
-                    color: PanelColors.textDim
-                }
-            }
-        }
-
-        Item {
-            visible: root.hasContent
-            width: parent.width
-            height: playPauseBtn.height
-
-            MediaButton {
-                id: shuffleBtn
-                anchors.left: parent.left
-                anchors.verticalCenter: parent.verticalCenter
-                visible: root.activePlayer?.shuffleSupported ?? false
-                icon: "󰒝"
-                accentColor: PanelColors.clock
-                highlighted: root.activePlayer?.shuffle ?? false
-                onClicked: {
-                    if (root.activePlayer)
-                        root.activePlayer.shuffle = !(root.activePlayer.shuffle ?? false)
-                }
-            }
-
-            Row {
-                anchors.centerIn: parent
                 spacing: 4
-                MediaButton {
-                    icon: "󰒮"
+
+                WaveBar {
+                    id: waveBar
+                    width: parent.width
                     accentColor: PanelColors.clock
-                    enabled: root.activePlayer?.canGoPrevious ?? false
-                    onClicked: root.activePlayer?.previous()
+                    from: 0
+                    to: Math.max(1, root.activePlayer?.length ?? 1)
+                    value: root.livePosition
+                    playing: root.isPlaying
+                    seekable: root.activePlayer?.canSeek ?? false
+                    onSeeked: (v) => {
+                        root.userSeeking = true
+                        root.activePlayer.position = v
+                        root.livePosition = v
+                        seekReleaseTimer.restart()
+                    }
                 }
-                MediaButton {
-                    id: playPauseBtn
-                    icon: root.isPlaying ? "󰏤" : "󰐊"
-                    highlighted: true
-                    accentColor: PanelColors.clock
-                    enabled: root.isPlaying
-                        ? (root.activePlayer?.canPause ?? false)
-                        : (root.activePlayer?.canPlay ?? false)
-                    onClicked: root.isPlaying
-                        ? root.activePlayer?.pause()
-                        : root.activePlayer?.play()
+
+                Timer {
+                    id: seekReleaseTimer
+                    interval: 1200
+                    onTriggered: root.userSeeking = false
                 }
-                MediaButton {
-                    icon: "󰒭"
-                    accentColor: PanelColors.clock
-                    enabled: root.activePlayer?.canGoNext ?? false
-                    onClicked: root.activePlayer?.next()
+
+                Row {
+                    width: parent.width
+                    Text {
+                        id: posLeft
+                        text: root.fmtTime(root.livePosition)
+                        font.pixelSize: 11
+                        font.family: "JetBrainsMono Nerd Font"
+                        color: PanelColors.textDim
+                    }
+                    Item { width: parent.width - posLeft.implicitWidth - posRight.implicitWidth; height: 1 }
+                    Text {
+                        id: posRight
+                        text: root.fmtTime(root.activePlayer?.length ?? 0)
+                        font.pixelSize: 11
+                        font.family: "JetBrainsMono Nerd Font"
+                        color: PanelColors.textDim
+                    }
                 }
             }
 
-            MediaButton {
-                id: repeatBtn
-                anchors.right: parent.right
-                anchors.verticalCenter: parent.verticalCenter
-                visible: root.activePlayer?.loopSupported ?? false
-                icon: (root.activePlayer?.loopState ?? MprisLoopState.None) === MprisLoopState.Track
-                    ? "󰑘" : "󰑖"
-                accentColor: PanelColors.clock
-                highlighted: (root.activePlayer?.loopState ?? MprisLoopState.None) !== MprisLoopState.None
-                onClicked: {
-                    if (!root.activePlayer) return
-                    const s = root.activePlayer.loopState ?? MprisLoopState.None
-                    if (s === MprisLoopState.None)
-                        root.activePlayer.loopState = MprisLoopState.Playlist
-                    else if (s === MprisLoopState.Playlist)
-                        root.activePlayer.loopState = MprisLoopState.Track
-                    else
-                        root.activePlayer.loopState = MprisLoopState.None
+            Item {
+                visible: root.hasContent
+                width: parent.width
+                height: playPauseBtn.height
+
+                MediaButton {
+                    anchors.left: parent.left
+                    anchors.verticalCenter: parent.verticalCenter
+                    visible: root.activePlayer?.shuffleSupported ?? false
+                    icon: "󰒝"
+                    accentColor: PanelColors.clock
+                    highlighted: root.activePlayer?.shuffle ?? false
+                    onClicked: {
+                        if (root.activePlayer)
+                            root.activePlayer.shuffle = !(root.activePlayer.shuffle ?? false)
+                    }
+                }
+
+                Row {
+                    anchors.centerIn: parent
+                    spacing: 4
+                    MediaButton {
+                        icon: "󰒮"; accentColor: PanelColors.clock
+                        enabled: root.activePlayer?.canGoPrevious ?? false
+                        onClicked: root.activePlayer?.previous()
+                    }
+                    MediaButton {
+                        id: playPauseBtn
+                        icon: root.isPlaying ? "󰏤" : "󰐊"
+                        highlighted: true
+                        accentColor: PanelColors.clock
+                        enabled: root.isPlaying
+                            ? (root.activePlayer?.canPause ?? false)
+                            : (root.activePlayer?.canPlay ?? false)
+                        onClicked: root.isPlaying ? root.activePlayer?.pause() : root.activePlayer?.play()
+                    }
+                    MediaButton {
+                        icon: "󰒭"; accentColor: PanelColors.clock
+                        enabled: root.activePlayer?.canGoNext ?? false
+                        onClicked: root.activePlayer?.next()
+                    }
+                }
+
+                MediaButton {
+                    anchors.right: parent.right
+                    anchors.verticalCenter: parent.verticalCenter
+                    visible: root.activePlayer?.loopSupported ?? false
+                    icon: (root.activePlayer?.loopState ?? MprisLoopState.None) === MprisLoopState.Track ? "󰑘" : "󰑖"
+                    accentColor: PanelColors.clock
+                    highlighted: (root.activePlayer?.loopState ?? MprisLoopState.None) !== MprisLoopState.None
+                    onClicked: {
+                        if (!root.activePlayer) return
+                        const s = root.activePlayer.loopState ?? MprisLoopState.None
+                        if (s === MprisLoopState.None)           root.activePlayer.loopState = MprisLoopState.Playlist
+                        else if (s === MprisLoopState.Playlist)  root.activePlayer.loopState = MprisLoopState.Track
+                        else                                     root.activePlayer.loopState = MprisLoopState.None
+                    }
                 }
             }
+        }
+    }
+
+    // ── Arrow buttons — placed inside innerRect but drawn at window edges ──
+    // Because innerRect.width == window.width (full wide window), we use
+    // absolute x positions to place them in the left/right arrowOffset zones.
+    PlayerNavButton {
+        visible: root.multiPlayer
+        icon: ""
+        x: 0
+        anchors.verticalCenter: parent.verticalCenter
+        accentColor: PanelColors.clock
+        onClicked: root.selectedIndex = (root.selectedIndex - 1 + root.playerList.length) % root.playerList.length
+    }
+
+    PlayerNavButton {
+        visible: root.multiPlayer
+        icon: ""
+        x: root.arrowOffset + 300 + root.arrowGap
+        anchors.verticalCenter: parent.verticalCenter
+        accentColor: PanelColors.clock
+        onClicked: root.selectedIndex = (root.selectedIndex + 1) % root.playerList.length
+    }
+
+    // ── Components ────────────────────────────────────────────────────────
+
+    component PlayerNavButton: Rectangle {
+        id: navBtn
+        property string icon: ""
+        property color accentColor: PanelColors.clock
+        signal clicked()
+        width: 36; height: 36; radius: 10
+        color: navMouse.containsMouse ? Qt.lighter(PanelColors.rowBackground, 1.3) : PanelColors.rowBackground
+        border.color: Qt.rgba(1, 1, 1, navMouse.containsMouse ? 0.10 : 0.05)
+        border.width: 1
+        scale: navMouse.pressed ? 0.88 : 1.0
+        Behavior on color { ColorAnimation { duration: 120 } }
+        Behavior on scale { NumberAnimation { duration: 100; easing.type: Easing.OutCubic } }
+        Text {
+            anchors.centerIn: parent
+            text: navBtn.icon
+            font.pixelSize: 16
+            font.family: "JetBrainsMono Nerd Font"
+            color: navMouse.containsMouse ? navBtn.accentColor : PanelColors.textMain
+            Behavior on color { ColorAnimation { duration: 120 } }
+        }
+        MouseArea {
+            id: navMouse
+            anchors.fill: parent; hoverEnabled: true
+            cursorShape: Qt.PointingHandCursor
+            onClicked: navBtn.clicked()
         }
     }
 
@@ -374,59 +446,38 @@ PopupBase {
         }
         readonly property real _fillWidth: ((bar.animValue - bar.from) / (bar.to - bar.from)) * bar.width
         function _updateFromMouse(mouseX) {
-            var newVal = Math.max(bar.from, Math.min(bar.to,
-                bar.from + (mouseX / bar.width) * (bar.to - bar.from)))
-            bar.internalValue = newVal
-            bar.seeked(newVal)
+            var newVal = Math.max(bar.from, Math.min(bar.to, bar.from + (mouseX / bar.width) * (bar.to - bar.from)))
+            bar.internalValue = newVal; bar.seeked(newVal)
         }
         property real _phase: 0
-        NumberAnimation on _phase {
-            from: 0; to: Math.PI * 2
-            duration: 1200
-            loops: Animation.Infinite
-            running: bar.playing && !bar.activeInteraction
-        }
+        NumberAnimation on _phase { from: 0; to: Math.PI * 2; duration: 1200; loops: Animation.Infinite; running: bar.playing && !bar.activeInteraction }
         property real _waveAmount: 0.0
         Behavior on _waveAmount { NumberAnimation { duration: 400; easing.type: Easing.InOutSine } }
         onPlayingChanged: _waveAmount = (playing && !activeInteraction) ? 1.0 : 0.0
         onActiveInteractionChanged: _waveAmount = (playing && !activeInteraction) ? 1.0 : 0.0
         Rectangle {
-            id: trackBackground
             x: Math.max(0, bar._fillWidth - 3)
-            width: Math.max(0, parent.width - x)
-            height: 6
-            radius: 3
+            width: Math.max(0, parent.width - x); height: 6; radius: 3
             anchors.verticalCenter: parent.verticalCenter
-            color: barMouse.containsMouse
-                ? Qt.lighter(PanelColors.trackBackground, 1.1)
-                : Qt.rgba(PanelColors.trackBackground.r, PanelColors.trackBackground.g, PanelColors.trackBackground.b, 0.4)
+            color: barMouse.containsMouse ? Qt.lighter(PanelColors.trackBackground, 1.1) : Qt.rgba(PanelColors.trackBackground.r, PanelColors.trackBackground.g, PanelColors.trackBackground.b, 0.4)
         }
         Canvas {
             id: waveCanvas
-            anchors.fill: parent
-            antialiasing: true
+            anchors.fill: parent; antialiasing: true
             onPaint: {
                 const ctx = getContext("2d")
                 ctx.clearRect(0, 0, width, height)
                 if (bar._fillWidth <= 0) return
-                const cy = height / 2
-                const amp = 3.5 * bar._waveAmount
-                const freq = 0.16
-                ctx.beginPath()
-                ctx.lineWidth = 6
-                ctx.lineCap = "round"
+                const cy = height / 2; const amp = 3.5 * bar._waveAmount; const freq = 0.16
+                ctx.beginPath(); ctx.lineWidth = 6; ctx.lineCap = "round"
                 ctx.strokeStyle = barMouse.containsMouse ? Qt.lighter(bar.accentColor, 1.15) : bar.accentColor
                 const startX = 3
                 if (bar._waveAmount > 0) {
                     for (let x = startX; x <= bar._fillWidth; x++) {
                         const y = cy + Math.sin(x * freq + bar._phase) * amp
-                        if (x === startX) ctx.moveTo(x, y)
-                        else ctx.lineTo(x, y)
+                        if (x === startX) ctx.moveTo(x, y); else ctx.lineTo(x, y)
                     }
-                } else {
-                    ctx.moveTo(startX, cy)
-                    ctx.lineTo(bar._fillWidth, cy)
-                }
+                } else { ctx.moveTo(startX, cy); ctx.lineTo(bar._fillWidth, cy) }
                 ctx.stroke()
             }
             Connections {
@@ -437,12 +488,8 @@ PopupBase {
             }
         }
         Item {
-            id: handleContainer
-            width: 0; height: 0
-            anchors.verticalCenter: parent.verticalCenter
-            x: bar._fillWidth
+            width: 0; height: 0; anchors.verticalCenter: parent.verticalCenter; x: bar._fillWidth
             Rectangle {
-                id: handle
                 anchors.centerIn: parent
                 width: bar.isNeedle ? 6 : (barMouse.containsMouse ? 18 : 14)
                 height: bar.isNeedle ? 24 : (barMouse.containsMouse ? 18 : 14)
@@ -453,10 +500,7 @@ PopupBase {
             }
         }
         MouseArea {
-            id: barMouse
-            anchors.fill: parent
-            hoverEnabled: true
-            enabled: bar.seekable
+            id: barMouse; anchors.fill: parent; hoverEnabled: true; enabled: bar.seekable
             onPressed: (mouse) => { bar.internalValue = bar.animValue; bar._updateFromMouse(mouse.x) }
             onPositionChanged: (mouse) => { if (pressed) bar._updateFromMouse(mouse.x) }
             onClicked: (mouse) => bar._updateFromMouse(mouse.x)
@@ -470,8 +514,7 @@ PopupBase {
         property color accentColor: PanelColors.clock
         property bool enabled: true
         signal clicked()
-        width: 40; height: 40
-        radius: 8
+        width: 40; height: 40; radius: 8
         color: {
             if (!enabled) return Qt.rgba(PanelColors.rowBackground.r, PanelColors.rowBackground.g, PanelColors.rowBackground.b, 0.35)
             if (highlighted) return btnMouse.containsMouse ? Qt.lighter(accentColor, 1.1) : accentColor
@@ -483,10 +526,8 @@ PopupBase {
         Behavior on color { ColorAnimation { duration: 120 } }
         Behavior on scale { NumberAnimation { duration: 100; easing.type: Easing.OutCubic } }
         Text {
-            anchors.centerIn: parent
-            text: btn.icon
-            font.pixelSize: 18
-            font.family: "JetBrainsMono Nerd Font"
+            anchors.centerIn: parent; text: btn.icon
+            font.pixelSize: 18; font.family: "JetBrainsMono Nerd Font"
             color: {
                 if (!btn.enabled)    return PanelColors.textDim
                 if (btn.highlighted) return PanelColors.pillForeground
@@ -495,12 +536,8 @@ PopupBase {
             Behavior on color { ColorAnimation { duration: 120 } }
         }
         MouseArea {
-            id: btnMouse
-            anchors.fill: parent
-            hoverEnabled: true
-            enabled: btn.enabled
-            cursorShape: Qt.PointingHandCursor
-            onClicked: btn.clicked()
+            id: btnMouse; anchors.fill: parent; hoverEnabled: true; enabled: btn.enabled
+            cursorShape: Qt.PointingHandCursor; onClicked: btn.clicked()
         }
     }
 }
