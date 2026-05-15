@@ -542,7 +542,9 @@ PopupBase {
             NumberAnimation { duration: 80; easing.type: Easing.OutCubic }
         }
         onTargetValueChanged: {
-            if (bar.suppressSmooth) animValue = targetValue
+            if (bar.dragging || bar.suppressSmooth) {
+                animValue = targetValue
+            }
         }
         readonly property real _fillWidth: ((bar.animValue - bar.from) / (bar.to - bar.from)) * bar.width
         function _updateFromMouse(mouseX) {
