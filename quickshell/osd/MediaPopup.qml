@@ -378,7 +378,7 @@ PopupBase {
     // absolute x positions to place them in the left/right arrowOffset zones.
     PlayerNavButton {
         visible: root.multiPlayer
-        icon: ""
+        icon: ""
         x: 0
         anchors.verticalCenter: parent.verticalCenter
         accentColor: PanelColors.clock
@@ -387,7 +387,7 @@ PopupBase {
 
     PlayerNavButton {
         visible: root.multiPlayer
-        icon: ""
+        icon: ""
         x: contentCard.x + contentCard.width + root.arrowGap
         anchors.verticalCenter: parent.verticalCenter
         accentColor: PanelColors.clock
@@ -439,6 +439,7 @@ PopupBase {
         property real internalValue: 0
         readonly property bool activeInteraction: dragging
         readonly property bool isNeedle: activeInteraction || playing
+        readonly property bool hovered: barMouse.containsMouse || barMouse.pressed
         readonly property real targetValue: activeInteraction ? internalValue : value
         property real animValue: targetValue
         Behavior on animValue {
@@ -456,11 +457,17 @@ PopupBase {
         Behavior on _waveAmount { NumberAnimation { duration: 400; easing.type: Easing.InOutSine } }
         onPlayingChanged: _waveAmount = (playing && !activeInteraction) ? 1.0 : 0.0
         onActiveInteractionChanged: _waveAmount = (playing && !activeInteraction) ? 1.0 : 0.0
+
+        // ── Animated stroke color for Canvas (Canvas can't use Behavior directly) ──
+        property color _strokeColor: hovered ? Qt.lighter(bar.accentColor, 1.15) : bar.accentColor
+        Behavior on _strokeColor { ColorAnimation { duration: 150 } }
+
         Rectangle {
             x: Math.max(0, bar._fillWidth - 3)
             width: Math.max(0, parent.width - x); height: 6; radius: 3
             anchors.verticalCenter: parent.verticalCenter
-            color: barMouse.containsMouse ? Qt.lighter(PanelColors.trackBackground, 1.1) : Qt.rgba(PanelColors.trackBackground.r, PanelColors.trackBackground.g, PanelColors.trackBackground.b, 0.4)
+            color: bar.hovered ? Qt.rgba(PanelColors.trackBackground.r, PanelColors.trackBackground.g, PanelColors.trackBackground.b, 0.4) : Qt.lighter(PanelColors.trackBackground, 1.1)
+            Behavior on color { ColorAnimation { duration: 150 } }
         }
         Canvas {
             id: waveCanvas
@@ -471,7 +478,7 @@ PopupBase {
                 if (bar._fillWidth <= 0) return
                 const cy = height / 2; const amp = 3.5 * bar._waveAmount; const freq = 0.16
                 ctx.beginPath(); ctx.lineWidth = 6; ctx.lineCap = "round"
-                ctx.strokeStyle = barMouse.containsMouse ? Qt.lighter(bar.accentColor, 1.15) : bar.accentColor
+                ctx.strokeStyle = bar._strokeColor
                 const startX = 3
                 if (bar._waveAmount > 0) {
                     for (let x = startX; x <= bar._fillWidth; x++) {
@@ -483,21 +490,24 @@ PopupBase {
             }
             Connections {
                 target: bar
-                function onAnimValueChanged() { waveCanvas.requestPaint() }
-                function on_PhaseChanged() { waveCanvas.requestPaint() }
-                function on_WaveAmountChanged() { waveCanvas.requestPaint() }
+                function onAnimValueChanged()    { waveCanvas.requestPaint() }
+                function on_PhaseChanged()       { waveCanvas.requestPaint() }
+                function on_WaveAmountChanged()  { waveCanvas.requestPaint() }
+                function onHoveredChanged()      { waveCanvas.requestPaint() }
+                function on_StrokeColorChanged() { waveCanvas.requestPaint() }
             }
         }
         Item {
             width: 0; height: 0; anchors.verticalCenter: parent.verticalCenter; x: bar._fillWidth
             Rectangle {
                 anchors.centerIn: parent
-                width: bar.isNeedle ? 6 : (barMouse.containsMouse ? 18 : 14)
-                height: bar.isNeedle ? 24 : (barMouse.containsMouse ? 18 : 14)
+                width: bar.isNeedle ? 6 : (bar.hovered ? 18 : 14)
+                height: bar.isNeedle ? 24 : (bar.hovered ? 18 : 14)
                 radius: width / 2
-                color: barMouse.containsMouse ? Qt.lighter(bar.accentColor, 1.15) : bar.accentColor
+                color: bar.hovered ? Qt.lighter(bar.accentColor, 1.15) : bar.accentColor
                 Behavior on width  { NumberAnimation { duration: 300; easing.type: Easing.OutBack } }
                 Behavior on height { NumberAnimation { duration: 300; easing.type: Easing.OutBack } }
+                Behavior on color  { ColorAnimation { duration: 150 } }
             }
         }
         MouseArea {

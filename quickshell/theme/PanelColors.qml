@@ -42,7 +42,7 @@ Singleton {
 
     readonly property color popupBackground:   isDark ? Colors.grey900 : lightPopupBackground
     readonly property color rowBackground:     isDark ? Colors.grey800 : lightRowBackground
-    readonly property color trackBackground:   isDark ? Colors.grey800 : lightTrackBackground
+    readonly property color trackBackground:   isDark ? Qt.rgba(1, 1, 1, 0.15) : lightTrackBackground
     readonly property color border:            isDark ? Colors.grey700 : lightBorder
 
     // Text

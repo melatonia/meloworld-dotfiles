@@ -33,6 +33,7 @@ Item {
 
     readonly property real targetValue: (dragging || wheelTimer.running) ? internalValue : value
     readonly property bool activeInteraction: dragging || wheelTimer.running
+    readonly property bool hovered: mouseArea.containsMouse || mouseArea.pressed
 
     property real animValue: targetValue
     Behavior on animValue {
@@ -69,16 +70,16 @@ Item {
         }
         height: 6; radius: 3
 
-        color: mouseArea.containsMouse
-            ? Qt.lighter(PanelColors.trackBackground, 1.1)
-            : Qt.rgba(PanelColors.trackBackground.r, PanelColors.trackBackground.g, PanelColors.trackBackground.b, 0.4)
+        color: root.hovered
+            ? Qt.rgba(PanelColors.trackBackground.r, PanelColors.trackBackground.g, PanelColors.trackBackground.b, 0.4)
+            : Qt.lighter(PanelColors.trackBackground, 1.1)
         Behavior on color { ColorAnimation { duration: 150 } }
 
         Rectangle {
             id: activeTrack
             width: (root.animValue - root.from) / (root.to - root.from) * track.width
             height: parent.height; radius: parent.radius
-            color: mouseArea.containsMouse ? Qt.lighter(root.accentColor, 1.15) : root.accentColor
+            color: root.hovered ? Qt.lighter(root.accentColor, 1.15) : root.accentColor
 
             property real pulse: 1.0
             opacity: activeInteraction ? pulse : 1.0
@@ -121,11 +122,11 @@ Item {
             id: handle
             anchors.centerIn: parent
 
-            width: activeInteraction ? 6 : (mouseArea.containsMouse ? 18 : 14)
-            height: activeInteraction ? 24 : (mouseArea.containsMouse ? 18 : 14)
+            width: activeInteraction ? 6 : (root.hovered ? 18 : 14)
+            height: activeInteraction ? 24 : (root.hovered ? 18 : 14)
             radius: width / 2
 
-            color: mouseArea.containsMouse ? Qt.lighter(root.accentColor, 1.15) : root.accentColor
+            color: root.hovered ? Qt.lighter(root.accentColor, 1.15) : root.accentColor
 
             Behavior on width  { NumberAnimation { duration: 300; easing.type: Easing.OutBack } }
             Behavior on height { NumberAnimation { duration: 300; easing.type: Easing.OutBack } }
