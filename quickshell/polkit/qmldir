@@ -1,0 +1,2 @@
+module polkit
+PolkitDialog 1.0 PolkitDialog.qml

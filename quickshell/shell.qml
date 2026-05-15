@@ -1,6 +1,7 @@
 //@ pragma IconTheme Papirus
 import QtQuick
 import Quickshell
+import "polkit"
 import "bar"
 import "notifications"
 import "osd"
@@ -93,4 +94,5 @@ ShellRoot {
             screen: modelData
         }
     }
+    PolkitDialog {}
 }
