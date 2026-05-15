@@ -6,13 +6,18 @@ import "../theme"
 PopupBase {
     id: root
 
+    readonly property int contentCardWidth: 300
+
     // Arrow button width + gap on each side
     readonly property int arrowWidth: 36
-    readonly property int arrowGap:   8
+    readonly property int arrowGap:   6
     readonly property int arrowOffset: arrowWidth + arrowGap
 
     // Widen the OS window to fit arrows on both sides
-    implicitWidth: 300 + arrowOffset * 2
+    implicitWidth: contentCardWidth + arrowOffset * 2
+
+    // Floating arrow implementation
+    showDefaultBackground: false
 
     borderColor:   PanelColors.clock
     clipContent:   false
@@ -98,21 +103,17 @@ PopupBase {
         return m + ":" + (rem < 10 ? "0" + rem : rem)
     }
 
-    // ── Shift the inner panel to the center of the wider window ───────────
-    // PopupBase puts innerRect at x:0; we nudge everything right by arrowOffset
-    // by wrapping content in an Item that's offset within the panel.
-    // The panel itself fills parent (the full wide window), so we just
-    // move popupColumn's anchors to account for the offset.
-
-    // We place a transparent spacer Item at x=0 so the default-alias content
-    // (popupColumn) is offset correctly inside innerRect.
-    Item {
-        // This Item is placed inside innerRect via the default alias.
-        // It shifts the logical "left edge" so the panel content starts
-        // at arrowOffset from the window left.
+    Rectangle {
+        id: contentCard
         x: root.arrowOffset
-        width: 300
-        // height is managed by popupColumn
+        width: root.contentCardWidth
+        anchors.verticalCenter: parent.verticalCenter
+        height: popupColumn.implicitHeight + (root.padding * 2)
+
+        color: PanelColors.popupBackground
+        border.color: root.borderColor
+        border.width: 2
+        radius: 10
 
         Column {
             id: popupColumn
@@ -387,7 +388,7 @@ PopupBase {
     PlayerNavButton {
         visible: root.multiPlayer
         icon: ""
-        x: root.arrowOffset + 300 + root.arrowGap
+        x: contentCard.x + contentCard.width + root.arrowGap
         anchors.verticalCenter: parent.verticalCenter
         accentColor: PanelColors.clock
         onClicked: root.selectedIndex = (root.selectedIndex + 1) % root.playerList.length
@@ -402,8 +403,8 @@ PopupBase {
         signal clicked()
         width: 36; height: 36; radius: 10
         color: navMouse.containsMouse ? Qt.lighter(PanelColors.rowBackground, 1.3) : PanelColors.rowBackground
-        border.color: Qt.rgba(1, 1, 1, navMouse.containsMouse ? 0.10 : 0.05)
-        border.width: 1
+        border.color: PanelColors.border
+        border.width: 2
         scale: navMouse.pressed ? 0.88 : 1.0
         Behavior on color { ColorAnimation { duration: 120 } }
         Behavior on scale { NumberAnimation { duration: 100; easing.type: Easing.OutCubic } }

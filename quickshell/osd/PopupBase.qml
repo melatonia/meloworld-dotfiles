@@ -27,6 +27,7 @@ PopupWindow {
     property int    contentHeight: 0
     property int    padding:       12
     property bool   autoDismiss:   true
+    property bool showDefaultBackground: true
 
     // ── Children go directly into the inner panel ──
     default property alias panelContent: innerRect.data
@@ -41,11 +42,11 @@ PopupWindow {
         width:  parent.width
         height: root.contentHeight + (root.padding * 2)
         radius: 10
-        color:  PanelColors.popupBackground
+        color: root.showDefaultBackground ? PanelColors.popupBackground : "transparent"
         Behavior on color { ColorAnimation { duration: PanelColors.transitionDuration } }
         border.color: root.borderColor
         Behavior on border.color { ColorAnimation { duration: PanelColors.transitionDuration } }
-        border.width: 2
+        border.width: root.showDefaultBackground ? 2 : 0
         clip:   root.clipContent
 
         Behavior on height {
