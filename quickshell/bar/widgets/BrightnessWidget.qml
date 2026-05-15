@@ -23,9 +23,14 @@ Pill {
 
     widestLabel: "󰃠 100%"
     label: {
-        let ico = "󰃞 "
-        if (displayBrightness >= 80) ico = "󰃠 "
-        else if (displayBrightness >= 40) ico = "󰃟 "
+        let ico
+        if      (displayBrightness >= 86) ico = "󰃠 "
+        else if (displayBrightness >= 72) ico = "󰃟 "
+        else if (displayBrightness >= 57) ico = "󰃞 "
+        else if (displayBrightness >= 43) ico = "󰃝 "
+        else if (displayBrightness >= 29) ico = "󰃜 "
+        else if (displayBrightness >= 14) ico = "󰃛 "
+        else                              ico = "󰃚 "
         return ico + displayBrightness + "%"
     }
 

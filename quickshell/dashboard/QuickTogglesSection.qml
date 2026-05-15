@@ -120,7 +120,7 @@ Item {
             icon: ThemeState.isDark ? "" : ""
             label: ThemeState.isDark ? "Dark Mode" : "Light Mode"
             active: ThemeState.isDark
-            accentColor: ThemeState.isDark ? PanelColors.launcher : Colors.yellow700
+            accentColor: ThemeState.isDark ? PanelColors.brightness : Colors.yellow700
             onClicked: ThemeState.toggleTheme()
         }
     }
