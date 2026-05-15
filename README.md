@@ -183,6 +183,10 @@ i'm currently using zen browser with [transparent zen extension](https://sameera
 - [x] improvement: a better rofi theme
 - [x] feature: more sounds (currently login chime, notification, screenshot and usb connect-remove sound exists)
 - [x] feature: osd's for brightness and audio 
+- [x] feature: media switch buttons
+- [x] feature: light mode
+- [x] feature: intelligent power saver
+- [x] feature: dock
 
 
 ---
