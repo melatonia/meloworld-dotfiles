@@ -78,9 +78,7 @@ PopupBase {
         root._playerSwitching = true
         root.livePosition = root.activePlayer?.position ?? 0
         playerSwitchSettleTimer.restart()
-        // Trigger text crossfade on player switch
-        root._textVisible = false
-        textFadeInTimer.restart()
+        root._startTextTransition()
     }
 
     // Brief window while we suppress smooth animation after a player switch
@@ -95,19 +93,31 @@ PopupBase {
     // Flips false→true around track/player changes so title, artist and pill
     // all fade out then fade back in with the new content.
     property bool _textVisible: true
+    property string _displayedTitle:    ""
+    property string _displayedArtist:   ""
+    property string _displayedIdentity: ""
+
+    function _startTextTransition() {
+        root._textVisible = false
+        textFadeInTimer.restart()
+    }
+
     Timer {
         id: textFadeInTimer
-        // Wait for the fade-out (160 ms) to finish before showing new content
-        interval: 160
-        onTriggered: root._textVisible = true
+        interval: 80
+        onTriggered: {
+            root._displayedTitle    = root.activePlayer?.trackTitle    ?? ""
+            root._displayedArtist   = root.activePlayer?.trackArtist   ?? ""
+            root._displayedIdentity = root.activePlayer?.identity      ?? ""
+            root._textVisible = true
+        }
     }
 
     Connections {
         target: root.activePlayer
         function onTrackChanged() {
             root.livePosition = 0
-            root._textVisible = false
-            textFadeInTimer.restart()
+            root._startTextTransition()
         }
     }
 
@@ -273,11 +283,11 @@ PopupBase {
                         clip: true
 
                         opacity: root._textVisible ? 1.0 : 0.0
-                        Behavior on opacity { NumberAnimation { duration: 160; easing.type: Easing.InOutSine } }
+                        Behavior on opacity { NumberAnimation { duration: 80; easing.type: Easing.InOutSine } }
 
                         Text {
                             id: titleText
-                            text: root.activePlayer?.trackTitle || "Unknown Title"
+                            text: root._displayedTitle || "Unknown Title"
                             font.pixelSize: 15
                             font.bold: true
                             font.family: "JetBrainsMono Nerd Font"
@@ -320,38 +330,38 @@ PopupBase {
                     // ── Artist ──────────────────────────────────────────────
                     Text {
                         width: parent.width
-                        text: root.activePlayer?.trackArtist || "Unknown Artist"
+                        text: root._displayedArtist || "Unknown Artist"
                         font.pixelSize: 12
                         font.family: "JetBrainsMono Nerd Font"
                         color: PanelColors.textDim
                         elide: Text.ElideRight
                         opacity: root._textVisible ? 1.0 : 0.0
-                        Behavior on opacity { NumberAnimation { duration: 160; easing.type: Easing.InOutSine } }
+                        Behavior on opacity { NumberAnimation { duration: 80; easing.type: Easing.InOutSine } }
                     }
 
                     // ── App pill ────────────────────────────────────────────
                     Rectangle {
-                        visible: (root.activePlayer?.identity ?? "") !== ""
+                        visible: root._displayedIdentity !== ""
                         height: 18
                         width: pillRow.implicitWidth + 12
                         radius: height / 2
                         color: Qt.rgba(PanelColors.clock.r, PanelColors.clock.g, PanelColors.clock.b, 0.15)
                         opacity: root._textVisible ? 1.0 : 0.0
-                        Behavior on opacity { NumberAnimation { duration: 160; easing.type: Easing.InOutSine } }
+                        Behavior on opacity { NumberAnimation { duration: 80; easing.type: Easing.InOutSine } }
 
                         Row {
                             id: pillRow
                             anchors.centerIn: parent
                             spacing: 4
                             Text {
-                                text: root.getPlayerIcon(root.activePlayer?.identity)
+                                text: root.getPlayerIcon(root._displayedIdentity)
                                 font.pixelSize: 10
                                 font.family: "JetBrainsMono Nerd Font"
                                 color: PanelColors.textAccent
                                 anchors.verticalCenter: parent.verticalCenter
                             }
                             Text {
-                                text: root.activePlayer?.identity ?? ""
+                                text: root._displayedIdentity
                                 font.pixelSize: 9; font.bold: true
                                 font.family: "JetBrainsMono Nerd Font"
                                 color: PanelColors.textAccent
@@ -365,7 +375,7 @@ PopupBase {
             // Progress bar — visible for normal players with position support,
             // OR always visible for passive players (Blanket etc.)
             Column {
-                visible: root.hasContent && ((root.activePlayer?.positionSupported ?? false) || root.isPassivePlayer)
+                visible: root.hasContent && (root.isPassivePlayer || (root.activePlayer?.positionSupported ?? false))
                 width: parent.width
                 spacing: 4
 
