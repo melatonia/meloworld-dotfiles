@@ -14,6 +14,14 @@
 
 ![desktop preview](assets/desktop.png)
 
+<details>
+<summary>☀️ light mode</summary>
+<br>
+
+![desktop light mode preview](assets/desktop-light.png)
+
+</details>
+
 ---
 
 meloworld is my personal arch linux desktop built around mangowm and quickshell. ghibli wallpapers, warm colors, everything animated. every popup, widget, and notification is part of the same visual system. same row height, same font, same spacing throughout.
