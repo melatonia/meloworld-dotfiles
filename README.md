@@ -4,27 +4,19 @@
 
 *a rice that feels like /home <3*
 
-![Arch Linux](https://img.shields.io/badge/Arch_Linux-1793D1?style=for-the-badge&logo=arch-linux&logoColor=white)
-![MangoWM](https://img.shields.io/badge/MangoWM-212121?style=for-the-badge&logoColor=white)
-![Quickshell](https://img.shields.io/badge/Quickshell-80CBC4?style=for-the-badge&logoColor=black)
-
 </div>
 
 ---
 
-![desktop preview](assets/desktop.png)
+![banner](assets/banner.png?v=2)
 
 ---
 
-## 🌱 about
-
-Meloworld is my personal Arch Linux desktop. built around MangoWM and Quickshell. the wallpapers are ghibli landscapes and the whole thing is meant to feel warm, colorful, and alive.
-
-every popup, widget, and notification is part of the same visual system. same row height, same font, same spacing throughout. things slide in, things slide out.
+![desktop preview](assets/desktop.png?v=2)
 
 ---
 
-## 🍃 the setup
+meloworld is my personal arch linux desktop built around mangowm and quickshell. ghibli wallpapers, warm colors, everything animated. every popup, widget, and notification is part of the same visual system. same row height, same font, same spacing throughout.
 
 | | |
 |---|---|
@@ -35,87 +27,119 @@ every popup, widget, and notification is part of the same visual system. same ro
 | **terminal** | [Ghostty](https://ghostty.org/) |
 | **shell** | zsh |
 | **editor** | [Zed](https://zed.dev/) |
-| **font** | [JetBrainsMono Nerd Font](https://www.nerdfonts.com/)|
+| **font** | [JetBrainsMono Nerd Font](https://www.nerdfonts.com/) |
 
 ---
 
-## 🌸 the bar
+## 🌸 features
 
-workspace pills that slide in when you open something and slide out when you close it. scroll the mouse wheel to switch workspaces.
+<details>
+<summary>🪟 bar & workspaces</summary>
+<br>
 
----
+workspace pills slide in when you open something and slide out when you close it. scroll the mouse wheel to switch workspaces. all status pills on the right open their respective popups.
 
-## ☀️ the dashboard
+</details>
 
-![dashboard](assets/dashboard.png)
+<details>
+<summary>☀️ dashboard</summary>
+<br>
 
-a left panel with quick toggles and notification history. the greetings change dynamically based on the time.
+![dashboard](assets/dashboard.png?v=2)
 
----
+a left panel with quick toggles, system stats, and notification history. greetings change dynamically based on the time of day.
 
-## 🪴 the popups
+</details>
 
-all animated — slide down from the top when they open, slide back up when they close. all share the same design language so they feel like they belong together.
+<details>
+<summary>🪴 popups</summary>
+<br>
 
-### 🎼 media player
+all animated — slide down from the top when they open, slide back up when they close. all share the same design language.
 
-![media player](assets/media.png)
+**🎼 media player**
 
-a simple media player. supports shuffle and repeat on supported apps. uses the material expressive 3 progress bar. 
+![media player](assets/media.png?v=2)
 
-### 🔊 audio
-
-![audio popup](assets/audio.png)
-
-device selection for output and input. volume and mic sliders side by side. click the icon to mute. everything dims when muted. if you only have one audio device, the selector hides itself.
-
-### 🦷 bluetooth
-
-![bluetooth popup](assets/bluetooth.png)
-
-paired devices, scan button, and a filtered scan list that hides raw MAC addresses so you're not staring at noise. the list caps at five entries and scrolls. tells you when there's more above or below.
-
-### 🛜 wifi
-
-![wifi popup](assets/wifi.png)
-
-previously connected networks, autoscan, password enter field. similar to bluetooth the list caps and scrolls.
-
-### ⚡ power profile
-
-![power popup](assets/power.png)
-
-it uses power-profiles-daemon. the border changes color with whatever's active.
+supports shuffle and repeat on supported apps. uses the material expressive 3 progress bar. switches between players with chevron arrows.
 
 ---
 
-## 🌻 notifications
+**🔊 audio**
 
-![notifications](assets/notifications.png)
+![audio popup](assets/audio.png?v=2)
 
-slide in from the right. each app gets its own accent color, derived from the app name — so the same app always gets the same color. critical notifications go red regardless. there's a small timer ring that drains as the notification ages. hover to pause. click to dismiss.
-
----
-
-## 🔑 SDDM
-
-![sddm theme](assets/sddm.png)
-
-i also created a sddm theme based on the same aesthetic. so it smoothly gets to desktop
+device selection for output and input. volume and mic sliders side by side. click the icon to mute — everything dims when muted. single-device setups hide the selector automatically.
 
 ---
 
-## 🧑🏼‍💻 zed
+**🦷 bluetooth**
 
-![zed theme](assets/zed.png)
+![bluetooth popup](assets/bluetooth.png?v=2)
 
-the zed theme is based on the same color palette. there is both blurred and non-blurred variants in the theme. i prefer the blur variant.
+paired devices, scan button, filtered scan list that hides raw MAC addresses. list caps at five entries and scrolls — tells you when there's more above or below.
+
+---
+
+**🛜 wifi**
+
+![wifi popup](assets/wifi.png?v=2)
+
+previously connected networks, autoscan, password entry. same scrolling behavior as bluetooth.
+
+---
+
+**⚡ power profile**
+
+![power popup](assets/power.png?v=2)
+
+uses power-profiles-daemon. the border changes color with whatever profile is active.
+
+</details>
+
+<details>
+<summary>🌻 notifications</summary>
+<br>
+
+![notifications](assets/notifications.png?v=2)
+
+slide in from the right. each app gets its own accent color derived from the app name — same app always gets the same color. critical notifications go red regardless. a small timer ring drains as the notification ages. hover to pause. click to dismiss.
+
+</details>
+
+<details>
+<summary>🔑 sddm & lockscreen</summary>
+<br>
+
+![sddm theme](assets/sddm.png?v=2)
+
+a custom sddm theme built on the same aesthetic so the login screen feels like part of the desktop rather than something bolted on.
+
+</details>
+
+<details>
+<summary>🧑🏼‍💻 zed theme</summary>
+<br>
+
+![zed theme](assets/zed.png?v=2)
+
+matches the same color palette. blurred and non-blurred variants included.
+
+</details>
+
+<details>
+<summary>🌙 idle screen</summary>
+<br>
+
+a sleeping cat appears after a few minutes of inactivity. dims the screen, breathing animation, animated z's. any input dismisses it with a fade.
+
+</details>
 
 ---
 
 ## 🍁 install
 
-# Automatic Install for Arch Linux
+**automatic (arch linux)**
 
 ```bash
 git clone https://github.com/melatonia/meloworld-dotfiles
@@ -124,7 +148,10 @@ chmod +x install.sh
 ./install.sh
 ```
 
-# Manual Install
+<details>
+<summary>manual install</summary>
+<br>
+
 ```bash
 git clone https://github.com/melatonia/meloworld-dotfiles
 cd meloworld-dotfiles
@@ -139,18 +166,22 @@ cp -r .zshrc ~/.zshrc
 sudo cp -r meloworld-sddm /usr/share/sddm/themes/
 ```
 
-then add these lines to `/etc/sddm.conf.d/theme.conf` for sddm theme
+add to `/etc/sddm.conf.d/theme.conf`:
 ```
 [Theme]
 Current=meloworld-sddm
 ```
 
-you can use this code to remove window buttons from apps.
+remove window buttons from gtk apps:
 ```bash
 gsettings set org.gnome.desktop.wm.preferences button-layout ":"
 ```
 
-### dependencies
+</details>
+
+<details>
+<summary>dependencies</summary>
+<br>
 
 ```bash
 paru -S mangowm quickshell pipewire pipewire-pulse wireplumber bluez bluez-utils brightnessctl ghostty power-profiles-daemon polkit-gnome ttf-jetbrains-mono-nerd rofi rofimoji grim slurp awww bibata-cursor-theme-bin papirus-icon-theme zed zsh zsh-autosuggestions zsh-syntax-highlighting adw-gtk-theme xdg-desktop-portal-wlr hypridle playerctl
@@ -158,42 +189,21 @@ paru -S mangowm quickshell pipewire pipewire-pulse wireplumber bluez bluez-utils
 sudo systemctl enable --now bluetooth power-profiles-daemon
 ```
 
-> ⚠️ use Quickshell **0.2.1 from the extra repo** — not the git version. the API is different and things will break.
+</details>
 
 ---
 
 ## 📦 extras
 
-all the current sound files are created by me using bitwig studio. you can use them however you want but i would appreciate a credit :3
+the sound files (login chime, notification, screenshot, usb connect/remove) were made by me in bitwig studio. use them freely, a credit would be appreciated :3
 
-i'm currently using zen browser with [transparent zen extension](https://sameerasw.com/zen) and `#212121CC` background. but if you want to use firefox i recommend using the [Firefox Gnome Theme](https://github.com/rafaelmardojai/firefox-gnome-theme)
-
----
-
-## ✅ to-do list
-
-- [x] consistent design system and color palette
-- [x] fixing the widget overlap
-- [x] removing the hardcoded values 
-- [x] fix: smoother scrolling for sliders 
-- [x] battery saver mode
-- [x] fix: adding right click context menu to the tray
-- [x] feature: not sure but a simple date widget
-- [x] improvement: a more consistent lockscreen theme
-- [x] improvement: a better rofi theme
-- [x] feature: more sounds (currently login chime, notification, screenshot and usb connect-remove sound exists)
-- [x] feature: osd's for brightness and audio 
-- [x] feature: media switch buttons
-- [x] feature: light mode
-- [x] feature: intelligent power saver
-- [x] feature: dock
-
+i use zen browser with the [transparent zen extension](https://sameerasw.com/zen) and `#212121CC` background. for firefox, [Firefox Gnome Theme](https://github.com/rafaelmardojai/firefox-gnome-theme) works well.
 
 ---
 
 ## 🍀 credits
 
-the popup design language — the row style, the accent stripes, the device selectors — was heavily inspired by [crylia-theme](https://github.com/Crylia/crylia-theme) by [Crylia](https://github.com/Crylia). a beautiful AwesomeWM rice that made the whole thing feel possible. everything here is reimplemented from scratch in QML, but the soul came from there.
+the popup design language — row style, accent stripes, device selectors — was heavily inspired by [crylia-theme](https://github.com/Crylia/crylia-theme) by [Crylia](https://github.com/Crylia). a beautiful awesomewm rice that made the whole thing feel possible. everything here is reimplemented from scratch in qml, but the soul came from there.
 
 go leave them a star! ⭐
 
