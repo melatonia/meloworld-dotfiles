@@ -1,0 +1,84 @@
+# Zathura – Light Theme
+# Based on Colors.qml / PanelColors.qml (Quickshell / Material palette)
+#
+# Place at: ~/.config/zathura/zathurarc
+#
+# Color palette used
+# ------------------
+# background        → Colors.white (#ffffdd) — warm paper white
+# surfaces          → grey50 (#fafafa), grey100 (#f5f5f5), grey200 (#eeeeee)
+# text main         → blueGrey900 (#263238)   (lightTextMain)
+# text accent       → blueGrey800 (#37474f)   (lightTextAccent)
+# text dim          → blueGrey400 (#78909c)   (lightTextDim)
+# highlight         → teal200     (#80cbc4)   (workspaceActive light)
+# highlight active  → teal400     (#26a69a)
+# border            → blueGrey100 (#cfd8dc)   (lightBorder)
+# error             → red600      (#e53935)
+# warning           → orange800   (#ef6c00)
+
+# ── Girara / UI colors ────────────────────────────────────────────────────────
+
+# Canvas behind pages
+set default-bg                  "#ffffdd"
+set default-fg                  "#263238"
+
+# Statusbar
+set statusbar-bg                "#f5f5f5"
+set statusbar-fg                "#37474f"
+
+# Inputbar (the : command line)
+set inputbar-bg                 "#fafafa"
+set inputbar-fg                 "#263238"
+
+# Notifications
+set notification-bg             "#fafafa"
+set notification-fg             "#263238"
+set notification-error-bg       "#ffebee"
+set notification-error-fg       "#e53935"
+set notification-warning-bg     "#fff3e0"
+set notification-warning-fg     "#ef6c00"
+
+# Completion popup
+set completion-bg               "#eeeeee"
+set completion-fg               "#263238"
+set completion-group-bg         "#f5f5f5"
+set completion-group-fg         "#78909c"
+set completion-highlight-bg     "#80cbc4"
+set completion-highlight-fg     "#263238"
+
+# ── Zathura-specific colors ───────────────────────────────────────────────────
+
+# Search result highlights
+set highlight-color             rgba(128,203,196,0.5)
+set highlight-active-color      rgba(38,166,154,0.7)
+
+# Index mode (table of contents)
+set index-bg                    "#fafafa"
+set index-fg                    "#263238"
+set index-active-bg             "#80cbc4"
+set index-active-fg             "#263238"
+
+# Render mode: recolor maps dark PDF ink → our palette (toggle with 'r')
+set recolor                     "true"
+set recolor-lightcolor          "#ffffdd"
+set recolor-darkcolor           "#263238"
+set recolor-keephue             "true"
+
+# ── UI options ────────────────────────────────────────────────────────────────
+
+set font                        "sans-serif normal 10"
+
+# Show statusbar (s) — no scrollbars (omit h/v)
+set guioptions                  "s"
+
+# Open to page-width fit by default
+set adjust-open                 "width"
+
+# Padding between pages (px)
+set page-padding                4
+
+# Wrap around when navigating pages
+set scroll-wrap                 "true"
+
+# Show ~ for home dir in statusbar path
+set statusbar-home-tilde        "true"

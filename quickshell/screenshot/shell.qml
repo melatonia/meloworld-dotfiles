@@ -79,31 +79,33 @@ ShellRoot {
                 }
             }
 
-            // ─── Precision Magnifier ───
+            // ─── Selection Info Pill ───
             Rectangle {
-                visible: parent.isDragging
-                width: 100; height: 100
-                radius: 50
-                color: "black"
-                border.color: "#80cbc4"
-                border.width: 2
-                clip: true
-
-                // Follows mouse with an offset
-                x: parent.curX + 20
-                y: parent.curY + 20
-
-                Image {
-                    source: "file:///tmp/qs-master.png"
-                    width: masterImg.width * 4 // 4x Zoom
-                    height: masterImg.height * 4
-                    x: -(parent.parent.curX * 4) + 50
-                    y: -(parent.parent.curY * 4) + 50
+                visible: parent.isDragging && parent.selW > 5
+                x: {
+                    let px = parent.curX + 16
+                    return Math.min(px, parent.width - width - 8)
                 }
+                y: {
+                    let py = parent.curY + 16
+                    return Math.min(py, parent.height - height - 8)
+                }
+                width: pillText.width + 20
+                height: 32
+                radius: 6
+                color: "#212121"
+                border.color: "#616161"
+                border.width: 2
 
-                // Crosshair
-                Rectangle { color: "#80cbc4"; width: 10; height: 1; anchors.centerIn: parent }
-                Rectangle { color: "#80cbc4"; width: 1; height: 10; anchors.centerIn: parent }
+                Text {
+                    id: pillText
+                    anchors.centerIn: parent
+                    text: parent.parent.selW + "  " + parent.parent.selH
+                    color: "#ffffffdd"
+                    font.family: "JetBrainsMono Nerd Font"
+                    font.pixelSize: 14
+                    font.weight: Font.Medium
+                }
             }
 
             MouseArea {
@@ -165,7 +167,7 @@ ShellRoot {
             magick /tmp/qs-master.png -crop ${geometry} "$FILE" && \
             wl-copy < "$FILE" && \
             notify-send "Screenshot Captured" "Saved to Pictures/Screenshots" && \
-            pw-play "$HOME/.config/mango/assets/sounds/screenshot.flac"
+            pw-play "$HOME/.config/quickshell/assets/sounds/screenshot.flac"
         `]
         onExited: Qt.quit()
     }

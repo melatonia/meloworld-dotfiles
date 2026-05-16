@@ -13,7 +13,7 @@ PanelWindow {
 
     anchors.bottom: true
     implicitWidth: 260
-    implicitHeight: 80
+    implicitHeight: 144
     color: "transparent"
     exclusiveZone: 0
     visible: animState !== "closed"
@@ -36,7 +36,7 @@ PanelWindow {
         }
         animState = "open"
         fadeOutAnim.stop()
-        slideAnim.to = (root.implicitHeight - osdRect.height) / 2
+        slideAnim.to = root.implicitHeight - 80 - osdRect.height
         slideAnim.start()
         fadeInAnim.start()
         dismissTimer.restart()

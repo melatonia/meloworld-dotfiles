@@ -345,10 +345,11 @@ PopupBase {
                     Text {
                         visible: artImageA.status !== Image.Ready && artImageB.status !== Image.Ready
                         anchors.centerIn: parent
-                        text: "󰎆"
+                        text: ""
                         font.pixelSize: 24
                         font.family: "JetBrainsMono Nerd Font"
                         color: PanelColors.textDim
+                        z: 1
                     }
 
                     Rectangle {

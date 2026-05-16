@@ -10,6 +10,8 @@ PanelWindow {
     color: "transparent"
     screen: Quickshell.screens[0]
 
+    WlrLayershell.namespace: "polkit-dialog"
+
     anchors.top: true
     anchors.bottom: true
     anchors.left: true
