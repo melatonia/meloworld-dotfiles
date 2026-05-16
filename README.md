@@ -8,11 +8,11 @@
 
 ---
 
-![banner](assets/banner.png?v=2)
+![banner](assets/banner.png)
 
 ---
 
-![desktop preview](assets/desktop.png?v=2)
+![desktop preview](assets/desktop.png)
 
 ---
 
@@ -45,7 +45,7 @@ workspace pills slide in when you open something and slide out when you close it
 <summary>☀️ dashboard</summary>
 <br>
 
-![dashboard](assets/dashboard.png?v=2)
+![dashboard](assets/dashboard.png)
 
 a left panel with quick toggles, system stats, and notification history. greetings change dynamically based on the time of day.
 
@@ -59,7 +59,7 @@ all animated — slide down from the top when they open, slide back up when they
 
 **🎼 media player**
 
-![media player](assets/media.png?v=2)
+![media player](assets/media.png)
 
 supports shuffle and repeat on supported apps. uses the material expressive 3 progress bar. switches between players with chevron arrows.
 
@@ -67,7 +67,7 @@ supports shuffle and repeat on supported apps. uses the material expressive 3 pr
 
 **🔊 audio**
 
-![audio popup](assets/audio.png?v=2)
+![audio popup](assets/audio.png)
 
 device selection for output and input. volume and mic sliders side by side. click the icon to mute — everything dims when muted. single-device setups hide the selector automatically.
 
@@ -75,7 +75,7 @@ device selection for output and input. volume and mic sliders side by side. clic
 
 **🦷 bluetooth**
 
-![bluetooth popup](assets/bluetooth.png?v=2)
+![bluetooth popup](assets/bluetooth.png)
 
 paired devices, scan button, filtered scan list that hides raw MAC addresses. list caps at five entries and scrolls — tells you when there's more above or below.
 
@@ -83,7 +83,7 @@ paired devices, scan button, filtered scan list that hides raw MAC addresses. li
 
 **🛜 wifi**
 
-![wifi popup](assets/wifi.png?v=2)
+![wifi popup](assets/wifi.png)
 
 previously connected networks, autoscan, password entry. same scrolling behavior as bluetooth.
 
@@ -91,7 +91,7 @@ previously connected networks, autoscan, password entry. same scrolling behavior
 
 **⚡ power profile**
 
-![power popup](assets/power.png?v=2)
+![power popup](assets/power.png)
 
 uses power-profiles-daemon. the border changes color with whatever profile is active.
 
@@ -101,7 +101,7 @@ uses power-profiles-daemon. the border changes color with whatever profile is ac
 <summary>🌻 notifications</summary>
 <br>
 
-![notifications](assets/notifications.png?v=2)
+![notifications](assets/notifications.png)
 
 slide in from the right. each app gets its own accent color derived from the app name — same app always gets the same color. critical notifications go red regardless. a small timer ring drains as the notification ages. hover to pause. click to dismiss.
 
@@ -111,7 +111,7 @@ slide in from the right. each app gets its own accent color derived from the app
 <summary>🔑 sddm & lockscreen</summary>
 <br>
 
-![sddm theme](assets/sddm.png?v=2)
+![sddm theme](assets/sddm.png)
 
 a custom sddm theme built on the same aesthetic so the login screen feels like part of the desktop rather than something bolted on.
 
@@ -121,7 +121,7 @@ a custom sddm theme built on the same aesthetic so the login screen feels like p
 <summary>🧑🏼‍💻 zed theme</summary>
 <br>
 
-![zed theme](assets/zed.png?v=2)
+![zed theme](assets/zed.png)
 
 matches the same color palette. blurred and non-blurred variants included.
 
@@ -130,6 +130,8 @@ matches the same color palette. blurred and non-blurred variants included.
 <details>
 <summary>🌙 idle screen</summary>
 <br>
+
+![idle](assets/idle.png)
 
 a sleeping cat appears after a few minutes of inactivity. dims the screen, breathing animation, animated z's. any input dismisses it with a fade.
 
