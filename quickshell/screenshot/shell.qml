@@ -45,8 +45,8 @@ ShellRoot {
 
             readonly property int selX: Math.min(startX, curX)
             readonly property int selY: Math.min(startY, curY)
-            readonly property int selW: Math.abs(curX - startX)
-            readonly property int selH: Math.abs(curY - startY)
+            readonly property int selW: Math.abs(curX - startX) + 1
+            readonly property int selH: Math.abs(curY - startY) + 1
 
             // ─── THE TEAL OVERLAY (Restored & Guaranteed) ───
             // This "cuts a hole" in the darkness and adds the teal border
