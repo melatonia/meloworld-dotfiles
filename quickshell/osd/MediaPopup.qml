@@ -23,6 +23,24 @@ PopupBase {
     clipContent:   false
     contentHeight: popupColumn.implicitHeight
 
+    // Helper to sanitize messy browser/YouTube metadata
+    function getCleanMetadata(rawTitle, rawArtist) {
+        let t = (rawTitle || "").replace(/\s*-\s*YouTube$/, "")
+                                 .replace(/\s*-\s*Mozilla Firefox$/, "")
+                                 .replace(/\s*-\s*Zen Browser$/, "")
+                                 .trim();
+        let a = (rawArtist || "").trim();
+
+        // If artist is empty (common in browsers), try to split "Artist - Title"
+        if (a === "" && t.includes(" - ")) {
+            const parts = t.split(" - ");
+            a = parts[0].trim();
+            t = parts.slice(1).join(" - ").trim();
+        }
+
+        return { title: t, artist: a };
+    }
+
     function getPlayerIcon(identity) {
         const id = (identity || "").toLowerCase();
         if (id.includes("spotify")) return "󰓇";
@@ -71,36 +89,68 @@ PopupBase {
         return root.playerList[0]
     }
 
+    // Filtered length to prevent slider collapse on browsers
+    property real _stableLength: 0
+
     onActivePlayerChanged: {
         const idx = root.playerList.indexOf(root.activePlayer)
         if (idx !== -1) root.selectedIndex = idx
         root.userSeeking = false
         root._playerSwitching = true
+        root._stableLength = root.activePlayer?.length ?? 0
         root.livePosition = root.activePlayer?.position ?? 0
         playerSwitchSettleTimer.restart()
         root._crossfadeText()
     }
 
-    // Brief window while we suppress smooth animation after a player switch
+    Connections {
+        target: root.activePlayer
+        function onLengthChanged() {
+            // Only update if the browser isn't reporting 0 during a transition
+            if (root.activePlayer && root.activePlayer.length > 0) {
+                root._stableLength = root.activePlayer.length
+            }
+        }
+    }
+
+    // Brief window while we let the new player's metadata settle
     property bool _playerSwitching: false
     Timer {
         id: playerSwitchSettleTimer
-        interval: 50
+        interval: 150
         onTriggered: root._playerSwitching = false
     }
+
+    // True for live / infinite streams:
+    //   • _stableLength <= 0  → Blanket, radio, etc. report no duration
+    //   • _stableLength > 1 year → Twitch/Kick (and some browser MPRIS) send INT64_MAX
+    //     microseconds as a "no end" sentinel. Quickshell converts µs→s, yielding
+    //     ~9.22 × 10¹² seconds which fmtTime renders as "153722867280:54".
+    //     No real media is longer than a year, so this threshold is safe.
+    readonly property int _liveStreamThreshold: 86400 * 365   // 1 year in seconds
+    readonly property bool isLiveStream: (root._stableLength <= 0 || root._stableLength > root._liveStreamThreshold) && !root._playerSwitching
 
     // ── Text crossfade state ───────────────────────────────────────────────
     property bool _textShowA: true
 
     function _crossfadeText() {
+        const meta = root.getCleanMetadata(
+            root.activePlayer?.trackTitle,
+            root.activePlayer?.trackArtist
+        );
+
+        let id = root.activePlayer?.identity ?? "";
+        if (id.toLowerCase().includes("firefox")) id = "Firefox";
+        if (id.toLowerCase().includes("chrome"))  id = "Chrome";
+
         if (_textShowA) {
-            textSlotB.title    = root.activePlayer?.trackTitle    ?? ""
-            textSlotB.artist   = root.activePlayer?.trackArtist   ?? ""
-            textSlotB.identity = root.activePlayer?.identity      ?? ""
+            textSlotB.title    = meta.title || "Unknown Title";
+            textSlotB.artist   = meta.artist || "Unknown Artist";
+            textSlotB.identity = id;
         } else {
-            textSlotA.title    = root.activePlayer?.trackTitle    ?? ""
-            textSlotA.artist   = root.activePlayer?.trackArtist   ?? ""
-            textSlotA.identity = root.activePlayer?.identity      ?? ""
+            textSlotA.title    = meta.title || "Unknown Title";
+            textSlotA.artist   = meta.artist || "Unknown Artist";
+            textSlotA.identity = id;
         }
         _textShowA = !_textShowA
     }
@@ -124,7 +174,14 @@ PopupBase {
         interval: 1000
         repeat: true
         running: root.isPlaying && !root.userSeeking
-        onTriggered: { if (root.activePlayer) root.livePosition = root.activePlayer.position }
+        onTriggered: {
+            if (root.activePlayer) {
+                const pos = root.activePlayer.position
+                // Ignore stale updates (0) when we know we have progressed
+                if (pos === 0 && root.livePosition > 1) return;
+                root.livePosition = pos
+            }
+        }
     }
 
     function fmtTime(secs) {
@@ -169,7 +226,6 @@ PopupBase {
                 width: parent.width
                 spacing: 12
 
-                // Artwork — border stable, images crossfade
                 Item {
                     id: artContainer
                     width: 64
@@ -203,7 +259,6 @@ PopupBase {
                         }
                     }
 
-                    // Slot B (bottom layer)
                     Image {
                         id: artImageB
                         anchors.fill: parent
@@ -218,7 +273,6 @@ PopupBase {
                         visible: opacity > 0
                     }
 
-                    // Slot A (top layer)
                     Image {
                         id: artImageA
                         anchors.fill: parent
@@ -233,7 +287,6 @@ PopupBase {
                         visible: opacity > 0
                     }
 
-                    // Fallback icon
                     Text {
                         visible: artImageA.status !== Image.Ready && artImageB.status !== Image.Ready
                         anchors.centerIn: parent
@@ -243,7 +296,6 @@ PopupBase {
                         color: PanelColors.textDim
                     }
 
-                    // Border — always on top, never fades
                     Rectangle {
                         anchors.fill: parent
                         color: "transparent"
@@ -253,12 +305,10 @@ PopupBase {
                     }
                 }
 
-                // ── Text A/B crossfade stack ────────────────────────────────
                 Item {
                     id: textStack
                     width: parent.width - artContainer.width - parent.spacing
                     anchors.verticalCenter: parent.verticalCenter
-                    // Height tracks whichever slot is currently visible
                     height: root._textShowA ? textSlotA.implicitHeight : textSlotB.implicitHeight
 
                     component TextSlot: Column {
@@ -332,9 +382,6 @@ PopupBase {
 
                     TextSlot {
                         id: textSlotA
-                        title:    root.activePlayer?.trackTitle    ?? ""
-                        artist:   root.activePlayer?.trackArtist   ?? ""
-                        identity: root.activePlayer?.identity      ?? ""
                         opacity: root._textShowA ? 1.0 : 0.0
                         Behavior on opacity { NumberAnimation { duration: 120; easing.type: Easing.InOutSine } }
                     }
@@ -357,16 +404,19 @@ PopupBase {
                     width: parent.width
                     accentColor: PanelColors.clock
                     from: 0
-                    to: Math.max(1, root.activePlayer?.length ?? 1)
-                    value: root.livePosition
+                    // Live streams: keep to=1 so the bar stays fully filled
+                    to: root.isLiveStream ? 1 : Math.max(1, root._stableLength)
+                    // Live streams: pin value at 1 (fully complete track)
+                    value: root.isLiveStream ? 1.0 : root.livePosition
                     playing: root.isPlaying
-                    forceNoNeedle: false
-                    seekable: root.activePlayer?.canSeek ?? false
-                    suppressSmooth: root._playerSwitching
+                    // Live streams: hide the needle and make the bar non-interactive
+                    forceNoNeedle: root.isLiveStream
+                    seekable: !root.isLiveStream && (root.activePlayer?.canSeek ?? false)
                     onSeeked: (v) => {
                         root.userSeeking = true
-                        root.activePlayer.position = v
-                        root.livePosition = v
+                        const targetPos = Math.max(0, Math.min(v, root._stableLength))
+                        root.activePlayer.position = targetPos
+                        root.livePosition = targetPos
                         seekReleaseTimer.restart()
                     }
                 }
@@ -381,7 +431,7 @@ PopupBase {
                     width: parent.width
                     Text {
                         id: posLeft
-                        text: root.fmtTime(root.livePosition)
+                        text: root.isLiveStream ? "Live" : root.fmtTime(root.livePosition)
                         font.pixelSize: 11
                         font.family: "JetBrainsMono Nerd Font"
                         color: PanelColors.textDim
@@ -389,7 +439,7 @@ PopupBase {
                     Item { width: parent.width - posLeft.implicitWidth - posRight.implicitWidth; height: 1 }
                     Text {
                         id: posRight
-                        text: root.fmtTime(root.activePlayer?.length ?? 0)
+                        text: root.isLiveStream ? "" : root.fmtTime(root.activePlayer?.length ?? 0)
                         font.pixelSize: 11
                         font.family: "JetBrainsMono Nerd Font"
                         color: PanelColors.textDim
@@ -526,7 +576,6 @@ PopupBase {
         property bool playing: false
         property bool seekable: true
         property bool forceNoNeedle: false
-        property bool suppressSmooth: false
         signal seeked(real value)
         implicitWidth: 120
         implicitHeight: 32
@@ -536,20 +585,18 @@ PopupBase {
         readonly property bool isNeedle: !forceNoNeedle && (activeInteraction || playing)
         readonly property bool hovered: barMouse.containsMouse || barMouse.pressed
         readonly property real targetValue: activeInteraction ? internalValue : value
+        // Declarative binding: animValue tracks targetValue, animated when not dragging.
+        // Never assign to animValue imperatively — that would break this binding.
         property real animValue: targetValue
         Behavior on animValue {
-            enabled: !bar.dragging && !bar.suppressSmooth
+            enabled: !bar.dragging
             NumberAnimation { duration: 80; easing.type: Easing.OutCubic }
-        }
-        onTargetValueChanged: {
-            if (bar.dragging || bar.suppressSmooth) {
-                animValue = targetValue
-            }
         }
         readonly property real _fillWidth: ((bar.animValue - bar.from) / (bar.to - bar.from)) * bar.width
         function _updateFromMouse(mouseX) {
             var newVal = Math.max(bar.from, Math.min(bar.to, bar.from + (mouseX / bar.width) * (bar.to - bar.from)))
-            bar.internalValue = newVal; bar.seeked(newVal)
+            bar.internalValue = newVal;
+            bar.seeked(newVal)
         }
         property real _phase: 0
         NumberAnimation on _phase { from: 0; to: Math.PI * 2; duration: 1200; loops: Animation.Infinite; running: bar.playing && !bar.activeInteraction }
@@ -563,7 +610,7 @@ PopupBase {
 
         Rectangle {
             x: Math.max(0, bar._fillWidth - 3)
-            width: Math.max(0, parent.width - x); height: 6; radius: 3
+            width: Math.max(0, parent.width - x - 3); height: 6; radius: 3
             anchors.verticalCenter: parent.verticalCenter
             color: bar.hovered ? Qt.rgba(PanelColors.trackBackground.r, PanelColors.trackBackground.g, PanelColors.trackBackground.b, 0.4) : Qt.lighter(PanelColors.trackBackground, 1.1)
             Behavior on color { ColorAnimation { duration: 150 } }
@@ -579,12 +626,16 @@ PopupBase {
                 ctx.beginPath(); ctx.lineWidth = 6; ctx.lineCap = "round"
                 ctx.strokeStyle = bar._strokeColor
                 const startX = 3
+                // endX mirrors startX: the round cap radius is lineWidth/2 = 3px, so
+                // we stop 3px from the right edge so the cap doesn't get clipped by the
+                // canvas boundary (which is what caused the flat/cut appearance).
+                const endX = Math.min(bar._fillWidth, width - 3)
                 if (bar._waveAmount > 0) {
-                    for (let x = startX; x <= bar._fillWidth; x++) {
+                    for (let x = startX; x <= endX; x++) {
                         const y = cy + Math.sin(x * freq + bar._phase) * amp
                         if (x === startX) ctx.moveTo(x, y); else ctx.lineTo(x, y)
                     }
-                } else { ctx.moveTo(startX, cy); ctx.lineTo(bar._fillWidth, cy) }
+                } else { ctx.moveTo(startX, cy); ctx.lineTo(endX, cy) }
                 ctx.stroke()
             }
             Connections {
@@ -613,9 +664,15 @@ PopupBase {
         }
         MouseArea {
             id: barMouse; anchors.fill: parent; hoverEnabled: true; enabled: bar.seekable
-            onPressed: (mouse) => { bar.internalValue = bar.animValue; bar._updateFromMouse(mouse.x) }
-            onPositionChanged: (mouse) => { if (pressed) bar._updateFromMouse(mouse.x) }
-            onClicked: (mouse) => bar._updateFromMouse(mouse.x)
+            // Track whether the user dragged so onClicked can skip duplicate work
+            property bool _hasDragged: false
+            // On press: snapshot the current animated value as the drag start point,
+            // but do NOT jump the bar yet — let onClicked handle pure clicks with
+            // the Behavior enabled (pressed=false → dragging=false → smooth animation).
+            onPressed: (mouse) => { bar.internalValue = bar.animValue; _hasDragged = false }
+            onPositionChanged: (mouse) => { if (pressed) { _hasDragged = true; bar._updateFromMouse(mouse.x) } }
+            // onClicked fires after release (pressed=false → dragging=false → Behavior enabled → smooth)
+            onClicked: (mouse) => { if (!_hasDragged) bar._updateFromMouse(mouse.x) }
         }
     }
 
