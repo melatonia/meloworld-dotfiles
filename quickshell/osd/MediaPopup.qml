@@ -100,16 +100,33 @@ PopupBase {
         root._stableLength = root.activePlayer?.length ?? 0
         root.livePosition = root.activePlayer?.position ?? 0
         playerSwitchSettleTimer.restart()
-        root._crossfadeText()
+        root._crossfadeText()        // show what's cached right now …
+        metaSettleTimer.restart()    // … then re-check once metadata settles
     }
 
     Connections {
         target: root.activePlayer
         function onLengthChanged() {
-            // Only update if the browser isn't reporting 0 during a transition
-            if (root.activePlayer && root.activePlayer.length > 0) {
-                root._stableLength = root.activePlayer.length
-            }
+            const newLen = root.activePlayer?.length ?? 0
+            // Guard 1: ignore zero/negative — browser transition noise.
+            if (newLen <= 0) return
+
+            // Guard 2: Firefox/Chrome MPRIS bug — they report length = current_position
+            //          periodically, both during playback AND near the start of a track
+            //          while _stableLength is still 0 (not yet established).
+            //          The previous guard gated on pos>5, which let the bug corrupt
+            //          _stableLength in the first 5 seconds.  Removing the gate means
+            //          we reject any length within 2 s of the playhead unconditionally.
+            //          Safety: a real duration arriving at pos≈0 will be >> 2 s away
+            //          from 0 for any normal media.  At track end (pos≈length) the
+            //          value is already stored, so rejecting it here is harmless.
+            const pos = root.livePosition
+            if (Math.abs(newLen - pos) < 2) return
+
+            // Guard 3: never accept a shrink mid-track (handles Firefox post-seek
+            //          false report; _stableLength is reset on track/player change).
+            if (root._stableLength <= 0 || newLen >= root._stableLength)
+                root._stableLength = newLen
         }
     }
 
@@ -119,6 +136,25 @@ PopupBase {
         id: playerSwitchSettleTimer
         interval: 150
         onTriggered: root._playerSwitching = false
+    }
+
+    // Debounce timer for metadata text updates.
+    // Browsers (Firefox, Chrome) often skip onTrackChanged and just mutate
+    // trackTitle/trackArtist directly; even when onTrackChanged does fire it
+    // arrives before the new metadata is on the wire.  Waiting 120 ms lets all
+    // D-Bus property updates land before we snapshot them into the crossfade.
+    Timer {
+        id: metaSettleTimer
+        interval: 120
+        onTriggered: root._crossfadeText()
+    }
+
+    // Watch title/artist changes directly so browser tab-switches and Spotify
+    // track skips are caught even without a proper onTrackChanged signal.
+    Connections {
+        target: root.activePlayer
+        function onTrackTitleChanged()  { metaSettleTimer.restart() }
+        function onTrackArtistChanged() { metaSettleTimer.restart() }
     }
 
     // True for live / infinite streams:
@@ -140,16 +176,28 @@ PopupBase {
         );
 
         let id = root.activePlayer?.identity ?? "";
-        if (id.toLowerCase().includes("firefox")) id = "Firefox";
-        if (id.toLowerCase().includes("chrome"))  id = "Chrome";
+        const idLow = id.toLowerCase();
+        if (idLow.includes("firefox"))       id = "Firefox";
+        else if (idLow.includes("zen"))      id = "Zen";
+        else if (idLow.includes("chrome"))   id = "Chrome";
+        else if (idLow.includes("spotify"))  id = "Spotify";
+
+        const newTitle  = meta.title  || "Unknown Title";
+        const newArtist = meta.artist || "Unknown Artist";
+
+        // Idempotency: if the currently-visible slot already shows this exact
+        // content, do nothing. Prevents a double-crossfade when both
+        // onTrackChanged and onTrackTitleChanged fire in quick succession.
+        const cur = _textShowA ? textSlotA : textSlotB;
+        if (cur.title === newTitle && cur.artist === newArtist && cur.identity === id) return;
 
         if (_textShowA) {
-            textSlotB.title    = meta.title || "Unknown Title";
-            textSlotB.artist   = meta.artist || "Unknown Artist";
+            textSlotB.title    = newTitle;
+            textSlotB.artist   = newArtist;
             textSlotB.identity = id;
         } else {
-            textSlotA.title    = meta.title || "Unknown Title";
-            textSlotA.artist   = meta.artist || "Unknown Artist";
+            textSlotA.title    = newTitle;
+            textSlotA.artist   = newArtist;
             textSlotA.identity = id;
         }
         _textShowA = !_textShowA
@@ -159,7 +207,14 @@ PopupBase {
         target: root.activePlayer
         function onTrackChanged() {
             root.livePosition = 0
-            root._crossfadeText()
+            // Reset so onLengthChanged's shrink-guard starts fresh for the new track.
+            // Without this, switching to a shorter track in the same player would keep
+            // the previous track's longer _stableLength indefinitely.
+            root._stableLength = root.activePlayer?.length ?? 0
+            // Don't call _crossfadeText() immediately — the new trackTitle/trackArtist
+            // often haven't landed yet.  metaSettleTimer gives D-Bus 120 ms to deliver
+            // all property updates before we snapshot them.
+            metaSettleTimer.restart()
         }
     }
 
@@ -407,7 +462,10 @@ PopupBase {
                     // Live streams: keep to=1 so the bar stays fully filled
                     to: root.isLiveStream ? 1 : Math.max(1, root._stableLength)
                     // Live streams: pin value at 1 (fully complete track)
-                    value: root.isLiveStream ? 1.0 : root.livePosition
+                    // Clamp to [0, _stableLength]: if the browser length guard misses a bogus
+                    // report and livePosition briefly exceeds _stableLength, the needle
+                    // would escape the card. Clamping here is the last line of defence.
+                    value: root.isLiveStream ? 1.0 : Math.min(root.livePosition, Math.max(1, root._stableLength))
                     playing: root.isPlaying
                     // Live streams: hide the needle and make the bar non-interactive
                     forceNoNeedle: root.isLiveStream
@@ -439,7 +497,7 @@ PopupBase {
                     Item { width: parent.width - posLeft.implicitWidth - posRight.implicitWidth; height: 1 }
                     Text {
                         id: posRight
-                        text: root.isLiveStream ? "" : root.fmtTime(root.activePlayer?.length ?? 0)
+                        text: root.isLiveStream ? "∞" : root.fmtTime(root._stableLength)
                         font.pixelSize: 11
                         font.family: "JetBrainsMono Nerd Font"
                         color: PanelColors.textDim
