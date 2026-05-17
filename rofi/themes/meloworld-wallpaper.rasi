@@ -1,0 +1,139 @@
+// ── Meloworld Wallpaper Selector ─────────────────────────────────────────────
+// Place at: ~/.config/rofi/themes/meloworld-wallpaper.rasi
+// Requires:  meloworld-tokens.rasi in the same directory
+
+@import "meloworld-tokens.rasi"
+
+// ── Window ────────────────────────────────────────────────────────────────────
+window {
+    background-color: @bg;
+    border-radius:    12px;
+    border:           4px;
+    border-color:     @win-border;
+    width:            940px;
+    padding:          14px;
+}
+
+// ── Layout ────────────────────────────────────────────────────────────────────
+mainbox {
+    background-color: transparent;
+    spacing:          10px;
+    children:         [inputbar, message, listview];
+}
+
+// ── Search bar ────────────────────────────────────────────────────────────────
+inputbar {
+    background-color: @bg-alt;
+    border-radius:    8px;
+    padding:          10px 14px;
+    spacing:          10px;
+    children:         [prompt, entry, case-indicator];
+}
+
+prompt {
+    background-color: transparent;
+    text-color:       @accent;
+    font:             "JetBrainsMono Nerd Font Bold 13";
+    vertical-align:   0.5;
+}
+
+entry {
+    background-color:  transparent;
+    text-color:        @fg;
+    placeholder-color: @fg-dim;
+    placeholder:       "Search wallpapers…";
+    cursor:            text;
+    font:              "JetBrainsMono Nerd Font Bold 13";
+}
+
+case-indicator {
+    background-color: transparent;
+    text-color:       @fg-dim;
+    font:             "JetBrainsMono Nerd Font Bold 11";
+}
+
+// ── Optional status message ───────────────────────────────────────────────────
+message {
+    background-color: transparent;
+    padding:          0px;
+}
+
+textbox {
+    background-color: transparent;
+    text-color:       @fg-dim;
+    font:             "JetBrainsMono Nerd Font Bold 11";
+    horizontal-align: 0.5;
+}
+
+// ── Wallpaper grid ────────────────────────────────────────────────────────────
+listview {
+    background-color: transparent;
+    columns:          3;
+    lines:            2;
+    spacing:          8px;
+    scrollbar:        false;
+    layout:           vertical;
+    flow:             horizontal;
+    fixed-height:     true;
+}
+
+// ── Individual wallpaper card ─────────────────────────────────────────────────
+element {
+    background-color: @bg-alt;
+    border-radius:    8px;
+    padding:          8px;
+    spacing:          0px;
+    orientation:      vertical;
+    children:         [element-icon, element-text];
+    cursor:           pointer;
+}
+
+element normal normal {
+    background-color: @bg-alt;
+    text-color:       @fg;
+}
+
+element alternate normal {
+    background-color: @bg-alt;
+    text-color:       @fg;
+}
+
+element selected normal {
+    background-color: @accent;
+    text-color:       @accent-fg;
+}
+
+element normal urgent {
+    text-color: @urgent;
+}
+
+element selected urgent {
+    background-color: @urgent;
+    text-color:       @accent-fg;
+}
+
+// ── Thumbnail ─────────────────────────────────────────────────────────────────
+element-icon {
+    background-color: transparent;
+    size:             248px;          // thumbnail height — rofi keeps aspect ratio
+    border-radius:    6px;
+}
+
+// ── Filename label ────────────────────────────────────────────────────────────
+element-text {
+    background-color: transparent;
+    text-color:       inherit;
+    horizontal-align: 0.5;
+    vertical-align:   0.5;
+    font:             "JetBrainsMono Nerd Font Bold 11";
+    padding:          6px 4px 2px 4px;
+}
+
+// ── Scrollbar (disabled above, styled just in case) ──────────────────────────
+scrollbar {
+    background-color: @bg-alt;
+    handle-color:     @accent;
+    handle-width:     4px;
+    border-radius:    4px;
+    padding:          2px;
+}

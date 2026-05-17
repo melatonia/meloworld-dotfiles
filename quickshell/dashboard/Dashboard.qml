@@ -22,6 +22,9 @@ PanelWindow {
     anchors.bottom: true
     anchors.left: true
     color: "transparent"
+    mask: Region {
+        item: dashLayout
+    }
 
     // External margins from the screen edge
     margins.top: cardGap
@@ -156,7 +159,12 @@ PanelWindow {
 
     // ── Unified Layout ────────────────────────────────────────────────────────
     ColumnLayout {
-        anchors.fill: parent
+        id: dashLayout
+        anchors {
+            top: parent.top
+            left: parent.left
+            right: parent.right
+        }
         spacing: root.cardGap
 
         DashCard {
@@ -221,10 +229,6 @@ PanelWindow {
             }
 
             NotificationSection { id: notifInner }
-        }
-
-        Item {
-            Layout.fillHeight: true
         }
     }
 

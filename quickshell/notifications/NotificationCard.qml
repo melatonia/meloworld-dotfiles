@@ -84,6 +84,7 @@ Item {
         enterAnim.start()
         dismissTimer.start()
         timerItem.startTime = Date.now()
+        ringTimer.start()
     }
 
     // ═══════════════════════════════════════════════════════════════════════
@@ -199,6 +200,7 @@ Item {
                 MouseArea {
                     anchors.fill: parent
                     cursorShape:  Qt.PointingHandCursor
+                    enabled:      !root.dismissing
                     onClicked:    root.dismiss()
                 }
 
@@ -257,7 +259,7 @@ Item {
                         }
 
                         Timer {
-                            id: ringTimer; interval: 50; running: true; repeat: true
+                            id: ringTimer; interval: 50; running: false; repeat: true
                             onTriggered: {
                                 timerRing.progress = Math.max(0,
                                     (root.dismissMs - (Date.now() - timerItem.startTime))
@@ -302,6 +304,7 @@ Item {
                         MouseArea {
                             anchors.fill: parent
                             cursorShape:  Qt.PointingHandCursor
+                            enabled:      !root.dismissing
                             onClicked:    root.dismiss()
                         }
                     }
@@ -361,6 +364,7 @@ Item {
                         MouseArea {
                             anchors.fill: parent
                             cursorShape:  Qt.PointingHandCursor
+                            enabled:      !root.dismissing
                             onClicked:    root.dismiss()
                         }
                     }

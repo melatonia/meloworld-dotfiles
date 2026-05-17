@@ -45,6 +45,9 @@ meloworld is my personal arch linux desktop built around mangowm and quickshell.
 <summary>🪟 bar & workspaces</summary>
 <br>
 
+![bar](assets/bar.png)
+![bar light](assets/bar-light.png)
+
 workspace pills slide in when you open something and slide out when you close it. scroll the mouse wheel to switch workspaces. all status pills on the right open their respective popups.
 
 </details>

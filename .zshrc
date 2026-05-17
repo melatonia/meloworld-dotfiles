@@ -121,6 +121,9 @@ function orphans() {
 # Full system update
 alias update='paru && rustup update && orphans && flatpak update && flatpak uninstall --unused && flatpak repair'
 
+# idle
+alias sleepy='quickshell -c ~/.config/quickshell/idle-overlay'
+
 export PATH="$HOME/.cargo/bin:$PATH"
 
 # ── Greeting ──────────────────────────────────────────────────────────────────

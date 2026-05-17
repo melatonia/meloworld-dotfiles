@@ -33,8 +33,11 @@ PopupWindow {
     default property alias panelContent: innerRect.data
 
     visible:        animState !== "closed"
-    implicitHeight: 600
+    implicitHeight: 800
     color:          "transparent"
+    mask: Region {
+        item: innerRect
+    }
 
     // ── Inner panel ───────────────────────────────
     Rectangle {
