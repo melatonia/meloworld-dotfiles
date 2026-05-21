@@ -1,5 +1,6 @@
 import QtQuick
 import Quickshell
+import Quickshell.Wayland
 import Quickshell.Services.Notifications
 import "../dashboard"
 import "../theme"
@@ -20,6 +21,7 @@ PanelWindow {
 
     color:         "transparent"
     exclusiveZone: 0
+    WlrLayershell.layer: WlrLayershell.Overlay
 
     mask: Region { item: cardColumn }
 
