@@ -90,6 +90,22 @@ alias zed='zeditor'
 alias ..='cd ..'
 alias ...='cd ../..'
 
+# zoxide (smart cd)
+eval "$(zoxide init zsh --cmd cd)"
+
+# fzf with fd backend
+
+source /usr/share/fzf/key-bindings.zsh
+source /usr/share/fzf/completion.zsh
+
+export FZF_DEFAULT_COMMAND='fd --type f --hidden --follow --exclude .git'
+export FZF_CTRL_T_COMMAND='fd --type f --hidden --follow --exclude .git'
+export FZF_ALT_C_COMMAND='fd --type d --hidden --follow --exclude .git'
+export FZF_DEFAULT_OPTS='--height 40% --layout=reverse --border'
+
+# lazygit
+alias lg='lazygit'
+
 # ls / eza  (eza is the maintained fork of exa — install with: paru -S eza)
 if command -v eza &>/dev/null; then
   alias ls='eza --icons --group-directories-first'
@@ -149,3 +165,9 @@ ZZZzz /,`.-'`'    -.  ;-;;,_
      |,4-  ) )-,_. ,\ (  `'-'
     '---''(_/--'  `-'\_)  melo.
 EOF
+
+# bat
+export MANPAGER="sh -c 'col -bx | bat -l man -p'"
+export BAT_THEME="base16"
+
+alias cat='bat --paging=never --style=plain'

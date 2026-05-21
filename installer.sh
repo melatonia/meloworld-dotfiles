@@ -79,7 +79,8 @@ if ask_permission "Install required packages?"; then
         ttf-jetbrains-mono-nerd rofi-wayland rofimoji grim slurp awww
         bibata-cursor-theme-bin papirus-icon-theme zed zsh zsh-autosuggestions
         zsh-syntax-highlighting eza sddm adw-gtk-theme xdg-desktop-portal-wlr
-        hypridle hyprlock cliphist wl-clipboard playerctl
+        hypridle hyprlock cliphist wl-clipboard playerctl zoxide bat fd ripgrep
+        lazygit
     )
     $PKGER -S --needed --noconfirm "${PACKAGES[@]}"
     success "Dependencies installed.\n"
@@ -126,7 +127,7 @@ fi
 if ask_permission "Install and configure SDDM theme files?"; then
     sudo mkdir -p /usr/share/sddm/themes/
     sudo cp -r "$INSTALL_LOC/meloworld-sddm" /usr/share/sddm/themes/
-    
+
     sudo mkdir -p /etc/sddm.conf.d
     echo -e "[Theme]\nCurrent=meloworld-sddm" | sudo tee /etc/sddm.conf.d/theme.conf > /dev/null
     success "Meloworld SDDM theme installed and configured."
@@ -134,11 +135,11 @@ fi
 
 if ask_permission "Apply final preferences & set Zsh as default shell?"; then
     sudo systemctl enable --now bluetooth power-profiles-daemon
-    
+
     gsettings set org.gnome.desktop.wm.preferences button-layout ":" || true
     gsettings set org.gnome.desktop.interface gtk-theme 'adw-gtk3-dark' || true
     gsettings set org.gnome.desktop.interface color-scheme 'prefer-dark' || true
-    
+
     # Switch shell to Zsh to activate history and plugin settings
     if [[ "$SHELL" != */zsh ]]; then
         if command -v zsh >/dev/null 2>&1; then
