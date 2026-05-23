@@ -59,11 +59,22 @@ Item {
         }
     }
 
+    property bool isTerminal: false
+
     function _parseDesktopEntry(text) {
         if (text === "") return
         var lines = text.split("\n")
         for (var i = 0; i < lines.length; i++) {
             var line = lines[i].trim()
+
+            // #6: detect Terminal=true so we can wrap the launch
+            var termMatch = line.match(/^Terminal\s*=\s*(.+)$/)
+            if (termMatch) {
+                var v = termMatch[1].trim()
+                root.isTerminal = (v === "true" || v === "1")
+                continue
+            }
+
             var prefMatch = line.match(/^PrefersNonDefaultGPU\s*=\s*(.+)$/)
             if (prefMatch) {
                 if (prefMatch[1].trim() === "true" || prefMatch[1].trim() === "1")
@@ -106,8 +117,21 @@ Item {
     // ── Launch helpers ────────────────────────────────────────────────────
     function _launchDefault() {
         AppUsageTracker.recordLaunch(root.appId)
-        if (root.appData) root.appData.execute()
-        else Quickshell.execDetached([root.appId])
+        if (root.isTerminal) {
+            // #6: terminal apps need a terminal emulator; try foot then kitty
+            var exec = ""
+            if (root.appData && root.appData.executableName)
+                exec = root.appData.executableName
+            else
+                exec = root.appId
+            // Strip field codes (%u %f %U %F etc.) from exec string
+            exec = exec.replace(/%[uUfFdDnNickvm]/g, "").trim()
+            Quickshell.execDetached(["ghostty", "-e", "bash", "-c", exec])
+        } else if (root.appData) {
+            root.appData.execute()
+        } else {
+            Quickshell.execDetached([root.appId])
+        }
         LauncherState.hide()
     }
 

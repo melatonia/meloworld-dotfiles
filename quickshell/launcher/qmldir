@@ -3,3 +3,8 @@ singleton LauncherHiddenApps 1.0 LauncherHiddenApps.qml
 singleton AppUsageTracker 1.0 AppUsageTracker.qml
 AppLauncher 1.0 AppLauncher.qml
 AppLauncherIcon 1.0 AppLauncherIcon.qml
+LauncherAppView 1.0 LauncherAppView.qml
+LauncherEmojiView 1.0 LauncherEmojiView.qml
+LauncherWallpaperView 1.0 LauncherWallpaperView.qml
+LauncherClipboardView 1.0 LauncherClipboardView.qml
+LauncherSearchBar 1.0 LauncherSearchBar.qml

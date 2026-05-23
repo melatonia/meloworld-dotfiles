@@ -51,6 +51,7 @@ Singleton {
     readonly property color textDim:           isDark ? Colors.grey500 : lightTextDim
     readonly property color textAccent:        isDark ? Colors.white : lightTextAccent
     readonly property color textBox:           isDark ? "#2d2d2d" : "#f5f5f5"
+    readonly property color textBoxDim:        isDark ? Colors.grey700 : blueGrey400
 
     // Status
     readonly property color scanning:          isDark ? Colors.teal400 : Colors.teal400
