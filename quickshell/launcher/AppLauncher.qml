@@ -34,6 +34,7 @@ PanelWindow {
     property int  currentPage:    0
     property bool wallpaperMode:  false
     property bool clipboardMode:  false
+    property bool emojiMode:      false
     readonly property int itemsPerPage: isGridView ? 15 : 6
 
     // Ordered list of original indices for all currently matched apps
@@ -69,10 +70,29 @@ PanelWindow {
         clipboardList.currentIndex = 0
     }
 
+    // ── Emoji state ───────────────────────────────────────────────────────
+    property var allEmoji:      []   // loaded once from JSON
+    property var filteredEmoji: []
+
+    function updateEmojiFilter() {
+        var q = searchInput.text.toLowerCase()
+        if (q === "") {
+            root.filteredEmoji = root.allEmoji
+        } else {
+            var result = []
+            for (var i = 0; i < root.allEmoji.length; i++) {
+                if (root.allEmoji[i].name.includes(q))
+                    result.push(root.allEmoji[i])
+            }
+            root.filteredEmoji = result
+        }
+        emojiGrid.currentIndex = 0
+    }
+
     Shortcut {
         sequence: "Ctrl+G"
         onActivated: {
-            if (root.wallpaperMode || root.clipboardMode) return
+            if (root.wallpaperMode || root.clipboardMode || root.emojiMode) return
             root.isGridView = !root.isGridView
             filterTimer.restart()
         }
@@ -170,7 +190,7 @@ PanelWindow {
             root.animState = LauncherState.visible ? "open" : "closing"
             if (LauncherState.visible) {
                 root._closeHiddenMenu()
-                if (!root.wallpaperMode && !root.clipboardMode) {
+                if (!root.wallpaperMode && !root.clipboardMode && !root.emojiMode) {
                     filterTimer.restart()
                 }
             } else {
@@ -181,16 +201,53 @@ PanelWindow {
 
     Connections {
         target: LauncherHiddenApps
-        function onHiddenAppsChanged() { if(!root.wallpaperMode && !root.clipboardMode) filterTimer.restart() }
+        function onHiddenAppsChanged() {
+            if (!root.wallpaperMode && !root.clipboardMode && !root.emojiMode)
+                filterTimer.restart()
+        }
     }
 
     Connections {
         target: AppUsageTracker
-        function onUsageMapChanged() { if(!root.wallpaperMode && !root.clipboardMode) filterTimer.restart() }
+        function onUsageMapChanged() {
+            if (!root.wallpaperMode && !root.clipboardMode && !root.emojiMode)
+                filterTimer.restart()
+        }
     }
 
     onAnimStateChanged: {
         if (animState === "open") searchInput.forceActiveFocus()
+    }
+
+    // ── Emoji JSON loader (reads once, lazy on first openEmoji) ───────────
+    Process {
+        id: emojiLoadProc
+        command: ["cat", Quickshell.configDir + "/assets/emoji.json"]
+        running: false
+        stdout: StdioCollector {
+            onStreamFinished: {
+                try {
+                    root.allEmoji = JSON.parse(this.text)
+                    root.filteredEmoji = root.allEmoji
+                    emojiGrid.currentIndex = 0
+                } catch (e) {
+                    console.warn("Failed to parse emoji.json:", e)
+                }
+            }
+        }
+    }
+
+    // ── Emoji copy ────────────────────────────────────────────────────────
+    Process {
+        id: emojiCopyProc
+        running: false
+        command: ["true"]
+
+        function copyEmoji(ch) {
+            emojiCopyProc.command = ["bash", "-c", "printf '%s' '" + ch + "' | wl-copy"]
+            emojiCopyProc.running = false
+            emojiCopyProc.running = true
+        }
     }
 
     // ── Clipboard loader ──────────────────────────────────────────────────
@@ -247,7 +304,7 @@ PanelWindow {
             clipboardActionProc.command = ["bash", "-c", "printf '%s\n' '" + escaped + "' | cliphist delete"]
             clipboardActionProc.running = false
             clipboardActionProc.running = true
-            clipboardLoader.loadClipboard() // Refresh
+            clipboardLoader.loadClipboard()
         }
     }
 
@@ -326,8 +383,9 @@ PanelWindow {
             if (!LauncherState.visible) {
                 root.wallpaperMode = false
                 root.clipboardMode = false
-                root.currentPage = 0
-                searchInput.text = ""
+                root.emojiMode     = false
+                root.currentPage   = 0
+                searchInput.text   = ""
             }
             LauncherState.toggle()
         }
@@ -335,7 +393,8 @@ PanelWindow {
         function openWallpaper(): void {
             root.wallpaperMode = true
             root.clipboardMode = false
-            searchInput.text = ""
+            root.emojiMode     = false
+            searchInput.text   = ""
             LauncherState.show()
             wallpaperLoader.loadWallpapers()
             searchInput.forceActiveFocus()
@@ -344,9 +403,27 @@ PanelWindow {
         function openClipboard(): void {
             root.clipboardMode = true
             root.wallpaperMode = false
-            searchInput.text = ""
+            root.emojiMode     = false
+            searchInput.text   = ""
             LauncherState.show()
             clipboardLoader.loadClipboard()
+            searchInput.forceActiveFocus()
+        }
+
+        function openEmoji(): void {
+            root.emojiMode     = true
+            root.clipboardMode = false
+            root.wallpaperMode = false
+            searchInput.text   = ""
+            LauncherState.show()
+            // Lazy-load: only read file the first time
+            if (root.allEmoji.length === 0) {
+                emojiLoadProc.running = false
+                emojiLoadProc.running = true
+            } else {
+                root.filteredEmoji = root.allEmoji
+                emojiGrid.currentIndex = 0
+            }
             searchInput.forceActiveFocus()
         }
     }
@@ -431,7 +508,7 @@ PanelWindow {
                 Text {
                     width:          parent.width
                     text:           "Hidden Apps"
-                    font.pixelSize: 12
+                    font.pixelSize: 13
                     font.bold:      true
                     font.family:    "JetBrainsMono Nerd Font"
                     color:          PanelColors.textDim
@@ -521,7 +598,12 @@ PanelWindow {
     Rectangle {
         id: panel
 
-        readonly property int panelWidth: root.wallpaperMode ? 860 : (root.clipboardMode ? 600 : (root.isGridView ? 740 : 600))
+        readonly property int panelWidth: {
+            if (root.wallpaperMode) return 860
+            if (root.clipboardMode) return 600
+            if (root.emojiMode)     return 540
+            return root.isGridView  ? 740 : 600
+        }
 
         width:  panelWidth
         height: panelColumn.implicitHeight + 20
@@ -536,7 +618,7 @@ PanelWindow {
         color:        PanelColors.popupBackground
         Behavior on color { ColorAnimation { duration: PanelColors.transitionDuration } }
 
-        border.color: PanelColors.border
+        border.color: PanelColors.rowBackground
         Behavior on border.color { ColorAnimation { duration: PanelColors.transitionDuration } }
         border.width: 4
         clip:         false
@@ -623,7 +705,7 @@ PanelWindow {
                 width:  parent.width
                 height: 44
                 radius: 8
-                color:  PanelColors.rowBackground
+                color:  PanelColors.textBox
                 Behavior on color { ColorAnimation { duration: PanelColors.transitionDuration } }
 
                 border.color: searchInput.activeFocus ? PanelColors.launcher : "transparent"
@@ -637,10 +719,40 @@ PanelWindow {
                         rightMargin: 12
                     }
 
+                    // ── Mode pill ────────────────────────────────────────
+                    Rectangle {
+                        id: modePill
+                        visible: root.wallpaperMode || root.clipboardMode || root.emojiMode
+                        anchors.verticalCenter: parent.verticalCenter
+                        anchors.left:           parent.left
+                        height: 26
+                        width:  pillLabel.implicitWidth + 16
+                        radius: 13
+                        color:  PanelColors.rowBackground
+                        Behavior on color { ColorAnimation { duration: PanelColors.transitionDuration } }
+
+                        Text {
+                            id: pillLabel
+                            anchors.centerIn: parent
+                            text: root.wallpaperMode ? "󰸉 Wallpaper"
+                                : root.clipboardMode ? "󰅌 Clipboard"
+                                : root.emojiMode     ? "󰞅 Emoji"
+                                : ""
+                            font.pixelSize: 13
+                            font.bold:      true
+                            font.family:    "JetBrainsMono Nerd Font"
+                            color:          PanelColors.launcher
+                        }
+                    }
+
                     Text {
                         anchors.fill:      parent
-                        text:              root.wallpaperMode ? "󰸉 Search wallpapers..." : (root.clipboardMode ? "󰅌 Search clipboard..." : " Search...")
-                        font.pixelSize:    13
+                        anchors.leftMargin: modePill.visible ? modePill.width + 8 : 0
+                        text:              root.wallpaperMode ? "Search wallpapers..."
+                                         : root.clipboardMode ? "Search clipboard..."
+                                         : root.emojiMode     ? "Search emoji..."
+                                         : " Search..."
+                        font.pixelSize:    16
                         font.bold:         true
                         font.family:       "JetBrainsMono Nerd Font"
                         color:             PanelColors.textDim
@@ -651,8 +763,9 @@ PanelWindow {
                     TextInput {
                         id:                searchInput
                         anchors.fill:      parent
+                        anchors.leftMargin: modePill.visible ? modePill.width + 8 : 0
                         color:             PanelColors.textMain
-                        font.pixelSize:    13
+                        font.pixelSize:    16
                         font.bold:         true
                         font.family:       "JetBrainsMono Nerd Font"
                         selectByMouse:     true
@@ -665,6 +778,8 @@ PanelWindow {
                                 root.updateWallpaperFilter()
                             else if (root.clipboardMode)
                                 root.updateClipboardFilter()
+                            else if (root.emojiMode)
+                                root.updateEmojiFilter()
                             else
                                 filterTimer.restart()
                         }
@@ -722,6 +837,32 @@ PanelWindow {
                                         event.accepted = true;
                                     }
                                 }
+                            } else if (root.emojiMode) {
+                                if (event.key === Qt.Key_Down || event.key === Qt.Key_Up ||
+                                    event.key === Qt.Key_Left || event.key === Qt.Key_Right ||
+                                    event.key === Qt.Key_Tab || event.key === Qt.Key_Backtab) {
+
+                                    if (root.filteredEmoji.length === 0) return;
+
+                                    var ecols = emojiGrid.cols;
+                                    var maxEidx = root.filteredEmoji.length - 1;
+                                    var ceidx = emojiGrid.currentIndex;
+                                    if (ceidx === -1) ceidx = 0;
+
+                                    if (event.key === Qt.Key_Right || event.key === Qt.Key_Tab) {
+                                        ceidx = Math.min(ceidx + 1, maxEidx);
+                                    } else if (event.key === Qt.Key_Left || event.key === Qt.Key_Backtab) {
+                                        ceidx = Math.max(ceidx - 1, 0);
+                                    } else if (event.key === Qt.Key_Down) {
+                                        ceidx = Math.min(ceidx + ecols, maxEidx);
+                                    } else if (event.key === Qt.Key_Up) {
+                                        ceidx = Math.max(ceidx - ecols, 0);
+                                    }
+
+                                    emojiGrid.currentIndex = ceidx;
+                                    emojiGrid.positionViewAtIndex(ceidx, GridView.Contain);
+                                    event.accepted = true;
+                                }
                             } else {
                                 if (event.key === Qt.Key_Down || event.key === Qt.Key_Up ||
                                      event.key === Qt.Key_Tab  || event.key === Qt.Key_Backtab) {
@@ -746,9 +887,14 @@ PanelWindow {
 
                                     if (nextFidx !== currentFidx) {
                                         root.selectedIndex = root.filteredApps[nextFidx]
-                                        var newPage = Math.floor(nextFidx / root.itemsPerPage)
-                                        if (newPage !== root.currentPage)
-                                            root.currentPage = newPage
+                                        // List mode: scroll the ListView to keep selection visible
+                                        if (!root.isGridView) {
+                                            appListView.positionViewAtIndex(nextFidx, ListView.Contain)
+                                        } else {
+                                            var newPage = Math.floor(nextFidx / root.itemsPerPage)
+                                            if (newPage !== root.currentPage)
+                                                root.currentPage = newPage
+                                        }
                                     }
                                     event.accepted = true
                                 }
@@ -756,22 +902,30 @@ PanelWindow {
                         }
 
                         Keys.onReturnPressed: {
-                            if (root.wallpaperMode) {
+                            if (root.emojiMode) {
+                                if (emojiGrid.currentIndex >= 0 && emojiGrid.currentIndex < root.filteredEmoji.length) {
+                                    var em = root.filteredEmoji[emojiGrid.currentIndex]
+                                    emojiCopyProc.copyEmoji(em.char)
+                                    root.emojiMode   = false
+                                    searchInput.text = ""
+                                    LauncherState.hide()
+                                }
+                            } else if (root.wallpaperMode) {
                                 if (wallpaperGrid.currentIndex >= 0 && wallpaperGrid.currentIndex < root.filteredWallpapers.length) {
-                                    var wp = root.filteredWallpapers[wallpaperGrid.currentIndex];
-                                    wallpaperSetProc.apply(wp.filePath);
-                                    root.wallpaperMode = false;
-                                    searchInput.text = "";
-                                    filterTimer.restart();
-                                    LauncherState.hide();
+                                    var wp = root.filteredWallpapers[wallpaperGrid.currentIndex]
+                                    wallpaperSetProc.apply(wp.filePath)
+                                    root.wallpaperMode = false
+                                    searchInput.text   = ""
+                                    filterTimer.restart()
+                                    LauncherState.hide()
                                 }
                             } else if (root.clipboardMode) {
                                 if (clipboardList.currentIndex >= 0 && clipboardList.currentIndex < root.filteredClipboard.length) {
-                                    var cp = root.filteredClipboard[clipboardList.currentIndex];
-                                    clipboardActionProc.copyItem(cp.rawLine);
-                                    root.clipboardMode = false;
-                                    searchInput.text = "";
-                                    LauncherState.hide();
+                                    var cp = root.filteredClipboard[clipboardList.currentIndex]
+                                    clipboardActionProc.copyItem(cp.rawLine)
+                                    root.clipboardMode = false
+                                    searchInput.text   = ""
+                                    LauncherState.hide()
                                 }
                             } else {
                                 if (root.selectedIndex !== -1) {
@@ -785,7 +939,7 @@ PanelWindow {
                         }
 
                         Keys.onEscapePressed: {
-                            if (root.wallpaperMode || root.clipboardMode) {
+                            if (root.wallpaperMode || root.clipboardMode || root.emojiMode) {
                                 LauncherState.hide()
                             } else if (root._hiddenMenuOpen) {
                                 root._closeHiddenMenu()
@@ -845,7 +999,7 @@ PanelWindow {
                                 verticalCenter: parent.verticalCenter
                             }
                             text:           modelData.content
-                            font.pixelSize: 13
+                            font.pixelSize: 16
                             font.family:    "JetBrainsMono Nerd Font"
                             color:          PanelColors.textMain
                             elide:          Text.ElideRight
@@ -859,14 +1013,13 @@ PanelWindow {
                             onClicked: {
                                 clipboardActionProc.copyItem(modelData.rawLine)
                                 root.clipboardMode = false
-                                searchInput.text = ""
+                                searchInput.text   = ""
                                 LauncherState.hide()
                             }
                         }
                     }
                 }
 
-                // Empty state
                 Text {
                     anchors.centerIn: parent
                     text:             "Clipboard is empty"
@@ -892,10 +1045,10 @@ PanelWindow {
                     anchors.fill: parent
                     clip:         true
 
-                    readonly property int cols:      4
-                    readonly property int thumbW:    Math.floor(width / cols)
-                    readonly property int thumbH:    Math.floor(thumbW * 0.60)
-                    readonly property int labelH:    22
+                    readonly property int cols:   4
+                    readonly property int thumbW: Math.floor(width / cols)
+                    readonly property int thumbH: Math.floor(thumbW * 0.60)
+                    readonly property int labelH: 22
                     cellWidth:  thumbW
                     cellHeight: thumbH + labelH + 12
 
@@ -904,8 +1057,8 @@ PanelWindow {
                     model: root.filteredWallpapers
 
                     delegate: Item {
-                        required property var    modelData
-                        required property int    index
+                        required property var modelData
+                        required property int index
 
                         readonly property string filePath: modelData.filePath
                         readonly property string wallName: modelData.wallName
@@ -914,10 +1067,7 @@ PanelWindow {
                         height: wallpaperGrid.cellHeight
 
                         Rectangle {
-                            anchors {
-                                fill:    parent
-                                margins: 4
-                            }
+                            anchors { fill: parent; margins: 4 }
                             radius: 10
                             color:  tileHover.containsMouse || index === wallpaperGrid.currentIndex
                                         ? Qt.rgba(1, 1, 1, 0.10)
@@ -929,7 +1079,6 @@ PanelWindow {
                                 anchors.margins: 4
                                 spacing:         6
 
-                                // ── Thumbnail ─────────────────────────────
                                 Item {
                                     id:     thumbContainer
                                     width:  parent.width
@@ -943,39 +1092,41 @@ PanelWindow {
                                     }
 
                                     Image {
-                                        id:           wallImg
-                                        anchors.fill: parent
+                                        id:              wallImg
+                                        anchors.fill:    parent
                                         anchors.margins: 2
-                                        source:       "file://" + filePath
-                                        sourceSize:   Qt.size(256, 256)
-                                        fillMode:     Image.PreserveAspectCrop
-                                        asynchronous: true
-                                        cache:        true
-                                        smooth:       true
-                                        mipmap:       true
+                                        source:          "file://" + filePath
+                                        sourceSize:      Qt.size(256, 256)
+                                        fillMode:        Image.PreserveAspectCrop
+                                        asynchronous:    true
+                                        cache:           true
+                                        smooth:          true
+                                        mipmap:          true
                                     }
 
                                     Rectangle {
                                         anchors.fill: parent
-                                        color: "transparent"
+                                        color:        "transparent"
                                         border.color: tileHover.containsMouse || index === wallpaperGrid.currentIndex
                                                           ? PanelColors.launcher
                                                           : PanelColors.border
                                         border.width: 2
-                                        radius: 8
+                                        radius:       8
                                         Behavior on border.color { ColorAnimation { duration: 120 } }
                                     }
                                 }
 
-                                // ── Name label ────────────────────────────
                                 Text {
                                     width:               parent.width
                                     height:              wallpaperGrid.labelH
                                     text:                wallName
-                                    font.pixelSize:      11
+                                    font.pixelSize:      13
                                     font.bold:           true
                                     font.family:         "JetBrainsMono Nerd Font"
-                                    color:               PanelColors.textMain
+                                    color:               index === wallpaperGrid.currentIndex
+                                                             ? PanelColors.launcher
+                                                             : PanelColors.textMain
+                                    Behavior on color    { ColorAnimation { duration: 120 } }
                                     horizontalAlignment: Text.AlignHCenter
                                     elide:               Text.ElideRight
                                     verticalAlignment:   Text.AlignVCenter
@@ -983,14 +1134,14 @@ PanelWindow {
                             }
 
                             MouseArea {
-                                id:          tileHover
+                                id:           tileHover
                                 anchors.fill: parent
                                 hoverEnabled: true
                                 cursorShape:  Qt.PointingHandCursor
                                 onClicked: {
                                     wallpaperSetProc.apply(filePath)
                                     root.wallpaperMode = false
-                                    searchInput.text = ""
+                                    searchInput.text   = ""
                                     filterTimer.restart()
                                     LauncherState.hide()
                                 }
@@ -1000,12 +1151,91 @@ PanelWindow {
                 }
             }
 
-            // ── App grid ─────────────────────────────────────────────────
+            // ── Emoji grid ───────────────────────────────────────────────
+            Item {
+                width:   parent.width
+                height:  400
+                clip:    true
+                visible: root.emojiMode
+                opacity: root.emojiMode ? 1.0 : 0.0
+                Behavior on opacity { NumberAnimation { duration: 160; easing.type: Easing.OutCubic } }
+
+                GridView {
+                    id:           emojiGrid
+                    anchors.fill: parent
+                    clip:         true
+
+                    readonly property int cols:    9
+                    readonly property int cellSz:  Math.floor(width / cols)
+                    cellWidth:  cellSz
+                    cellHeight: cellSz
+
+                    ScrollBar.vertical: ScrollBar { policy: ScrollBar.AsNeeded }
+
+                    model: root.filteredEmoji
+
+                    delegate: Item {
+                        required property var modelData
+                        required property int index
+
+                        width:  emojiGrid.cellSz
+                        height: emojiGrid.cellSz
+
+                        Rectangle {
+                            anchors { fill: parent; margins: 2 }
+                            radius: 8
+                            color:  emojiMouse.containsMouse || index === emojiGrid.currentIndex
+                                        ? Qt.rgba(1, 1, 1, 0.10)
+                                        : "transparent"
+                            border.color: index === emojiGrid.currentIndex ? PanelColors.launcher : "transparent"
+                            border.width: 2
+                            Behavior on color        { ColorAnimation { duration: 100 } }
+                            Behavior on border.color { ColorAnimation { duration: 100 } }
+
+                            Text {
+                                anchors.centerIn: parent
+                                text:             modelData.char
+                                font.pixelSize:   28
+                                font.family:      "Noto Color Emoji"
+                            }
+                        }
+
+                        MouseArea {
+                            id:           emojiMouse
+                            anchors.fill: parent
+                            hoverEnabled: true
+                            cursorShape:  Qt.PointingHandCursor
+                            onClicked: {
+                                emojiCopyProc.copyEmoji(modelData.char)
+                                root.emojiMode   = false
+                                searchInput.text = ""
+                                LauncherState.hide()
+                            }
+                        }
+
+                        ToolTip.visible:   emojiMouse.containsMouse
+                        ToolTip.text:      modelData.name
+                        ToolTip.delay:     500
+                    }
+                }
+
+                Text {
+                    anchors.centerIn: parent
+                    text:             "No emoji found"
+                    font.pixelSize:   14
+                    font.bold:        true
+                    font.family:      "JetBrainsMono Nerd Font"
+                    color:            PanelColors.textDim
+                    visible:          root.filteredEmoji.length === 0 && searchInput.text !== ""
+                }
+            }
+
+            // ── App area (grid + list) ────────────────────────────────────
             Item {
                 width:   parent.width
                 height:  root.isGridView ? 412 : 292
                 clip:    true
-                visible: !root.wallpaperMode && !root.clipboardMode
+                visible: !root.wallpaperMode && !root.clipboardMode && !root.emojiMode
                 Behavior on height { NumberAnimation { duration: 200; easing.type: Easing.OutCubic } }
 
                 MouseArea {
@@ -1013,6 +1243,7 @@ PanelWindow {
                     z:               0
                     acceptedButtons: Qt.LeftButton | Qt.RightButton
                     onWheel: (wheel) => {
+                        if (!root.isGridView) return   // ListView handles its own scroll
                         if (wheel.angleDelta.y < 0) {
                             if (root.currentPage < root.totalPages - 1) root.currentPage++
                         } else {
@@ -1025,101 +1256,213 @@ PanelWindow {
                     }
                 }
 
-                Repeater {
-                    id: appsRepeater
-                    model: DesktopEntries.applications
-                    onCountChanged: { if(!root.wallpaperMode && !root.clipboardMode) filterTimer.restart() }
+                // ── Grid view ────────────────────────────────────────────
+                Item {
+                    anchors.fill: parent
+                    visible:      root.isGridView
 
-                    delegate: AppLauncherIcon {
-                        appId:               modelData.id
-                        appName:             modelData.name
-                        appIcon:             modelData.icon
-                        appData:             modelData
-                        delegateIndex:       index
-                        launcherItemsPerPage: root.itemsPerPage
-                        launcherCurrentPage:  root.currentPage
-                        launcherSelectedIdx:  root.selectedIndex
-                        launcherIsGridView:   root.isGridView
+                    Repeater {
+                        id: appsRepeater
+                        model: DesktopEntries.applications
+                        onCountChanged: { if (!root.wallpaperMode && !root.clipboardMode && !root.emojiMode) filterTimer.restart() }
 
-                        onLauncherSelectedIdxChanged: {
-                            if (root.selectedIndex !== launcherSelectedIdx)
-                                root.selectedIndex = launcherSelectedIdx
+                        delegate: AppLauncherIcon {
+                            appId:               modelData.id
+                            appName:             modelData.name
+                            appIcon:             modelData.icon
+                            appData:             modelData
+                            delegateIndex:       index
+                            launcherItemsPerPage: root.itemsPerPage
+                            launcherCurrentPage:  root.currentPage
+                            launcherSelectedIdx:  root.selectedIndex
+                            launcherIsGridView:   root.isGridView
+
+                            onLauncherSelectedIdxChanged: {
+                                if (root.selectedIndex !== launcherSelectedIdx)
+                                    root.selectedIndex = launcherSelectedIdx
+                            }
+                        }
+                    }
+
+                    // ── Command Fallback (grid) ───────────────────────────
+                    Rectangle {
+                        visible: root.isGridView && root.filteredApps.length === 0 && searchInput.text.trim() !== ""
+                        x: 4; y: 4
+                        width:  136
+                        height: 132
+                        radius: 12
+                        color:  Qt.rgba(1, 1, 1, 0.08)
+
+                        Column {
+                            anchors.centerIn: parent
+                            spacing: 8
+                            IconImage {
+                                anchors.horizontalCenter: parent.horizontalCenter
+                                implicitSize: 64
+                                source: "utilities-terminal"
+                            }
+                            Text {
+                                anchors.horizontalCenter: parent.horizontalCenter
+                                text:                "Run: " + searchInput.text
+                                font.pixelSize:      13
+                                font.bold:           true
+                                font.family:         "JetBrainsMono Nerd Font"
+                                color:               PanelColors.textMain
+                                width:               120
+                                horizontalAlignment: Text.AlignHCenter
+                                elide:               Text.ElideRight
+                            }
+                        }
+
+                        MouseArea {
+                            anchors.fill: parent
+                            cursorShape:  Qt.PointingHandCursor
+                            onClicked: {
+                                Quickshell.execDetached(["bash", "-c", searchInput.text])
+                                LauncherState.hide()
+                            }
                         }
                     }
                 }
 
-                // ── Command Fallback ──────────────────────────────────────
-                Rectangle {
-                    visible: root.filteredApps.length === 0 && searchInput.text.trim() !== ""
-                    x: 4
-                    y: 4
-                    width:  root.isGridView ? 136 : parent.width - 8
-                    height: root.isGridView ? 132 : 44
-                    radius: 12
-                    color:  Qt.rgba(1, 1, 1, 0.08)
+                // ── List view (scrollable) ───────────────────────────────
+                ListView {
+                    id:           appListView
+                    anchors.fill: parent
+                    clip:         true
+                    spacing:      0
+                    visible:      !root.isGridView
 
-                    Column {
-                        visible: root.isGridView
-                        anchors.centerIn: parent
-                        spacing: 8
-                        IconImage {
-                            anchors.horizontalCenter: parent.horizontalCenter
-                            implicitSize: 64
-                            source: "utilities-terminal"
-                        }
-                        Text {
-                            anchors.horizontalCenter: parent.horizontalCenter
-                            text: "Run: " + searchInput.text
-                            font.pixelSize: 12
-                            font.bold: true
-                            font.family: "JetBrainsMono Nerd Font"
-                            color: PanelColors.textMain
-                            width: 120
-                            horizontalAlignment: Text.AlignHCenter
-                            elide: Text.ElideRight
+                    ScrollBar.vertical: ScrollBar { policy: ScrollBar.AsNeeded }
+
+                    // Virtual model over filteredApps so ListView handles scroll
+                    model: root.filteredApps.length
+
+                    delegate: Item {
+                        id: listDelegate
+                        required property int index
+
+                        readonly property int origIdx:     root.filteredApps[index] ?? -1
+                        readonly property var appIconItem: origIdx >= 0 ? appsRepeater.itemAt(origIdx) : null
+
+                        width:  appListView.width
+                        height: 48
+
+                        visible: appIconItem !== null
+
+                        Rectangle {
+                            anchors.fill:        parent
+                            anchors.leftMargin:  4
+                            anchors.rightMargin: 4
+                            radius: 10
+                            color: listRowHover.containsMouse || root.selectedIndex === listDelegate.origIdx
+                                       ? Qt.rgba(1, 1, 1, 0.08)
+                                       : "transparent"
+                            Behavior on color { ColorAnimation { duration: 150 } }
+
+                            Rectangle {
+                                width: 3; height: parent.height - 16; radius: 2
+                                anchors {
+                                    left:           parent.left
+                                    leftMargin:     4
+                                    verticalCenter: parent.verticalCenter
+                                }
+                                color:   PanelColors.launcher
+                                visible: root.selectedIndex === listDelegate.origIdx
+                            }
+
+                            Row {
+                                anchors {
+                                    fill:         parent
+                                    leftMargin:   14
+                                    rightMargin:  12
+                                }
+                                spacing: 12
+
+                                IconImage {
+                                    anchors.verticalCenter: parent.verticalCenter
+                                    implicitSize: 24
+                                    source: listDelegate.appIconItem ? Quickshell.iconPath(listDelegate.appIconItem.appIcon) : ""
+                                    scale: (root.selectedIndex === listDelegate.origIdx || listRowHover.containsMouse) ? 1.1 : 1.0
+                                    Behavior on scale { NumberAnimation { duration: 120; easing.type: Easing.OutCubic } }
+                                }
+
+                                Text {
+                                    anchors.verticalCenter: parent.verticalCenter
+                                    text:                listDelegate.appIconItem ? listDelegate.appIconItem.appName : ""
+                                    font.pixelSize:      16
+                                    font.bold:           true
+                                    font.family:         "JetBrainsMono Nerd Font"
+                                    color:               PanelColors.textMain
+                                    width:               appListView.width - 14 - 24 - 12 - 12 - 8
+                                    horizontalAlignment: Text.AlignLeft
+                                    elide:               Text.ElideRight
+                                }
+                            }
+
+                            MouseArea {
+                                id:           listRowHover
+                                anchors.fill: parent
+                                hoverEnabled: true
+                                cursorShape:  Qt.PointingHandCursor
+                                onEntered:    root.selectedIndex = listDelegate.origIdx
+                                onClicked: {
+                                    if (listDelegate.appIconItem)
+                                        listDelegate.appIconItem.executeApp()
+                                }
+                            }
                         }
                     }
 
-                    Row {
-                        visible: !root.isGridView
-                        anchors.fill: parent
-                        anchors.leftMargin: 12
-                        anchors.rightMargin: 12
-                        spacing: 12
-                        IconImage {
-                            anchors.verticalCenter: parent.verticalCenter
-                            implicitSize: 24
-                            source: "utilities-terminal"
-                        }
-                        Text {
-                            anchors.verticalCenter: parent.verticalCenter
-                            text: "Run command: " + searchInput.text
-                            font.pixelSize: 12
-                            font.bold: true
-                            font.family: "JetBrainsMono Nerd Font"
-                            color: PanelColors.textMain
-                            width: parent.width - 48
-                            horizontalAlignment: Text.AlignLeft
-                            elide: Text.ElideRight
-                        }
-                    }
+                    // ── Command Fallback (list) ───────────────────────────
+                    footer: Rectangle {
+                        visible: !root.isGridView && root.filteredApps.length === 0 && searchInput.text.trim() !== ""
+                        width:   appListView.width - 8
+                        x:       4
+                        height:  44
+                        radius:  12
+                        color:   Qt.rgba(1, 1, 1, 0.08)
 
-                    MouseArea {
-                        anchors.fill: parent
-                        cursorShape:  Qt.PointingHandCursor
-                        onClicked: {
-                            Quickshell.execDetached(["bash", "-c", searchInput.text])
-                            LauncherState.hide()
+                        Row {
+                            anchors.fill:        parent
+                            anchors.leftMargin:  12
+                            anchors.rightMargin: 12
+                            spacing: 12
+                            IconImage {
+                                anchors.verticalCenter: parent.verticalCenter
+                                implicitSize: 24
+                                source: "utilities-terminal"
+                            }
+                            Text {
+                                anchors.verticalCenter: parent.verticalCenter
+                                text:                "Run command: " + searchInput.text
+                                font.pixelSize:      16
+                                font.bold:           true
+                                font.family:         "JetBrainsMono Nerd Font"
+                                color:               PanelColors.textMain
+                                width:               parent.width - 48
+                                horizontalAlignment: Text.AlignLeft
+                                elide:               Text.ElideRight
+                            }
+                        }
+
+                        MouseArea {
+                            anchors.fill: parent
+                            cursorShape:  Qt.PointingHandCursor
+                            onClicked: {
+                                Quickshell.execDetached(["bash", "-c", searchInput.text])
+                                LauncherState.hide()
+                            }
                         }
                     }
                 }
             }
 
-            // ── Pagination dots (app mode only) ───────────────────────────
+            // ── Pagination dots — grid mode only ──────────────────────────
             Row {
                 anchors.horizontalCenter: parent.horizontalCenter
                 spacing: 8
-                visible: root.totalPages > 1 && !root.wallpaperMode && !root.clipboardMode
+                visible: root.isGridView && root.totalPages > 1 && !root.wallpaperMode && !root.clipboardMode && !root.emojiMode
 
                 Repeater {
                     model: root.totalPages

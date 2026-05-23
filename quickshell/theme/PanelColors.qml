@@ -24,7 +24,7 @@ Singleton {
     readonly property color overlayBackground: "#66000000"
 
     // Accents
-// Accents
+    readonly property color launcher:          isDark ? Colors.teal200 : Colors.teal200
     readonly property color battery:           isDark ? Colors.orange200 : Colors.orange200
     readonly property color network:           isDark ? Colors.purple200 : Colors.purple200
     readonly property color audio:             isDark ? Colors.teal200 : Colors.teal200
@@ -33,7 +33,7 @@ Singleton {
     readonly property color brightness:        isDark ? Colors.yellow200 : Colors.orange200
     readonly property color bluetooth:         isDark ? Colors.lightBlue200 : Colors.lightBlue200
     readonly property color session:           isDark ? Colors.red200 : Colors.red200
-    readonly property color launcher:          isDark ? Colors.blueGrey700 : Colors.grey200
+    readonly property color dashboard:          isDark ? Colors.blueGrey700 : Colors.grey200
 
     readonly property color tray:              isDark ? Colors.grey800 : Colors.grey100
     readonly property color workspaceActive:   isDark ? Colors.white : Colors.teal200
@@ -50,6 +50,7 @@ Singleton {
     readonly property color textMain:          isDark ? Colors.grey200 : lightTextMain
     readonly property color textDim:           isDark ? Colors.grey500 : lightTextDim
     readonly property color textAccent:        isDark ? Colors.white : lightTextAccent
+    readonly property color textBox:           isDark ? "#2d2d2d" : "#f5f5f5"
 
     // Status
     readonly property color scanning:          isDark ? Colors.teal400 : Colors.teal400

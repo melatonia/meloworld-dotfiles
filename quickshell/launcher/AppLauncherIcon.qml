@@ -28,7 +28,7 @@ Item {
     // ── Pagination Math ───────────────────────────────────────────────────
     property int pageNumber:  filteredIndex < 0 ? -1 : Math.floor(filteredIndex / launcherItemsPerPage)
     property int indexOnPage: filteredIndex < 0 ?  0 : filteredIndex % launcherItemsPerPage
-    
+
     // Grid vs List mode
     property int gridCol: launcherIsGridView ? indexOnPage % 5 : 0
     property int gridRow: launcherIsGridView ? Math.floor(indexOnPage / 5) : indexOnPage
@@ -169,7 +169,7 @@ Item {
         Text {
             anchors.horizontalCenter: parent.horizontalCenter
             text:                root.appName
-            font.pixelSize:      12
+            font.pixelSize:      14
             font.bold:           true
             font.family:         "JetBrainsMono Nerd Font"
             color:               PanelColors.textMain
@@ -200,7 +200,7 @@ Item {
         Text {
             anchors.verticalCenter: parent.verticalCenter
             text:                root.appName
-            font.pixelSize:      12
+            font.pixelSize:      16
             font.bold:           true
             font.family:         "JetBrainsMono Nerd Font"
             color:               PanelColors.textMain

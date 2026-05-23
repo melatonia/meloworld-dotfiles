@@ -4,7 +4,7 @@ import "../../theme"
 
 Pill {
     id: root
-    pillColor: PanelColors.launcher
+    pillColor: PanelColors.dashboard
     textColor: PanelColors.textAccent
 
     SystemClock { id: clock; precision: SystemClock.Hours }
