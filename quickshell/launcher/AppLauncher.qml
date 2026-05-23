@@ -291,10 +291,10 @@ PanelWindow {
                     pillText:    root._pillText()
                     placeholder: root._placeholder()
 
-                    onTextChanged: (t) => {
-                        if (root.wallpaperMode)      wallpaperView.setFilter(t)
-                        else if (root.clipboardMode) clipboardView.setFilter(t)
-                        else if (root.emojiMode)     emojiView.setFilter(t)
+                    onTextChanged: {
+                        if (root.wallpaperMode)      wallpaperView.setFilter(searchBar.text)
+                        else if (root.clipboardMode) clipboardView.setFilter(searchBar.text)
+                        else if (root.emojiMode)     emojiView.setFilter(searchBar.text)
                         else                         filterTimer.restart()
                     }
 
@@ -381,7 +381,7 @@ PanelWindow {
                 clip:    true
                 opacity: root.wallpaperMode ? 1.0 : 0.0
                 Behavior on opacity { NumberAnimation { duration: 160; easing.type: Easing.OutCubic } }
-                onDismissed: { root._resetModes(); searchBar.clear(); filterTimer.restart(); LauncherState.hide() }
+                onDismissed: { LauncherState.hide(); root._resetModes(); searchBar.clear(); filterTimer.restart() }
             }
 
             // ── Emoji view ────────────────────────────────────────────────
