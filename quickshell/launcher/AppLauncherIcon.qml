@@ -36,10 +36,10 @@ Item {
     visible: isMatch && pageNumber === launcherCurrentPage
 
     // Layout
-    x: launcherIsGridView ? gridCol * 116 + 4 : 4
-    y: launcherIsGridView ? gridRow * 116 + 4 : gridRow * 48 + 4
-    width:  launcherIsGridView ? 108 : parent.width - 8
-    height: launcherIsGridView ? 104 : 44
+    x: launcherIsGridView ? gridCol * 144 + 4 : 4
+    y: launcherIsGridView ? gridRow * 136 + 4 : gridRow * 48 + 4
+    width:  launcherIsGridView ? 136 : parent.width - 8
+    height: launcherIsGridView ? 132 : 44
 
     Behavior on x { NumberAnimation { duration: 150; easing.type: Easing.OutCubic } }
     Behavior on y { NumberAnimation { duration: 150; easing.type: Easing.OutCubic } }
@@ -159,7 +159,7 @@ Item {
         IconImage {
             id: iconImgGrid
             anchors.horizontalCenter: parent.horizontalCenter
-            implicitSize: 48
+            implicitSize: 64
             source: Quickshell.iconPath(root.appIcon)
 
             scale: (root.launcherSelectedIdx === root.delegateIndex || root._isHovered || ctxMenu.isOpen) ? 1.1 : 1.0
@@ -190,7 +190,7 @@ Item {
         IconImage {
             id: iconImgList
             anchors.verticalCenter: parent.verticalCenter
-            implicitSize: 32
+            implicitSize: 24
             source: Quickshell.iconPath(root.appIcon)
 
             scale: (root.launcherSelectedIdx === root.delegateIndex || root._isHovered || ctxMenu.isOpen) ? 1.1 : 1.0
