@@ -1,4 +1,3 @@
-// LauncherEmojiView.qml
 // Self-contained emoji picker. Loads emoji.json once, then filters in-memory.
 import QtQuick
 import QtQuick.Controls

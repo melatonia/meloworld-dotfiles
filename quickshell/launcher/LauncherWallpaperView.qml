@@ -1,4 +1,3 @@
-// LauncherWallpaperView.qml
 // Self-contained wallpaper picker: loads, filters, and sets wallpapers.
 import QtQuick
 import QtQuick.Controls

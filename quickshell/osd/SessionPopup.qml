@@ -82,7 +82,7 @@ PopupBase {
                                 Quickshell.execDetached(["systemctl", "suspend"])
                             } else if (modelData.action === "lock") {
                                 SessionState.hide()
-                                Quickshell.execDetached(["loginctl", "lock-session"])
+                                Quickshell.execDetached(["hyprlock"])
                             }
                         }
                     }

@@ -75,12 +75,11 @@ info "Step 2: Dependencies"
 if ask_permission "Install required packages?"; then
     PACKAGES=(
         mangowm quickshell pipewire pipewire-pulse wireplumber bluez bluez-utils
-        brightnessctl ghostty power-profiles-daemon polkit-gnome
-        ttf-jetbrains-mono-nerd rofi-wayland rofimoji grim slurp awww
-        bibata-cursor-theme-bin papirus-icon-theme zed zsh zsh-autosuggestions
-        zsh-syntax-highlighting eza sddm adw-gtk-theme xdg-desktop-portal-wlr
-        hypridle hyprlock cliphist wl-clipboard playerctl zoxide bat fd ripgrep
-        lazygit
+        brightnessctl ghostty power-profiles-daemon papirus-icon-theme sddm
+        ttf-jetbrains-mono-nerd grim slurp awww bibata-cursor-theme-bin eza
+        zed zsh zsh-autosuggestions zsh-syntax-highlighting adw-gtk-theme
+        xdg-desktop-portal-wlr hypridle hyprlock cliphist wl-clipboard playerctl
+        zoxide bat fd ripgrep lazygit
     )
     $PKGER -S --needed --noconfirm "${PACKAGES[@]}"
     success "Dependencies installed.\n"
@@ -134,7 +133,7 @@ if ask_permission "Install and configure SDDM theme files?"; then
 fi
 
 if ask_permission "Apply final preferences & set Zsh as default shell?"; then
-    sudo systemctl enable --now bluetooth power-profiles-daemon
+    sudo systemctl enable --now bluetooth power-profiles-daemon switcheroo-control
 
     gsettings set org.gnome.desktop.wm.preferences button-layout ":" || true
     gsettings set org.gnome.desktop.interface gtk-theme 'adw-gtk3-dark' || true
@@ -153,4 +152,4 @@ if ask_permission "Apply final preferences & set Zsh as default shell?"; then
     fi
 fi
 
-echo -e "\n${GREEN}Meloworld is ready! Please reboot your system to apply all changes.${RESET}\n"
+echo -e "\n${GREEN}Meloworld is ready! Please reboot your system to apply all changes. Also please read the usage tips from the github.${RESET}\n"

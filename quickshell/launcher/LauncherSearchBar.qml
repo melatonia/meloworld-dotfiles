@@ -1,4 +1,3 @@
-// LauncherSearchBar.qml
 import QtQuick
 import QtQuick.Controls
 import "../theme"

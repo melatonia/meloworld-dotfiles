@@ -228,6 +228,47 @@ PanelWindow {
                 spacing: 12
 
                 Rectangle {
+                    id: cancelBtn
+                    width: (parent.width / 2) - 6
+                    height: 38
+                    radius: 8
+                    color: cancelMa.containsMouse
+                        ? Qt.lighter(PanelColors.rowBackground, 1.15)
+                        : PanelColors.rowBackground
+                    border.width: 1
+                    border.color: PanelColors.border
+
+                    Row {
+                        anchors.centerIn: parent
+                        spacing: 8
+                        Text {
+                            text: "esc"
+                            font.family: "JetBrainsMono Nerd Font"
+                            font.pixelSize: 11
+                            color: PanelColors.textDim
+                            anchors.verticalCenter: parent.verticalCenter
+                        }
+                        Text {
+                            text: "Cancel"
+                            font.family: "JetBrainsMono Nerd Font"
+                            font.pixelSize: 13
+                            color: PanelColors.textMain
+                            anchors.verticalCenter: parent.verticalCenter
+                        }
+                    }
+
+                    MouseArea {
+                        id: cancelMa
+                        anchors.fill: parent
+                        hoverEnabled: true
+                        cursorShape: Qt.PointingHandCursor
+                        onClicked: agent.flow?.cancelAuthenticationRequest()
+                    }
+
+                    Behavior on color { ColorAnimation { duration: 150 } }
+                }
+
+                Rectangle {
                     id: authBtn
                     width: (parent.width / 2) - 6
                     height: 38
@@ -267,47 +308,6 @@ PanelWindow {
                                 passField.text = ""
                             }
                         }
-                    }
-
-                    Behavior on color { ColorAnimation { duration: 150 } }
-                }
-
-                Rectangle {
-                    id: cancelBtn
-                    width: (parent.width / 2) - 6
-                    height: 38
-                    radius: 8
-                    color: cancelMa.containsMouse
-                        ? Qt.lighter(PanelColors.rowBackground, 1.15)
-                        : PanelColors.rowBackground
-                    border.width: 1
-                    border.color: PanelColors.border
-
-                    Row {
-                        anchors.centerIn: parent
-                        spacing: 8
-                        Text {
-                            text: "esc"
-                            font.family: "JetBrainsMono Nerd Font"
-                            font.pixelSize: 11
-                            color: PanelColors.textDim
-                            anchors.verticalCenter: parent.verticalCenter
-                        }
-                        Text {
-                            text: "Cancel"
-                            font.family: "JetBrainsMono Nerd Font"
-                            font.pixelSize: 13
-                            color: PanelColors.textMain
-                            anchors.verticalCenter: parent.verticalCenter
-                        }
-                    }
-
-                    MouseArea {
-                        id: cancelMa
-                        anchors.fill: parent
-                        hoverEnabled: true
-                        cursorShape: Qt.PointingHandCursor
-                        onClicked: agent.flow?.cancelAuthenticationRequest()
                     }
 
                     Behavior on color { ColorAnimation { duration: 150 } }

@@ -1,4 +1,3 @@
-// LauncherClipboardView.qml
 import QtQuick
 import QtQuick.Controls
 import Quickshell
@@ -12,6 +11,9 @@ Item {
     signal dismissed()
 
     property var filteredClipboard: []
+
+    // Global lock to prevent hover events from firing while the list shifts
+    property bool isDeleting: false
 
     function load() {
         clipboardProc.running = false
@@ -30,7 +32,11 @@ Item {
 
     function deleteSelected() {
         if (root.filteredClipboard.length > 0 && list.currentIndex >= 0) {
-            actionProc.deleteItem(root.filteredClipboard[list.currentIndex].rawLine)
+            if (list.currentItem) {
+                list.currentItem.doDelete()
+            } else {
+                actionProc.deleteItem(root.filteredClipboard[list.currentIndex].rawLine)
+            }
         }
     }
 
@@ -93,6 +99,10 @@ Item {
                     }
                 }
                 root._applyFilter()
+                list.opacity = 1
+
+                // Unlock hover events once the reload is fully complete
+                root.isDeleting = false
             }
         }
     }
@@ -134,19 +144,15 @@ Item {
     }
 
     // ── Image decoder (queued) ────────────────────────────────────────────
-    // A single Process is reused; jobs are serialised through _decodeQueue
-    // so each file is fully written before the next decode begins.
     property var    _decodeQueue: []
     property string decodingId:   ""
     property bool   decodeReady:  false
 
     function _enqueueImage(itemId, rawLine) {
-        // Avoid queueing the same item twice (e.g. panel re-opened)
         for (var i = 0; i < _decodeQueue.length; i++) {
             if (_decodeQueue[i].itemId === itemId) return
         }
         _decodeQueue.push({ itemId: itemId, rawLine: rawLine })
-        // Kick off immediately if the decoder is idle
         if (!imgDecodeProc.running && decodingId === "")
             _processNextImage()
     }
@@ -189,12 +195,18 @@ Item {
     }
 
     // ── Delete-all confirmation popup ─────────────────────────────────────
+    Timer {
+        id: deleteAllTimer
+        interval: 260
+        onTriggered: actionProc.deleteAll()
+    }
+
     Rectangle {
         id: confirmPopup
         visible: opacity > 0
         opacity: 0
         z: 10
-        Behavior on opacity { NumberAnimation { duration: 150; easing.type: Easing.OutCubic } }
+        Behavior on opacity { NumberAnimation { duration: 200; easing.type: Easing.OutCubic } }
 
         anchors.centerIn: parent
         width:  320
@@ -298,7 +310,9 @@ Item {
                         cursorShape:  Qt.PointingHandCursor
                         onClicked: {
                             confirmPopup.opacity = 0
-                            actionProc.deleteAll()
+                            list.opacity = 0
+                            root.isDeleting = true
+                            deleteAllTimer.start()
                         }
                     }
                 }
@@ -313,12 +327,16 @@ Item {
         clip:         true
         spacing:      2
 
+        opacity: 1
+        Behavior on opacity { NumberAnimation { duration: 250; easing.type: Easing.OutCubic } }
+
         ScrollBar.vertical: ScrollBar { policy: ScrollBar.AsNeeded }
         model: root.filteredClipboard
 
         readonly property int imageRowH: 160
 
         delegate: Item {
+            id: delegateItem
             required property var modelData
             required property int index
 
@@ -326,157 +344,196 @@ Item {
             readonly property bool isSelected: index === list.currentIndex
             readonly property string tmpPath:  "/tmp/qs-clip-" + modelData.itemId + ".png"
 
+            // Local state tracking for this specific item's deletion
+            property bool isDeletingItem: false
+            onModelDataChanged: isDeletingItem = false
+
             width:  list.width
-            height: isImg ? list.imageRowH : rowText.implicitHeight + 20
+            height: isDeletingItem ? 0 : (isImg ? list.imageRowH : rowText.implicitHeight + 20)
+            clip:   true
+
+            Behavior on height { NumberAnimation { duration: 250; easing.type: Easing.InOutQuad } }
+
+            Timer {
+                id: deleteTimer
+                interval: 260
+                onTriggered: actionProc.deleteItem(modelData.rawLine)
+            }
+
+            function doDelete() {
+                root.isDeleting = true       // Lock the global list hover
+                isDeletingItem = true        // Trigger local slide/shrink animation
+                deleteTimer.start()
+            }
 
             Component.onCompleted: {
                 if (isImg) root._enqueueImage(modelData.itemId, modelData.rawLine)
             }
 
-            Rectangle {
-                id: rowRect
-                anchors { fill: parent; leftMargin: 4; rightMargin: 4 }
-                radius: 6
-                color: isSelected
-                           ? Qt.rgba(1, 1, 1, 0.10)
-                           : rowHover.containsMouse
-                               ? Qt.rgba(1, 1, 1, 0.06)
-                               : "transparent"
-                Behavior on color { ColorAnimation { duration: 120 } }
+            // Wrapper item that slides left and fades out without squashing its contents
+            Item {
+                id: contentItem
+                width: parent.width
+                height: isImg ? list.imageRowH : rowText.implicitHeight + 20
 
-                // Left accent bar
+                x: delegateItem.isDeletingItem ? -width : 0
+                opacity: delegateItem.isDeletingItem ? 0 : 1
+
+                Behavior on x { NumberAnimation { duration: 250; easing.type: Easing.OutQuart } }
+                Behavior on opacity { NumberAnimation { duration: 200; easing.type: Easing.OutQuart } }
+
                 Rectangle {
-                    width: 3; height: parent.height - 12; radius: 2
-                    anchors { left: parent.left; leftMargin: 4; verticalCenter: parent.verticalCenter }
-                    color:   PanelColors.launcher
-                    visible: isSelected
-                }
+                    id: rowRect
+                    anchors { fill: parent; leftMargin: 4; rightMargin: 4 }
+                    radius: 6
+                    color: isSelected
+                               ? Qt.rgba(1, 1, 1, 0.10)
+                               : rowHover.containsMouse
+                                   ? Qt.rgba(1, 1, 1, 0.06)
+                                   : "transparent"
+                    Behavior on color { ColorAnimation { duration: 120 } }
 
-                // ── Image row ─────────────────────────────────────────────
-                Item {
-                    visible: isImg
-                    anchors {
-                        top:         parent.top;    topMargin:    8
-                        bottom:      parent.bottom; bottomMargin: 8
-                        left:        parent.left;   leftMargin:   14
-                        right:       parent.right;  rightMargin:  12
-                    }
-
+                    // Left accent bar
                     Rectangle {
-                        anchors.fill: parent
-                        color:        PanelColors.rowBackground
-                        radius:       6
-                        visible:      clipImg.status !== Image.Ready
+                        width: 3; height: parent.height - 12; radius: 2
+                        anchors { left: parent.left; leftMargin: 4; verticalCenter: parent.verticalCenter }
+                        color:   PanelColors.launcher
+                        visible: isSelected
                     }
 
-                    Image {
-                        id:           clipImg
-                        anchors { left: parent.left; top: parent.top; bottom: parent.bottom }
-                        width:        status === Image.Ready
-                                          ? Math.min(implicitWidth, parent.width)
-                                          : parent.width
-                        fillMode:     Image.PreserveAspectFit
-                        asynchronous: true
-                        cache:        false
-                        smooth:       true
-                        mipmap:       true
-                        sourceSize:   Qt.size(480, 480)
+                    // ── Image row ─────────────────────────────────────────────
+                    Item {
+                        visible: isImg
+                        anchors {
+                            top:         parent.top;    topMargin:    8
+                            bottom:      parent.bottom; bottomMargin: 8
+                            left:        parent.left;   leftMargin:   14
+                            right:       parent.right;  rightMargin:  12
+                        }
 
-                        Connections {
-                            target: root
-                            function onDecodeReadyChanged() {
-                                if (root.decodeReady && root.decodingId === modelData.itemId) {
-                                    clipImg.source = ""
-                                    clipImg.source = "file://" + tmpPath
+                        Rectangle {
+                            anchors.fill: parent
+                            color:        PanelColors.rowBackground
+                            radius:       6
+                            visible:      clipImg.status !== Image.Ready
+                        }
+
+                        Image {
+                            id:           clipImg
+                            anchors { left: parent.left; top: parent.top; bottom: parent.bottom }
+                            width:        status === Image.Ready
+                                              ? Math.min(implicitWidth, parent.width)
+                                              : parent.width
+                            fillMode:     Image.PreserveAspectFit
+                            asynchronous: true
+                            cache:        false
+                            smooth:       true
+                            mipmap:       true
+                            sourceSize:   Qt.size(480, 480)
+
+                            Connections {
+                                target: root
+                                function onDecodeReadyChanged() {
+                                    if (root.decodeReady && root.decodingId === modelData.itemId) {
+                                        clipImg.source = ""
+                                        clipImg.source = "file://" + tmpPath
+                                    }
                                 }
+                            }
+                        }
+
+                        Rectangle {
+                            anchors.centerIn: clipImg
+                            color:        "transparent"
+                            border.color: isSelected ? PanelColors.launcher : PanelColors.border
+                            border.width: 3
+                            width:  clipImg.paintedWidth + (border.width * 2)
+                            height: clipImg.paintedHeight + (border.width * 2)
+                            radius:       border.width
+                            visible:      clipImg.status === Image.Ready
+                            Behavior on border.color { ColorAnimation { duration: 120 } }
+                        }
+                    }
+
+                    // ── Text row ──────────────────────────────────────────────
+                    Text {
+                        id:      rowText
+                        visible: !isImg
+                        width:   parent.width - 14 - 8 - deleteBtn.width - 12
+                        anchors {
+                            left:           parent.left; leftMargin: 14
+                            verticalCenter: parent.verticalCenter
+                        }
+                        text:           modelData.content
+                        font.pixelSize: 16; font.family: "JetBrainsMono Nerd Font"
+                        color:          PanelColors.textMain
+                        maximumLineCount: 2
+                        wrapMode:         Text.WordWrap
+                        elide:            Text.ElideRight
+                    }
+
+                    // ── Per-item delete (X) — shown on hover ──────────────────
+                    Rectangle {
+                        id:      deleteBtn
+                        z:       2
+                        visible: rowHover.containsMouse || deleteBtnMouse.containsMouse
+                        width:   26
+                        height:  26
+                        radius:  6
+                        anchors {
+                            right:          parent.right
+                            rightMargin:    6
+                            top:       parent.top
+                            topMargin: 8
+                        }
+                        color: deleteBtnMouse.containsMouse
+                            ? PanelColors.error
+                            : PanelColors.rowBackground
+                        Behavior on color { ColorAnimation { duration: 100 } }
+
+                        Text {
+                            anchors.centerIn: parent
+                            text:             ""
+                            font.pixelSize:   12
+                            font.bold:        true
+                            font.family:      "JetBrainsMono Nerd Font"
+                            color:            deleteBtnMouse.containsMouse ? PanelColors.pillForeground : PanelColors.textDim
+                            Behavior on color { ColorAnimation { duration: 100 } }
+                        }
+
+                        MouseArea {
+                            id:           deleteBtnMouse
+                            anchors.fill: parent
+                            z:            3
+                            hoverEnabled: true
+                            enabled:      !delegateItem.isDeletingItem
+                            cursorShape:  Qt.PointingHandCursor
+                            onClicked: (mouse) => {
+                                mouse.accepted = true
+                                delegateItem.doDelete()
                             }
                         }
                     }
 
-                    Rectangle {
-                        width:  clipImg.width
-                        height: clipImg.height
-                        anchors { left: parent.left; top: parent.top }
-                        color:        "transparent"
-                        border.color: isSelected ? PanelColors.launcher : PanelColors.border
-                        border.width: 2
-                        radius:       6
-                        visible:      clipImg.status === Image.Ready
-                        Behavior on border.color { ColorAnimation { duration: 120 } }
-                    }
-                }
-
-                // ── Text row ──────────────────────────────────────────────
-                Text {
-                    id:      rowText
-                    visible: !isImg
-                    width:   parent.width - 14 - 8 - deleteBtn.width - 12
-                    anchors {
-                        left:           parent.left; leftMargin: 14
-                        verticalCenter: parent.verticalCenter
-                    }
-                    text:           modelData.content
-                    font.pixelSize: 16; font.family: "JetBrainsMono Nerd Font"
-                    color:          PanelColors.textMain
-                    maximumLineCount: 2
-                    wrapMode:         Text.WordWrap
-                    elide:            Text.ElideRight
-                }
-
-                // ── Per-item delete (X) — shown on hover ──────────────────
-                Rectangle {
-                    id:      deleteBtn
-                    z:       2
-                    visible: rowHover.containsMouse || deleteBtnMouse.containsMouse
-                    width:   26
-                    height:  26
-                    radius:  6
-                    anchors {
-                        right:          parent.right
-                        rightMargin:    6
-                        top:       parent.top
-                        topMargin: 8
-                    }
-                    color: deleteBtnMouse.containsMouse
-                        ? PanelColors.error
-                        : PanelColors.rowBackground
-                    Behavior on color { ColorAnimation { duration: 100 } }
-
-                    Text {
-                        anchors.centerIn: parent
-                        text:             ""
-                        font.pixelSize:   12
-                        font.bold:        true
-                        font.family:      "JetBrainsMono Nerd Font"
-                        color:            deleteBtnMouse.containsMouse ? PanelColors.pillForeground : PanelColors.textDim
-                        Behavior on color { ColorAnimation { duration: 100 } }
-                    }
-
+                    // Row hover — sits below the X button via z ordering
                     MouseArea {
-                        id:           deleteBtnMouse
+                        id:           rowHover
                         anchors.fill: parent
-                        z:            3
+                        z:            1
                         hoverEnabled: true
+                        enabled:      !delegateItem.isDeletingItem
                         cursorShape:  Qt.PointingHandCursor
-                        onClicked: (mouse) => {
-                            mouse.accepted = true
-                            actionProc.deleteItem(modelData.rawLine)
+                        onEntered: {
+                            // Ignore hover triggers if a deletion is currently shifting the list
+                            if (!root.isDeleting) {
+                                list.currentIndex = index
+                            }
                         }
-                    }
-                }
-
-                // Row hover — sits below the X button via z ordering
-                MouseArea {
-                    id:           rowHover
-                    anchors.fill: parent
-                    z:            1
-                    hoverEnabled: true
-                    cursorShape:  Qt.PointingHandCursor
-                    onEntered:    list.currentIndex = index
-                    onClicked: (mouse) => {
-                        if (deleteBtnMouse.containsMouse) return
-                        actionProc.copyItem(modelData.rawLine)
-                        root.dismissed()
+                        onClicked: (mouse) => {
+                            if (deleteBtnMouse.containsMouse) return
+                            actionProc.copyItem(modelData.rawLine)
+                            root.dismissed()
+                        }
                     }
                 }
             }

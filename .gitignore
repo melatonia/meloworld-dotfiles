@@ -1,3 +1,4 @@
-# Ignore the avatar in the quickshell config subfolder
+# ignore the avatar in the quickshell config subfolder
 quickshell/avatar.png
+# ignore the hypr wallpaper since its symlinked anyways
 hypr/wallpaper.png
