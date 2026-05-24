@@ -380,34 +380,40 @@ PanelWindow {
                     if      (root.wallpaperMode) wallpaperView.navigateUp()
                     else if (root.clipboardMode) clipboardView.navigateUp()
                     else if (root.emojiMode)     emojiView.navigateUp()
+                    else if (root.hiddenMode)    hiddenAppsView.navigateUp()
                     else                         appView.navigateGrid(0, -1)
                 }
                 onDownPressed: {
                     if      (root.wallpaperMode) wallpaperView.navigateDown()
                     else if (root.clipboardMode) clipboardView.navigateDown()
                     else if (root.emojiMode)     emojiView.navigateDown()
+                    else if (root.hiddenMode)    hiddenAppsView.navigateDown()
                     else                         appView.navigateGrid(0, +1)
                 }
                 onLeftPressed: {
                     if      (root.wallpaperMode) wallpaperView.navigateLeft()
                     else if (root.emojiMode)     emojiView.navigateLeft()
+                    else if (root.hiddenMode && root.isGridView) hiddenAppsView.navigateLeft()
                     else if (root.isGridView)    appView.navigateGrid(-1, 0)
                 }
                 onRightPressed: {
                     if      (root.wallpaperMode) wallpaperView.navigateRight()
                     else if (root.emojiMode)     emojiView.navigateRight()
+                    else if (root.hiddenMode && root.isGridView) hiddenAppsView.navigateRight()
                     else if (root.isGridView)    appView.navigateGrid(+1, 0)
                 }
                 onTabPressed: {
                     if      (root.wallpaperMode) wallpaperView.navigateTab()
                     else if (root.clipboardMode) clipboardView.navigateTab()
                     else if (root.emojiMode)     emojiView.navigateTab()
+                    else if (root.hiddenMode)    hiddenAppsView.navigateTab()
                     else                         appView.navigateGrid(+1, 0)
                 }
                 onBacktabPressed: {
                     if      (root.wallpaperMode) wallpaperView.navigateBacktab()
                     else if (root.clipboardMode) clipboardView.navigateBacktab()
                     else if (root.emojiMode)     emojiView.navigateBacktab()
+                    else if (root.hiddenMode)    hiddenAppsView.navigateBacktab()
                     else                         appView.navigateGrid(-1, 0)
                 }
                 onDeletePressed: {
@@ -417,7 +423,8 @@ PanelWindow {
                     if      (root.wallpaperMode) wallpaperView.confirm()
                     else if (root.clipboardMode) clipboardView.confirm()
                     else if (root.emojiMode)     emojiView.confirm()
-                    else if (!root.hiddenMode) {
+                    else if (root.hiddenMode)    hiddenAppsView.confirm()
+                    else {
                         if (root.selectedIndex !== -1) {
                             var item = appView.appItemAt(root.selectedIndex)
                             if (item) item.executeApp()
@@ -497,6 +504,45 @@ PanelWindow {
                 opacity: root.hiddenMode ? 1.0 : 0.0
                 Behavior on opacity { NumberAnimation { duration: 200; easing.type: Easing.OutCubic } }
 
+                // ── Keyboard Navigation ───────────────────────────────────
+                property int selectedIndex: 0
+
+                onVisibleChanged: {
+                    if (visible) selectedIndex = 0
+                }
+
+                function navigateUp()      { _move(0, -1) }
+                function navigateDown()    { _move(0, +1) }
+                function navigateLeft()    { _move(-1, 0) }
+                function navigateRight()   { _move(+1, 0) }
+                function navigateTab()     { _move(+1, 0) }
+                function navigateBacktab() { _move(-1, 0) }
+
+                function _move(colDelta, rowDelta) {
+                    var count = LauncherHiddenApps.hiddenApps.length
+                    if (count === 0) return
+
+                    // Grid mode has 5 columns, List mode has 1
+                    var cols = root.isGridView ? 5 : 1
+                    var next = Math.max(0, Math.min(selectedIndex + colDelta + rowDelta * cols, count - 1))
+
+                    selectedIndex = next
+
+                    // positionViewAtIndex works for both ListView and GridView
+                    if (hiddenAppsLoader.item) {
+                        hiddenAppsLoader.item.positionViewAtIndex(next, ListView.Contain)
+                    }
+                }
+
+                function confirm() {
+                    if (selectedIndex >= 0 && selectedIndex < LauncherHiddenApps.hiddenApps.length) {
+                        var app = LauncherHiddenApps.hiddenApps[selectedIndex]
+                        LauncherHiddenApps.show(app.id) // This unhides the app
+                        filterTimer.restart()
+                    }
+                }
+                // ──────────────────────────────────────────────────────────
+
                 Text {
                     anchors.centerIn: parent
                     text:             "No hidden apps"
@@ -508,6 +554,7 @@ PanelWindow {
                 }
 
                 Loader {
+                    id: hiddenAppsLoader
                     anchors.fill: parent
                     sourceComponent: root.isGridView ? hiddenGridComp : hiddenListComp
                 }
@@ -523,11 +570,13 @@ PanelWindow {
                         model: LauncherHiddenApps.hiddenApps
                         delegate: Item {
                             required property var modelData
+                            required property int index
                             width: 136; height: 132
                             Rectangle {
                                 anchors { fill: parent; margins: 8 }
                                 radius: 12
-                                color: gridHiddenHover.containsMouse ? Qt.rgba(1,1,1,0.08) : "transparent"
+                                color: gridHiddenHover.containsMouse || hiddenAppsView.selectedIndex === index
+                                       ? Qt.rgba(1,1,1,0.08) : "transparent"
                                 Behavior on color { ColorAnimation { duration: 150 } }
                                 Column {
                                     anchors.centerIn: parent
@@ -555,6 +604,7 @@ PanelWindow {
                                     id: gridHiddenHover
                                     anchors.fill: parent
                                     hoverEnabled: true; cursorShape: Qt.PointingHandCursor
+                                    onEntered: hiddenAppsView.selectedIndex = index
                                     onClicked: {
                                         LauncherHiddenApps.show(modelData.id)
                                         filterTimer.restart()
@@ -575,11 +625,13 @@ PanelWindow {
                         delegate: Item {
                             id: hiddenDelegate
                             required property var modelData
+                            required property int index
                             width: ListView.view.width; height: 44
                             Rectangle {
                                 anchors { fill: parent; leftMargin: 4; rightMargin: 4 }
                                 radius: 6
-                                color: hiddenRowHover.containsMouse ? PanelColors.rowBackground : "transparent"
+                                color: hiddenRowHover.containsMouse || hiddenAppsView.selectedIndex === index
+                                       ? PanelColors.rowBackground : "transparent"
                                 Behavior on color { ColorAnimation { duration: 120 } }
                                 Row {
                                     anchors { fill: parent; leftMargin: 12; rightMargin: 12 }
@@ -603,6 +655,7 @@ PanelWindow {
                                     id: hiddenRowHover
                                     anchors.fill: parent
                                     hoverEnabled: true; cursorShape: Qt.PointingHandCursor
+                                    onEntered: hiddenAppsView.selectedIndex = index
                                     onClicked: {
                                         LauncherHiddenApps.show(modelData.id)
                                         filterTimer.restart()

@@ -37,7 +37,14 @@ Item {
     property int gridCol: launcherIsGridView ? indexOnPage % 5 : 0
     property int gridRow: launcherIsGridView ? Math.floor(indexOnPage / 5) : indexOnPage
 
-    visible: isMatch && pageNumber === launcherCurrentPage
+    // ── Pagination Crossfade ──────────────────────────────────────────────
+    readonly property bool onCurrentPage: isMatch && (pageNumber === launcherCurrentPage)
+    visible: opacity > 0
+    opacity: onCurrentPage ? 1.0 : 0.0
+
+    Behavior on opacity {
+        NumberAnimation { duration: 150; easing.type: Easing.InOutSine }
+    }
 
     x: launcherIsGridView ? gridCol * 144 + 4 : 4
     y: launcherIsGridView ? gridRow * 136 + 4 : gridRow * 48 + 4
