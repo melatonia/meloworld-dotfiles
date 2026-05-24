@@ -455,7 +455,7 @@ Item {
     // Empty state
     Text {
         anchors.centerIn: parent
-        text:             "Clipboard is empty"
+        text:             "󰺝 clipboard is empty.."
         font.pixelSize:   14; font.bold: true
         font.family:      "JetBrainsMono Nerd Font"
         color:            PanelColors.textDim

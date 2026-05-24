@@ -1,7 +1,6 @@
 // LauncherSearchBar.qml
-// Self-contained search bar with an optional mode pill on the left.
-// The pill is shown whenever pillText is non-empty.
 import QtQuick
+import QtQuick.Controls
 import "../theme"
 
 Rectangle {
@@ -12,6 +11,10 @@ Rectangle {
     property string pillText:    ""
     property string placeholder: "Search..."
 
+    property string rightPillText:        ""
+    property bool   rightPillDestructive: false
+    property string rightPillTooltip:     ""
+
     signal returnPressed()
     signal escapePressed()
     signal upPressed()
@@ -21,6 +24,7 @@ Rectangle {
     signal tabPressed()
     signal backtabPressed()
     signal deletePressed()
+    signal rightPillClicked()
 
     function forceActiveFocus() { input.forceActiveFocus() }
     function clear()            { input.text = "" }
@@ -37,14 +41,14 @@ Rectangle {
     // ── Inner layout ──────────────────────────────────────────────────────
     Item {
         anchors {
-            fill:          parent
-            leftMargin:    8
-            rightMargin:   8
-            topMargin:     8
-            bottomMargin:  8
+            fill:         parent
+            leftMargin:   8
+            rightMargin:  8
+            topMargin:    8
+            bottomMargin: 8
         }
 
-        // Mode pill
+        // Left mode pill
         Rectangle {
             id: pill
             visible:                root.pillText !== ""
@@ -67,14 +71,57 @@ Rectangle {
             }
         }
 
+        // Right action pill
+        Rectangle {
+            id: rightPill
+            visible:                root.rightPillText !== ""
+            anchors.right:          parent.right
+            anchors.verticalCenter: parent.verticalCenter
+            height: 26
+            width:  rightPillLabel.implicitWidth + 16
+            radius: 4
+            color:  rightPillMouse.containsMouse
+                        ? (root.rightPillDestructive ? PanelColors.error
+                                                     : Qt.lighter(PanelColors.rowBackground, 1.15))
+                        : PanelColors.rowBackground
+            Behavior on color { ColorAnimation { duration: 100 } }
+
+            Text {
+                id: rightPillLabel
+                anchors.centerIn: parent
+                text:             root.rightPillText
+                font.pixelSize:   13
+                font.bold:        true
+                font.family:      "JetBrainsMono Nerd Font"
+                color: root.rightPillDestructive
+                           ? (rightPillMouse.containsMouse ? PanelColors.pillForeground
+                                                           : PanelColors.error)
+                           : PanelColors.textMain
+                Behavior on color { ColorAnimation { duration: 100 } }
+            }
+
+            MouseArea {
+                id:           rightPillMouse
+                anchors.fill: parent
+                hoverEnabled: true
+                cursorShape:  Qt.PointingHandCursor
+                onClicked:    root.rightPillClicked()
+            }
+
+            ToolTip.visible: rightPillMouse.containsMouse && root.rightPillTooltip !== ""
+            ToolTip.text:    root.rightPillTooltip
+            ToolTip.delay:   500
+        }
+
         // Placeholder
         Text {
             anchors {
-                left:       pill.visible ? pill.right : parent.left
-                leftMargin: pill.visible ? 8 : 0
-                right:      parent.right
-                top:        parent.top
-                bottom:     parent.bottom
+                left:        pill.visible ? pill.right : parent.left
+                leftMargin:  pill.visible ? 8 : 0
+                right:       rightPill.visible ? rightPill.left : parent.right
+                rightMargin: rightPill.visible ? 8 : 0
+                top:         parent.top
+                bottom:      parent.bottom
             }
             text:              root.placeholder
             font.pixelSize:    16
@@ -89,11 +136,12 @@ Rectangle {
         TextInput {
             id: input
             anchors {
-                left:       pill.visible ? pill.right : parent.left
-                leftMargin: pill.visible ? 8 : 0
-                right:      parent.right
-                top:        parent.top
-                bottom:     parent.bottom
+                left:        pill.visible ? pill.right : parent.left
+                leftMargin:  pill.visible ? 8 : 0
+                right:       rightPill.visible ? rightPill.left : parent.right
+                rightMargin: rightPill.visible ? 8 : 0
+                top:         parent.top
+                bottom:      parent.bottom
             }
             color:             PanelColors.textMain
             font.pixelSize:    16

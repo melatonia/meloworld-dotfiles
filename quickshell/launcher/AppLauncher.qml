@@ -72,10 +72,10 @@ PanelWindow {
 
     // ── Panel width ───────────────────────────────────────────────────────
     readonly property int panelWidth: {
-        if (wallpaperMode) return 860
+        if (wallpaperMode) return 900
         if (clipboardMode) return 600
-        if (emojiMode)     return 540
-        if (hiddenMode)    return 600
+        if (emojiMode)     return 400
+        if (hiddenMode)    return isGridView ? 740 : 600
         return isGridView  ? 740 : 600
     }
 
@@ -285,195 +285,130 @@ PanelWindow {
             readonly property int maxRows: 6
 
             // ── Search bar row ────────────────────────────────────────────
-            Item {
-                width:  parent.width
-                height: searchBar.height
+            LauncherSearchBar {
+                id: searchBar
+                width: parent.width
+                anchors.left:        parent.left
+                anchors.right:       parent.right
+                anchors.leftMargin:  4
+                anchors.rightMargin: 4
 
-                LauncherSearchBar {
-                    id: searchBar
-                    anchors {
-                        left:        parent.left
-                        right:       appViewToggle.visible   ? appViewToggle.left
-                                   : clipDeleteAll.visible   ? clipDeleteAll.left
-                                   : parent.right
-                        leftMargin:  4
-                        rightMargin: (appViewToggle.visible || clipDeleteAll.visible) ? 6 : 4
-                    }
-                    pillText:    root._pillText()
-                    placeholder: root._placeholder()
 
-                    onTextChanged: {
-                        var t = searchBar.text
-                        if (!root.wallpaperMode && !root.clipboardMode && !root.emojiMode && !root.hiddenMode) {
-                            if (t === "/w") {
-                                root._resetModes()
-                                root.wallpaperMode = true
-                                searchBar.clear()
-                                wallpaperView.load()
-                                return
-                            }
-                            if (t === "/h") {
-                                root._resetModes()
-                                root.hiddenMode = true
-                                searchBar.clear()
-                                return
-                            }
-                            if (t === "/g") {
-                                root.isGridView    = !root.isGridView
-                                appView.isGridView = root.isGridView
-                                searchBar.clear()
-                                filterTimer.restart()
-                                return
-                            }
-                        }
-                        if (root.wallpaperMode)      wallpaperView.setFilter(t)
-                        else if (root.clipboardMode) clipboardView.setFilter(t)
-                        else if (root.emojiMode)     emojiView.setFilter(t)
-                        else if (!root.hiddenMode)   filterTimer.restart()
-                    }
+                pillText:    root._pillText()
+                placeholder: root._placeholder()
 
-                    onUpPressed: {
-                        if      (root.wallpaperMode) wallpaperView.navigateUp()
-                        else if (root.clipboardMode) clipboardView.navigateUp()
-                        else if (root.emojiMode)     emojiView.navigateUp()
-                        else                         appView.navigateGrid(0, -1)
-                    }
-                    onDownPressed: {
-                        if      (root.wallpaperMode) wallpaperView.navigateDown()
-                        else if (root.clipboardMode) clipboardView.navigateDown()
-                        else if (root.emojiMode)     emojiView.navigateDown()
-                        else                         appView.navigateGrid(0, +1)
-                    }
-                    onLeftPressed: {
-                        if      (root.wallpaperMode) wallpaperView.navigateLeft()
-                        else if (root.emojiMode)     emojiView.navigateLeft()
-                        else if (root.isGridView)    appView.navigateGrid(-1, 0)
-                    }
-                    onRightPressed: {
-                        if      (root.wallpaperMode) wallpaperView.navigateRight()
-                        else if (root.emojiMode)     emojiView.navigateRight()
-                        else if (root.isGridView)    appView.navigateGrid(+1, 0)
-                    }
-                    onTabPressed: {
-                        if      (root.wallpaperMode) wallpaperView.navigateTab()
-                        else if (root.clipboardMode) clipboardView.navigateTab()
-                        else if (root.emojiMode)     emojiView.navigateTab()
-                        else                         appView.navigateGrid(+1, 0)
-                    }
-                    onBacktabPressed: {
-                        if      (root.wallpaperMode) wallpaperView.navigateBacktab()
-                        else if (root.clipboardMode) clipboardView.navigateBacktab()
-                        else if (root.emojiMode)     emojiView.navigateBacktab()
-                        else                         appView.navigateGrid(-1, 0)
-                    }
-                    onDeletePressed: {
-                        if (root.clipboardMode) clipboardView.deleteSelected()
-                    }
-                    onReturnPressed: {
-                        if      (root.wallpaperMode) wallpaperView.confirm()
-                        else if (root.clipboardMode) clipboardView.confirm()
-                        else if (root.emojiMode)     emojiView.confirm()
-                        else if (!root.hiddenMode) {
-                            if (root.selectedIndex !== -1) {
-                                var item = appView.appItemAt(root.selectedIndex)
-                                if (item) item.executeApp()
-                            } else if (searchBar.text.trim() !== "") {
-                                Quickshell.execDetached(["bash", "-c", searchBar.text])
-                                LauncherState.hide()
-                            }
-                        }
-                    }
-                    onEscapePressed: {
-                        if (root.wallpaperMode || root.clipboardMode || root.emojiMode || root.hiddenMode)
-                            LauncherState.hide()
-                        else if (appView._hiddenMenuOpen)
-                            appView.closeHiddenMenu()
-                        else
-                            LauncherState.hide()
+                rightPillText: {
+                    if (root.clipboardMode) return "󰩺"
+                    if (!root.wallpaperMode && !root.emojiMode && !root.hiddenMode)
+                        return root.isGridView ? "" : "󱗼"
+                    return ""
+                }
+                rightPillDestructive: root.clipboardMode
+                rightPillTooltip: {
+                    if (root.clipboardMode) return "Clear all clipboard history"
+                    if (!root.wallpaperMode && !root.emojiMode && !root.hiddenMode)
+                        return root.isGridView ? "Switch to list view" : "Switch to grid view"
+                    return ""
+                }
+
+                onRightPillClicked: {
+                    if (root.clipboardMode) {
+                        clipboardView.showDeleteAllConfirm()
+                    } else {
+                        root.isGridView    = !root.isGridView
+                        appView.isGridView = root.isGridView
+                        filterTimer.restart()
                     }
                 }
 
-                // ── Grid / List toggle (app mode only) ────────────────────
-                Rectangle {
-                    id:      appViewToggle
-                    visible: !root.wallpaperMode && !root.clipboardMode && !root.emojiMode && !root.hiddenMode
-                    width:   42
-                    height:  42
-                    radius:  6
-                    anchors {
-                        right:          parent.right
-                        rightMargin:    4
-                        verticalCenter: parent.verticalCenter
-                    }
-                    color: toggleMouse.containsMouse
-                               ? Qt.lighter(PanelColors.rowBackground, 1.15)
-                               : PanelColors.rowBackground
-                    Behavior on color { ColorAnimation { duration: 100 } }
-
-                    Text {
-                        anchors.centerIn: parent
-                        text:             root.isGridView ? "" : "󱗼"
-                        font.pixelSize:   18
-                        font.family:      "JetBrainsMono Nerd Font"
-                        color:            PanelColors.textMain
-                    }
-
-                    MouseArea {
-                        id:           toggleMouse
-                        anchors.fill: parent
-                        hoverEnabled: true
-                        cursorShape:  Qt.PointingHandCursor
-                        onClicked: {
+                onTextChanged: {
+                    var t = searchBar.text
+                    if (!root.wallpaperMode && !root.clipboardMode && !root.emojiMode && !root.hiddenMode) {
+                        if (t === "/w") {
+                            root._resetModes()
+                            root.wallpaperMode = true
+                            searchBar.clear()
+                            wallpaperView.load()
+                            return
+                        }
+                        if (t === "/h") {
+                            root._resetModes()
+                            root.hiddenMode = true
+                            searchBar.clear()
+                            return
+                        }
+                        if (t === "/g") {
                             root.isGridView    = !root.isGridView
                             appView.isGridView = root.isGridView
+                            searchBar.clear()
                             filterTimer.restart()
+                            return
                         }
                     }
-
-                    ToolTip.visible: toggleMouse.containsMouse
-                    ToolTip.text:    root.isGridView ? "Switch to list view" : "Switch to grid view"
-                    ToolTip.delay:   500
+                    if (root.wallpaperMode)      wallpaperView.setFilter(t)
+                    else if (root.clipboardMode) clipboardView.setFilter(t)
+                    else if (root.emojiMode)     emojiView.setFilter(t)
+                    else if (!root.hiddenMode)   filterTimer.restart()
                 }
 
-                // ── Delete-all button (clipboard mode only) ───────────────
-                Rectangle {
-                    id:      clipDeleteAll
-                    visible: root.clipboardMode
-                    width:   42
-                    height:  42
-                    radius:  6
-                    anchors {
-                        right:          parent.right
-                        rightMargin:    4
-                        verticalCenter: parent.verticalCenter
+                onUpPressed: {
+                    if      (root.wallpaperMode) wallpaperView.navigateUp()
+                    else if (root.clipboardMode) clipboardView.navigateUp()
+                    else if (root.emojiMode)     emojiView.navigateUp()
+                    else                         appView.navigateGrid(0, -1)
+                }
+                onDownPressed: {
+                    if      (root.wallpaperMode) wallpaperView.navigateDown()
+                    else if (root.clipboardMode) clipboardView.navigateDown()
+                    else if (root.emojiMode)     emojiView.navigateDown()
+                    else                         appView.navigateGrid(0, +1)
+                }
+                onLeftPressed: {
+                    if      (root.wallpaperMode) wallpaperView.navigateLeft()
+                    else if (root.emojiMode)     emojiView.navigateLeft()
+                    else if (root.isGridView)    appView.navigateGrid(-1, 0)
+                }
+                onRightPressed: {
+                    if      (root.wallpaperMode) wallpaperView.navigateRight()
+                    else if (root.emojiMode)     emojiView.navigateRight()
+                    else if (root.isGridView)    appView.navigateGrid(+1, 0)
+                }
+                onTabPressed: {
+                    if      (root.wallpaperMode) wallpaperView.navigateTab()
+                    else if (root.clipboardMode) clipboardView.navigateTab()
+                    else if (root.emojiMode)     emojiView.navigateTab()
+                    else                         appView.navigateGrid(+1, 0)
+                }
+                onBacktabPressed: {
+                    if      (root.wallpaperMode) wallpaperView.navigateBacktab()
+                    else if (root.clipboardMode) clipboardView.navigateBacktab()
+                    else if (root.emojiMode)     emojiView.navigateBacktab()
+                    else                         appView.navigateGrid(-1, 0)
+                }
+                onDeletePressed: {
+                    if (root.clipboardMode) clipboardView.deleteSelected()
+                }
+                onReturnPressed: {
+                    if      (root.wallpaperMode) wallpaperView.confirm()
+                    else if (root.clipboardMode) clipboardView.confirm()
+                    else if (root.emojiMode)     emojiView.confirm()
+                    else if (!root.hiddenMode) {
+                        if (root.selectedIndex !== -1) {
+                            var item = appView.appItemAt(root.selectedIndex)
+                            if (item) item.executeApp()
+                        } else if (searchBar.text.trim() !== "") {
+                            Quickshell.execDetached(["bash", "-c", searchBar.text])
+                            LauncherState.hide()
+                        }
                     }
-                    color: clipDeleteMouse.containsMouse
-                               ? PanelColors.error
-                               : PanelColors.rowBackground
-                    Behavior on color { ColorAnimation { duration: 100 } }
-
-                    Text {
-                        anchors.centerIn: parent
-                        text:             "󰩺"
-                        font.pixelSize:   18
-                        font.family:      "JetBrainsMono Nerd Font"
-                        color:            clipDeleteMouse.containsMouse
-                                              ? PanelColors.pillForeground
-                                              : PanelColors.error
-                        Behavior on color { ColorAnimation { duration: 100 } }
-                    }
-
-                    MouseArea {
-                        id:           clipDeleteMouse
-                        anchors.fill: parent
-                        hoverEnabled: true
-                        cursorShape:  Qt.PointingHandCursor
-                        onClicked:    clipboardView.showDeleteAllConfirm()
-                    }
-
-                    ToolTip.visible: clipDeleteMouse.containsMouse
-                    ToolTip.text:    "Clear all clipboard history"
-                    ToolTip.delay:   500
+                }
+                onEscapePressed: {
+                    if (root.wallpaperMode || root.clipboardMode || root.emojiMode || root.hiddenMode)
+                        LauncherState.hide()
+                    else if (appView._hiddenMenuOpen)
+                        appView.closeHiddenMenu()
+                    else
+                        LauncherState.hide()
                 }
             }
 
@@ -493,7 +428,7 @@ PanelWindow {
             LauncherWallpaperView {
                 id:      wallpaperView
                 width:   parent.width
-                height:  600
+                height:  660
                 visible: root.wallpaperMode
                 clip:    true
                 opacity: root.wallpaperMode ? 1.0 : 0.0
@@ -505,7 +440,7 @@ PanelWindow {
             LauncherEmojiView {
                 id:      emojiView
                 width:   parent.width
-                height:  400
+                height:  336
                 visible: root.emojiMode
                 clip:    true
                 opacity: root.emojiMode ? 1.0 : 0.0
@@ -517,7 +452,7 @@ PanelWindow {
             Item {
                 id:      hiddenAppsView
                 width:   parent.width
-                height:  300
+                height:  root.isGridView ? 412 : 262
                 visible: root.hiddenMode
                 clip:    true
                 opacity: root.hiddenMode ? 1.0 : 0.0
@@ -558,6 +493,7 @@ PanelWindow {
                                 Column {
                                     anchors.centerIn: parent
                                     spacing: 6
+                                    x:     4
                                     width: parent.width - 8
                                     IconImage {
                                         anchors.horizontalCenter: parent.horizontalCenter
