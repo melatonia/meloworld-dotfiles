@@ -24,14 +24,14 @@
 
 ---
 
-meloworld is my personal arch linux desktop built around mangowm and quickshell. ghibli wallpapers, warm colors, everything animated. every popup, widget, and notification is part of the same visual system. same row height, same font, same spacing throughout.
+meloworld is my personal arch linux desktop. i've been working on it for a while now, just trying to fit everything to my taste and build a cozy and safe space out of it. "what is done in love, is done well"
 
 | | |
 |---|---|
 | **os** | Arch Linux |
 | **wm** | [MangoWM](https://github.com/mangowm/mango) |
 | **shell layer** | [Quickshell](https://quickshell.org/) |
-| **launcher** | Rofi |
+| **launcher** | custom (quickshell) |
 | **terminal** | [Ghostty](https://ghostty.org/) |
 | **shell** | zsh |
 | **editor** | [Zed](https://zed.dev/) |
@@ -62,7 +62,7 @@ workspace pills slide in when you open something and slide out when you close it
 ![emoji](assets/emoji.png)
 ![wallpaper selector](assets/wallpaper-selector.png)
 
-a custom launcher written with quickshell with modes. aimed to replace rofi for more flexibility. you can switch between modes with the prefixes. /h for hidden apps, /w for wallpapers, /g for grid-list view switch.
+a custom launcher built in quickshell, with modes. aimed to replace rofi for more flexibility. also supports switcheroo-control (like gnome and cosmic). you can switch between modes with the prefixes. /h for hidden apps, /w for wallpapers, /g for grid-list view switch. wallpapers are pulled from ~/Pictures/Wallpapers, just drop yours in.
 
 </details>
 
@@ -72,7 +72,7 @@ a custom launcher written with quickshell with modes. aimed to replace rofi for 
 
 ![dashboard](assets/dashboard.png)
 
-a left panel with quick toggles, system stats, and notification history. greetings change dynamically based on the time of day.
+a left panel with quick toggles, system stats, and notification history. the greeting changes with the time of day.
 
 </details>
 
@@ -86,7 +86,7 @@ all animated — slide down from the top when they open, slide back up when they
 
 ![media player](assets/media.png)
 
-supports shuffle and repeat on supported apps. uses the material expressive 3 progress bar. switches between players with chevron arrows.
+supports shuffle and repeat on supported apps. uses the material expressive 3 progress bar. switches between players with arrows. also supports live streams.
 
 ---
 
@@ -102,7 +102,7 @@ device selection for output and input. volume and mic sliders side by side. clic
 
 ![bluetooth popup](assets/bluetooth.png)
 
-paired devices, scan button, filtered scan list that hides raw MAC addresses. list caps at five entries and scrolls — tells you when there's more above or below.
+paired devices, scan button, filtered scan list, no raw MAC addresses cluttering things up. list caps at five entries and scrolls — tells you when there's more above or below.
 
 ---
 
@@ -118,13 +118,11 @@ previously connected networks, autoscan, password entry. same scrolling behavior
 
 ![power popup](assets/power.png)
 
-uses power-profiles-daemon. the border changes color with whatever profile is active.
+the border changes color with whatever profile is active.
 
 **📅 calendar**
 
 ![calendar](assets/calendar.png)
-
-simple calendar with months view.
 
 </details>
 
@@ -164,7 +162,7 @@ matches the same color palette. blurred and non-blurred variants included.
 
 ![discord theme](assets/discord.png)
 
-the discord theme is based on [midnight](https://github.com/refact0r/midnight-discord). i have only adapted the colors to match the look. 
+the discord theme is based on [midnight](https://github.com/refact0r/midnight-discord). i just swapped the colors to match. dont forget to enable transparency in [vesktop](https://vesktop.dev/). (settings -> vencord -> enable window transparency)
 
 </details>
 
@@ -175,7 +173,7 @@ the discord theme is based on [midnight](https://github.com/refact0r/midnight-di
 
 ![idle](assets/idle.png)
 
-a sleeping cat appears after a few minutes of inactivity. dims the screen, breathing animation, animated z's. any input dismisses it with a fade.
+a sleeping cat appears after a few minutes of inactivity. dims the screen, breathing animation, animated z's drifting up. any input dismisses it with a fade.
 
 </details>
 
@@ -195,6 +193,13 @@ chmod +x install.sh
 <details>
 <summary>manual install</summary>
 <br>
+
+dependencies
+```bash
+paru -S mangowm quickshell pipewire pipewire-pulse wireplumber bluez bluez-utils brightnessctl ghostty power-profiles-daemon ttf-jetbrains-mono-nerd grim slurp awww bibata-cursor-theme-bin papirus-icon-theme zed zsh zsh-autosuggestions zsh-syntax-highlighting adw-gtk-theme xdg-desktop-portal-wlr hypridle hyprlock cliphist wl-clipboard playerctl zoxide bat fd ripgrep lazygit switcheroo-control
+
+sudo systemctl enable --now bluetooth power-profiles-daemon switcheroo-control
+```
 
 ```bash
 git clone https://github.com/melatonia/meloworld-dotfiles
@@ -232,32 +237,6 @@ chsh -s $(which zsh)
 
 </details>
 
-<details>
-<summary>dependencies</summary>
-<br>
-
-```bash
-paru -S mangowm quickshell pipewire pipewire-pulse wireplumber bluez bluez-utils brightnessctl ghostty power-profiles-daemon ttf-jetbrains-mono-nerd grim slurp awww bibata-cursor-theme-bin papirus-icon-theme zed zsh zsh-autosuggestions zsh-syntax-highlighting adw-gtk-theme xdg-desktop-portal-wlr hypridle hyprlock cliphist wl-clipboard playerctl zoxide bat fd ripgrep lazygit switcheroo-control
-
-sudo systemctl enable --now bluetooth power-profiles-daemon switcheroo-control
-```
-
-</details>
-
-<details>
-<summary>some usage tips</summary>
-<br>
-
-
-- im open to questions and feature requests, dont hesitate to hit me up on reddit or github (i dont check these places often so if i reply late dont worry)
-- for night light to work, you need to set your location in the file (~/.config/mango/scripts/nightlight.sh) (it works depending on the time so you might not notice immediately, just try to turn off and on in night time.)
-- you can set your profile picture by just clicking the dashboard area.
-- you can switch between launcher modes with the prefixes. /h for hidden apps, /w for wallpapers, /g for grid-list view switch. 
-- dashboard and launcher have apps pinning and switcheroo-control support.
-- the brightness and audio pills and sliders are scrollable. also you can scroll the workspaces by scrolling on the numbers or super + scroll on anywhere.
-
-</details>
-
 ---
 
 ## 📦 extras
@@ -265,6 +244,22 @@ sudo systemctl enable --now bluetooth power-profiles-daemon switcheroo-control
 the sound files (login chime, notification, screenshot, usb connect/remove) were made by me in bitwig studio. use them freely, a credit would be appreciated :3
 
 i use zen browser with the [transparent zen extension](https://sameerasw.com/zen) and `#212121CC` background. for firefox, [Firefox Gnome Theme](https://github.com/rafaelmardojai/firefox-gnome-theme) works well.
+
+
+<details>
+<summary>some usage tips</summary>
+<br>
+
+
+- im open to questions and feature requests, dont hesitate to hit me up on reddit or github (i dont check these places often so if i reply late dont worry)
+- for night light to work, you need to set your location in the file (~/.config/mango/scripts/nightlight.sh) (it activates based on time of day, so you might not notice right away, try toggling it at night.)
+- you can set your profile picture by just clicking the dashboard area.
+- the wallpaper selector reads your "~/Pictures/Wallpapers" folder.
+- you can switch between launcher modes with the prefixes. /h for hidden apps, /w for wallpapers, /g for grid-list view switch. 
+- dashboard and launcher have apps pinning and switcheroo-control support.
+- the brightness and audio pills and sliders are scrollable. you can also scroll workspaces by scrolling on the numbers, or super + scroll anywhere.
+
+</details>
 
 ---
 
