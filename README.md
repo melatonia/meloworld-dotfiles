@@ -53,6 +53,20 @@ workspace pills slide in when you open something and slide out when you close it
 </details>
 
 <details>
+<summary>🎄 launcher</summary>
+<br>
+
+![launcher](assets/launcher.png)
+![launcher grid](assets/launcher-grid.png)
+![clipboard](assets/clipboard.png)
+![emoji](assets/emoji.png)
+![wallpaper selector](assets/wallpaper-selector.png)
+
+a custom launcher written with quickshell with modes. aimed to replace rofi for more flexibility.
+
+</details>
+
+<details>
 <summary>☀️ dashboard</summary>
 <br>
 
@@ -139,7 +153,18 @@ matches the same color palette. blurred and non-blurred variants included.
 </details>
 
 <details>
-<summary>🌙 idle screen</summary>
+<summary>🌙 discord theme</summary>
+<br>
+
+![discord theme](assets/discord.png)
+
+the discord theme is based on [midnight](https://github.com/refact0r/midnight-discord). i have only adapted the colors to match the look. 
+
+</details>
+
+
+<details>
+<summary>🐱 idle screen</summary>
 <br>
 
 ![idle](assets/idle.png)

@@ -303,7 +303,7 @@ Item {
                     Text {
                         anchors.verticalCenter: parent.verticalCenter
                         text:  listDelegate.appItem ? listDelegate.appItem.appName : ""
-                        font.pixelSize: 16
+                        font.pixelSize: 17
                         font.bold: true
                         font.family:    "JetBrainsMono Nerd Font"
                         color: listDelegate.isSelected ? PanelColors.pillForeground : PanelColors.textMain
