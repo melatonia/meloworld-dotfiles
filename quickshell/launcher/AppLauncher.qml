@@ -331,6 +331,7 @@ PanelWindow {
                     return ""
                 }
                 rightPillDestructive: root.clipboardMode
+                rightPillDisabled:    root.clipboardMode && clipboardView.filteredClipboard.length === 0
                 rightPillTooltip: {
                     if (root.clipboardMode) return "Clear all clipboard history"
                     if (root.appModeActive)
@@ -452,7 +453,7 @@ PanelWindow {
                 id:    clipboardView
                 width: parent.width
 
-                height:  root.clipboardMode ? 260 : 0
+                height:  root.clipboardMode ? 360 : 0
                 clip:    true
                 visible: height > 0
                 opacity: root.clipboardMode ? 1.0 : 0.0

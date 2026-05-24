@@ -14,6 +14,7 @@ Rectangle {
     property string rightPillText:        ""
     property bool   rightPillDestructive: false
     property string rightPillTooltip:     ""
+    property bool   rightPillDisabled:    false
 
     signal returnPressed()
     signal escapePressed()
@@ -80,7 +81,7 @@ Rectangle {
             height: 26
             width:  rightPillLabel.implicitWidth + 16
             radius: 4
-            color:  rightPillMouse.containsMouse
+            color:  (rightPillMouse.containsMouse && !root.rightPillDisabled)
                         ? (root.rightPillDestructive ? PanelColors.error
                                                      : Qt.lighter(PanelColors.rowBackground, 1.15))
                         : PanelColors.rowBackground
@@ -93,10 +94,12 @@ Rectangle {
                 font.pixelSize:   13
                 font.bold:        true
                 font.family:      "JetBrainsMono Nerd Font"
-                color: root.rightPillDestructive
-                           ? (rightPillMouse.containsMouse ? PanelColors.pillForeground
-                                                           : PanelColors.error)
-                           : PanelColors.textMain
+                color: root.rightPillDisabled
+                           ? PanelColors.textDim
+                           : root.rightPillDestructive
+                               ? (rightPillMouse.containsMouse ? PanelColors.pillForeground
+                                                               : PanelColors.error)
+                               : PanelColors.textMain
                 Behavior on color { ColorAnimation { duration: 100 } }
             }
 
@@ -104,8 +107,8 @@ Rectangle {
                 id:           rightPillMouse
                 anchors.fill: parent
                 hoverEnabled: true
-                cursorShape:  Qt.PointingHandCursor
-                onClicked:    root.rightPillClicked()
+                cursorShape:  root.rightPillDisabled ? Qt.ArrowCursor : Qt.PointingHandCursor
+                onClicked:    { if (!root.rightPillDisabled) root.rightPillClicked() }
             }
 
             ToolTip.visible: rightPillMouse.containsMouse && root.rightPillTooltip !== ""

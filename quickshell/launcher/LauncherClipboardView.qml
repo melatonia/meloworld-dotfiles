@@ -14,8 +14,6 @@ Item {
     property var filteredClipboard: []
 
     function load() {
-        // Removed clipboardModel.clear() and root.filteredClipboard = [] from here
-        // to prevent the UI from flickering empty while the process runs.
         clipboardProc.running = false
         clipboardProc.running = true
     }
@@ -45,7 +43,7 @@ Item {
 
     function showDeleteAllConfirm() {
         if (root.filteredClipboard.length === 0) return
-        confirmPopup.visible = true
+        confirmPopup.opacity = 1
     }
 
     // ── Internal ──────────────────────────────────────────────────────────
@@ -60,7 +58,6 @@ Item {
                 result.push({ itemId: e.itemId, content: e.content, rawLine: e.rawLine, isImage: e.isImage })
         }
         root.filteredClipboard = result
-        // Only reset the index if the currently selected index is out of bounds
         if (list.currentIndex >= result.length) {
             list.currentIndex = Math.max(0, result.length - 1)
         }
@@ -84,7 +81,6 @@ Item {
         stdout: StdioCollector {
             onStreamFinished: {
                 var lines = this.text.trim().split("\n")
-                // Clear the model only when the new data is actually ready
                 clipboardModel.clear()
                 for (var i = 0; i < lines.length; i++) {
                     var line = lines[i].trim()
@@ -137,35 +133,68 @@ Item {
         }
     }
 
-    // ── Image decoder ─────────────────────────────────────────────────────
-    property string _decodingId:  ""
-    property bool   _decodeReady: false
+    // ── Image decoder (queued) ────────────────────────────────────────────
+    // A single Process is reused; jobs are serialised through _decodeQueue
+    // so each file is fully written before the next decode begins.
+    property var    _decodeQueue: []
+    property string decodingId:   ""
+    property bool   decodeReady:  false
+
+    function _enqueueImage(itemId, rawLine) {
+        // Avoid queueing the same item twice (e.g. panel re-opened)
+        for (var i = 0; i < _decodeQueue.length; i++) {
+            if (_decodeQueue[i].itemId === itemId) return
+        }
+        _decodeQueue.push({ itemId: itemId, rawLine: rawLine })
+        // Kick off immediately if the decoder is idle
+        if (!imgDecodeProc.running && decodingId === "")
+            _processNextImage()
+    }
+
+    function _processNextImage() {
+        if (_decodeQueue.length === 0) {
+            decodingId = ""
+            return
+        }
+        var job = _decodeQueue.shift()
+        decodingId  = job.itemId
+        decodeReady = false
+        var e = job.rawLine.replace(/'/g, "'\\''")
+        imgDecodeProc.command = ["bash", "-c",
+            "printf '%s\n' '" + e + "' | cliphist decode > '/tmp/qs-clip-" + job.itemId + ".png'"]
+        imgDecodeProc.running = false
+        imgDecodeProc.running = true
+    }
 
     Process {
         id: imgDecodeProc
         running: false
         command: ["true"]
 
-        function decode(itemId, rawLine) {
-            root._decodingId  = itemId
-            root._decodeReady = false
-            var e = rawLine.replace(/'/g, "'\\''")
-            imgDecodeProc.command = ["bash", "-c",
-                "printf '%s\n' '" + e + "' | cliphist decode > '/tmp/qs-clip-" + itemId + ".png'"]
-            imgDecodeProc.running = false
-            imgDecodeProc.running = true
-        }
-
         onRunningChanged: {
-            if (!running) root._decodeReady = true
+            if (!running) {
+                root.decodeReady = true
+                root._processNextImage()
+            }
         }
+    }
+
+    // ── Dim overlay ───────────────────────────────────────────────────────
+    Rectangle {
+        anchors.fill: parent
+        color:        PanelColors.barBackground
+        opacity:      confirmPopup.opacity * 0.45
+        visible:      opacity > 0
+        z:            9
     }
 
     // ── Delete-all confirmation popup ─────────────────────────────────────
     Rectangle {
         id: confirmPopup
-        visible: false
+        visible: opacity > 0
+        opacity: 0
         z: 10
+        Behavior on opacity { NumberAnimation { duration: 150; easing.type: Easing.OutCubic } }
 
         anchors.centerIn: parent
         width:  320
@@ -236,7 +265,7 @@ Item {
                         anchors.fill: parent
                         hoverEnabled: true
                         cursorShape:  Qt.PointingHandCursor
-                        onClicked:    confirmPopup.visible = false
+                        onClicked:    confirmPopup.opacity = 0
                     }
                 }
 
@@ -268,7 +297,7 @@ Item {
                         hoverEnabled: true
                         cursorShape:  Qt.PointingHandCursor
                         onClicked: {
-                            confirmPopup.visible = false
+                            confirmPopup.opacity = 0
                             actionProc.deleteAll()
                         }
                     }
@@ -287,7 +316,6 @@ Item {
         ScrollBar.vertical: ScrollBar { policy: ScrollBar.AsNeeded }
         model: root.filteredClipboard
 
-        readonly property int textRowH:  42
         readonly property int imageRowH: 160
 
         delegate: Item {
@@ -299,10 +327,10 @@ Item {
             readonly property string tmpPath:  "/tmp/qs-clip-" + modelData.itemId + ".png"
 
             width:  list.width
-            height: isImg ? list.imageRowH : list.textRowH
+            height: isImg ? list.imageRowH : rowText.implicitHeight + 20
 
             Component.onCompleted: {
-                if (isImg) imgDecodeProc.decode(modelData.itemId, modelData.rawLine)
+                if (isImg) root._enqueueImage(modelData.itemId, modelData.rawLine)
             }
 
             Rectangle {
@@ -357,7 +385,7 @@ Item {
                         Connections {
                             target: root
                             function onDecodeReadyChanged() {
-                                if (root._decodeReady && root._decodingId === modelData.itemId) {
+                                if (root.decodeReady && root.decodingId === modelData.itemId) {
                                     clipImg.source = ""
                                     clipImg.source = "file://" + tmpPath
                                 }
@@ -380,16 +408,19 @@ Item {
 
                 // ── Text row ──────────────────────────────────────────────
                 Text {
+                    id:      rowText
                     visible: !isImg
+                    width:   parent.width - 14 - 8 - deleteBtn.width - 12
                     anchors {
-                        left:           parent.left;    leftMargin:  14
-                        right:          deleteBtn.left; rightMargin: 8
+                        left:           parent.left; leftMargin: 14
                         verticalCenter: parent.verticalCenter
                     }
                     text:           modelData.content
                     font.pixelSize: 16; font.family: "JetBrainsMono Nerd Font"
                     color:          PanelColors.textMain
-                    elide:          Text.ElideRight
+                    maximumLineCount: 2
+                    wrapMode:         Text.WordWrap
+                    elide:            Text.ElideRight
                 }
 
                 // ── Per-item delete (X) — shown on hover ──────────────────
@@ -403,11 +434,12 @@ Item {
                     anchors {
                         right:          parent.right
                         rightMargin:    6
-                        verticalCenter: parent.verticalCenter
+                        top:       parent.top
+                        topMargin: 8
                     }
                     color: deleteBtnMouse.containsMouse
-                               ? Qt.rgba(PanelColors.error.r, PanelColors.error.g, PanelColors.error.b, 0.20)
-                               : Qt.rgba(1, 1, 1, 0.06)
+                        ? PanelColors.error
+                        : PanelColors.rowBackground
                     Behavior on color { ColorAnimation { duration: 100 } }
 
                     Text {
@@ -416,7 +448,7 @@ Item {
                         font.pixelSize:   12
                         font.bold:        true
                         font.family:      "JetBrainsMono Nerd Font"
-                        color:            deleteBtnMouse.containsMouse ? PanelColors.error : PanelColors.textDim
+                        color:            deleteBtnMouse.containsMouse ? PanelColors.pillForeground : PanelColors.textDim
                         Behavior on color { ColorAnimation { duration: 100 } }
                     }
 
@@ -442,7 +474,6 @@ Item {
                     cursorShape:  Qt.PointingHandCursor
                     onEntered:    list.currentIndex = index
                     onClicked: (mouse) => {
-                        // Block copy if the X was hit
                         if (deleteBtnMouse.containsMouse) return
                         actionProc.copyItem(modelData.rawLine)
                         root.dismissed()
