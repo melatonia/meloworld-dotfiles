@@ -13,6 +13,13 @@ Item {
     property string appIcon: ""
     property var    appData: null
 
+    // Derived from appId for pre-pinned steam apps (steam_app_XXXXX format),
+    // but also set by _parseDesktopEntry via rungameid URL for name-based desktop files.
+    property string steamId: {
+        var m = root.appId.match(/^steam_app_(\d+)$/)
+        return m ? m[1] : ""
+    }
+
     property bool isMatch:       true
     property int  filteredIndex: 0
 
@@ -53,48 +60,90 @@ Item {
     Behavior on x { NumberAnimation { duration: 150; easing.type: Easing.OutCubic } }
     Behavior on y { NumberAnimation { duration: 150; easing.type: Easing.OutCubic } }
 
-    property bool appPrefersNonDefault: false
+    property bool   appPrefersNonDefault: false
+    property bool   isTerminal:           false
+    property string execName:             ""
 
     Process {
         id: desktopReader
         command: ["bash", "-c",
-            "f=\"$HOME/.local/share/applications/" + root.appId + ".desktop\"; " +
-            "[ -f \"$f\" ] || f=\"/usr/share/applications/" + root.appId + ".desktop\"; " +
-            "[ -f \"$f\" ] && cat \"$f\" || true"]
+            "f=\"$HOME/.local/share/applications/$1.desktop\"; " +
+            "[ -f \"$f\" ] || f=\"/usr/share/applications/$1.desktop\"; " +
+            "[ -f \"$f\" ] && cat \"$f\" || true",
+            "--", root.appId]
         running: true
         stdout: StdioCollector {
             onStreamFinished: root._parseDesktopEntry(this.text)
         }
     }
 
-    property bool isTerminal: false
-
     function _parseDesktopEntry(text) {
         if (text === "") return
         var lines = text.split("\n")
+        var inMainSection = false
         for (var i = 0; i < lines.length; i++) {
             var line = lines[i].trim()
+
+            if (line === "[Desktop Entry]") { inMainSection = true; continue }
+            if (line.startsWith("[") && line !== "[Desktop Entry]") { inMainSection = false; continue }
+            if (!inMainSection) continue
+
             var termMatch = line.match(/^Terminal\s*=\s*(.+)$/)
             if (termMatch) {
                 var v = termMatch[1].trim()
                 root.isTerminal = (v === "true" || v === "1")
                 continue
             }
+
             var prefMatch = line.match(/^PrefersNonDefaultGPU\s*=\s*(.+)$/)
             if (prefMatch) {
                 if (prefMatch[1].trim() === "true" || prefMatch[1].trim() === "1")
                     root.appPrefersNonDefault = true
                 continue
             }
+
             var execMatch = line.match(/^Exec\s*=\s*(.+)$/)
-            if (execMatch && execMatch[1].includes("switcherooctl"))
-                root.appPrefersNonDefault = true
+            if (execMatch) {
+                var execLine = execMatch[1].trim()
+
+                // Detect Steam games by rungameid URL — takes priority over everything else
+                var steamMatch = execLine.match(/steam:\/\/rungameid\/(\d+)/)
+                if (steamMatch) {
+                    root.steamId = steamMatch[1]
+                    continue
+                }
+
+                // Detect switcherooctl / prime-run
+                if (execLine.includes("switcherooctl") || execLine.includes("prime-run")) {
+                    root.appPrefersNonDefault = true
+                    var parts = execLine.split(/\s+/)
+                    var gIdx = parts.indexOf("-g")
+                    if (gIdx !== -1 && gIdx + 2 < parts.length)
+                        execLine = parts.slice(gIdx + 2).join(" ")
+                    else
+                        execLine = execLine.replace(/switcherooctl\s+launch\s+(--gpu[= ]\d+\s+|-g\s+\d+\s+)?/, "")
+                }
+                var bin = execLine.split(/\s+/)[0].replace(/%[uUfFdDnNickvm]/g, "").trim()
+                if (bin !== "" && bin !== "switcherooctl" && bin !== "prime-run")
+                    root.execName = bin
+            }
         }
     }
 
     function _buildMenuModel() {
         var pinned  = PinnedApps.isPinned(root.appId)
         var entries = [{ label: "Launch", action: "launch", gpuIndex: -1 }]
+
+        // Steam apps: no GPU options, just pin/unpin and hide
+        if (root.steamId !== "") {
+            entries.push({
+                label:    pinned ? "Unpin from dock" : "Pin to dock",
+                action:   pinned ? "unpin" : "pin",
+                gpuIndex: -1
+            })
+            entries.push({ label: "Hide", action: "hide", gpuIndex: -1 })
+            return entries
+        }
 
         if (DockState.gpuInfoReady) {
             if (root.appPrefersNonDefault) {
@@ -120,14 +169,15 @@ Item {
 
     function _launchDefault() {
         AppUsageTracker.recordLaunch(root.appId)
-        if (root.isTerminal) {
-            var exec = ""
-            if (root.appData && root.appData.executableName)
-                exec = root.appData.executableName
-            else
-                exec = root.appId
+        if (root.isTerminal && root.steamId === "") {
+            var exec = root.execName !== "" ? root.execName : root.appId
             exec = exec.replace(/%[uUfFdDnNickvm]/g, "").trim()
             Quickshell.execDetached(["ghostty", "-e", "bash", "-c", exec])
+        } else if (root.steamId !== "") {
+            Quickshell.execDetached(["xdg-open", "steam://rungameid/" + root.steamId])
+        } else if (root.appPrefersNonDefault) {
+            var bin = root.execName !== "" ? root.execName : root.appId
+            Quickshell.execDetached(["/usr/bin/switcherooctl", "launch", bin])
         } else if (root.appData) {
             root.appData.execute()
         } else {
@@ -138,7 +188,8 @@ Item {
 
     function _launchOnGpu(gpuIndex) {
         AppUsageTracker.recordLaunch(root.appId)
-        Quickshell.execDetached(["switcherooctl", "launch", "-g", String(gpuIndex), root.appId])
+        var bin = root.execName !== "" ? root.execName : root.appId
+        Quickshell.execDetached(["/usr/bin/switcherooctl", "launch", "-g", String(gpuIndex), bin])
         LauncherState.hide()
     }
 
@@ -284,7 +335,6 @@ Item {
         function closeMenu() {
             if (!isOpen) return
             isOpen = false
-            root._isHovered = false
             openAnim.stop()
             closeAnim.restart()
         }
@@ -414,7 +464,7 @@ Item {
                                     } else if (action === "gpu") {
                                         root._launchOnGpu(modelData.gpuIndex)
                                     } else if (action === "pin") {
-                                        PinnedApps.pinApp(root.appId, root.appName, root.appIcon, "", "")
+                                        PinnedApps.pinApp(root.appId, root.appName, root.appIcon, root.execName, root.steamId)
                                     } else if (action === "unpin") {
                                         PinnedApps.unpinApp(root.appId)
                                     } else if (action === "hide") {

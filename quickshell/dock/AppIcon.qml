@@ -27,9 +27,10 @@ Item {
     Process {
         id: desktopReader
         command: ["bash", "-c",
-            "f=\"$HOME/.local/share/applications/" + root.appId + ".desktop\"; " +
-            "[ -f \"$f\" ] || f=\"/usr/share/applications/" + root.appId + ".desktop\"; " +
-            "[ -f \"$f\" ] && cat \"$f\" || true"]
+            "f=\"$HOME/.local/share/applications/$1.desktop\"; " +
+            "[ -f \"$f\" ] || f=\"/usr/share/applications/$1.desktop\"; " +
+            "[ -f \"$f\" ] && cat \"$f\" || true",
+            "--", root.appId]
         running: true
         stdout: StdioCollector {
             onStreamFinished: root._parseDesktopEntry(this.text)
@@ -39,10 +40,14 @@ Item {
     function _parseDesktopEntry(text) {
         if (text === "") return
         var lines = text.split("\n")
+        var inMainSection = false
         for (var i = 0; i < lines.length; i++) {
             var line = lines[i].trim()
 
-            // Standard freedesktop key
+            if (line === "[Desktop Entry]") { inMainSection = true; continue }
+            if (line.startsWith("[") && line !== "[Desktop Entry]") { inMainSection = false; continue }
+            if (!inMainSection) continue
+
             var prefMatch = line.match(/^PrefersNonDefaultGPU\s*=\s*(.+)$/)
             if (prefMatch) {
                 var val = prefMatch[1].trim()
@@ -51,10 +56,20 @@ Item {
                 continue
             }
 
-            // Custom: Exec line already uses switcherooctl (user-configured)
             var execMatch = line.match(/^Exec\s*=\s*(.+)$/)
-            if (execMatch && execMatch[1].includes("switcherooctl"))
-                root.appPrefersNonDefault = true
+            if (execMatch) {
+                var execLine = execMatch[1].trim()
+
+                // Detect Steam games by rungameid URL — overrides steamId only if not already set
+                var steamMatch = execLine.match(/steam:\/\/rungameid\/(\d+)/)
+                if (steamMatch) {
+                    if (root.steamId === "") root.steamId = steamMatch[1]
+                    continue
+                }
+
+                if (execLine.includes("switcherooctl"))
+                    root.appPrefersNonDefault = true
+            }
         }
     }
 
@@ -139,11 +154,8 @@ Item {
         if (root.steamId !== "") {
             Quickshell.execDetached(["xdg-open", "steam://rungameid/" + root.steamId])
         } else if (root.appPrefersNonDefault) {
-            // App wants dGPU — launch via switcherooctl directly
             var bin = root.execName !== "" ? root.execName : root.appId
-            Quickshell.execDetached([
-                "/usr/bin/switcherooctl", "launch", "--gpu", "1", bin
-            ])
+            Quickshell.execDetached(["/usr/bin/switcherooctl", "launch", "--gpu", "1", bin])
         } else {
             var entry = DesktopEntries.byId(root.appId)
             if (entry) entry.execute()
@@ -153,19 +165,9 @@ Item {
 
     function _launchOnGpu(gpuIndex) {
         AppUsageTracker.recordLaunch(root.appId)
-        var base = ["switcherooctl", "launch", "-g", String(gpuIndex)]
-        var argv
-        if (root.steamId !== "") {
-            argv = base.concat(["steam", "-applaunch", root.steamId])
-        } else {
-            var bin = root.execName !== "" ? root.execName : root.appId
-            argv = base.concat([bin])
-        }
-        Quickshell.execDetached(argv)
+        var bin = root.execName !== "" ? root.execName : root.appId
+        Quickshell.execDetached(["/usr/bin/switcherooctl", "launch", "-g", String(gpuIndex), bin])
     }
-
-    // Returns [{label, gpuIndex}] where gpuIndex -1 means default launch.
-    // The alt entry targets whichever GPU the app does NOT already prefer.
 
     function _buildMenuModel() {
         var entries = [{ label: "Launch", gpuIndex: -1, action: "launch" }]

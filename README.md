@@ -186,7 +186,7 @@ a sleeping cat appears after a few minutes of inactivity. dims the screen, breat
 ```bash
 git clone https://github.com/melatonia/meloworld-dotfiles
 cd meloworld-dotfiles
-chmod +x install.sh
+chmod +x installer.sh
 ./install.sh
 ```
 
@@ -196,7 +196,7 @@ chmod +x install.sh
 
 dependencies
 ```bash
-paru -S mangowm quickshell pipewire pipewire-pulse wireplumber bluez bluez-utils brightnessctl ghostty power-profiles-daemon ttf-jetbrains-mono-nerd grim slurp awww bibata-cursor-theme-bin papirus-icon-theme zed zsh zsh-autosuggestions zsh-syntax-highlighting adw-gtk-theme xdg-desktop-portal-wlr hypridle hyprlock cliphist wl-clipboard playerctl zoxide bat fd ripgrep lazygit switcheroo-control
+paru -S mangowm quickshell pipewire pipewire-pulse wireplumber bluez bluez-utils brightnessctl ghostty power-profiles-daemon ttf-jetbrains-mono-nerd grim slurp awww bibata-cursor-theme-bin papirus-icon-theme zed zsh zsh-autosuggestions zsh-syntax-highlighting adw-gtk-theme xdg-desktop-portal-wlr hypridle hyprlock cliphist wl-clipboard playerctl zoxide bat fd ripgrep lazygit switcheroo-control noto-fonts-emoji fzf
 
 sudo systemctl enable --now bluetooth power-profiles-daemon switcheroo-control
 ```

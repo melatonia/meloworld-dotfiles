@@ -79,7 +79,7 @@ if ask_permission "Install required packages?"; then
         ttf-jetbrains-mono-nerd grim slurp awww bibata-cursor-theme-bin eza
         zed zsh zsh-autosuggestions zsh-syntax-highlighting adw-gtk-theme
         xdg-desktop-portal-wlr hypridle hyprlock cliphist wl-clipboard playerctl
-        zoxide bat fd ripgrep lazygit
+        zoxide bat fd fzf ripgrep lazygit noto-fonts-emoji switcheroo-control
     )
     $PKGER -S --needed --noconfirm "${PACKAGES[@]}"
     success "Dependencies installed.\n"
