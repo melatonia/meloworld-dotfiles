@@ -49,11 +49,27 @@ Item {
     property int gridRow: launcherIsGridView ? Math.floor(indexOnPage / 5) : indexOnPage
 
     readonly property bool onCurrentPage: isMatch && (pageNumber === launcherCurrentPage)
-    visible: isMatch
+    property bool _fullyHidden: false
+
+    visible: isMatch && !_fullyHidden
+    enabled: onCurrentPage
     opacity: onCurrentPage ? 1.0 : 0.0
 
+    onOnCurrentPageChanged: {
+        if (onCurrentPage) _fullyHidden = false
+    }
+
+    onLauncherIsGridViewChanged: {
+        _fullyHidden = false
+    }
+
     Behavior on opacity {
-        NumberAnimation { duration: 150; easing.type: Easing.InOutSine }
+        SequentialAnimation {
+            NumberAnimation { duration: 150; easing.type: Easing.InOutSine }
+            ScriptAction {
+                script: { if (!root.onCurrentPage) root._fullyHidden = true }
+            }
+        }
     }
 
     x: launcherIsGridView ? gridCol * 144 + 4 : 4
