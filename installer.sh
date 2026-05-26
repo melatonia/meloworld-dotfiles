@@ -170,17 +170,10 @@ if ask_permission "Symlink dotfiles to ~/.config?"; then
     if [ -d "$WALLPAPER_SRC" ]; then
         mkdir -p "$HOME/Pictures/Wallpapers"
 
-        # Backup existing wallpapers directory if it's not already managed
-        if [ -e "$WALLPAPER_DEST" ] && [ ! -L "$WALLPAPER_DEST" ]; then
-            mkdir -p "$BACKUP_DIR"
-            mv "$WALLPAPER_DEST" "$BACKUP_DIR/"
-        fi
-
-        # Copy wallpapers fresh
         rm -rf "$WALLPAPER_DEST"
         cp -r "$WALLPAPER_SRC" "$WALLPAPER_DEST"
 
-        success "Wallpapers installed."
+        success "Wallpapers installed to $WALLPAPER_DEST"
     else
         warn "Wallpaper source directory not found at $WALLPAPER_SRC"
     fi
