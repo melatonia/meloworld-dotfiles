@@ -14,12 +14,14 @@ _a rice that feels like /home <3_
 
 ![desktop preview](assets/desktop.png)
 
+
 <details>
-<summary>☀️ light mode</summary>
-<br>
+  <summary>
+    <h3>☀️ light mode</h3>
+  </summary>
 
-![desktop light mode preview](assets/desktop-light.png)
-
+  ![desktop light mode preview](assets/desktop-light.png)
+  
 </details>
 
 ---
@@ -248,18 +250,23 @@ chsh -s $(which zsh)
 
 ## 📦 extras
 
-i have a [neovim theme](https://github.com/melatonia/nvim) based on the same color palette!
-
-the sound files (login chime, notification, screenshot, usb connect/remove) were made by me in bitwig studio. use them freely, a credit would be appreciated :3
-
-i dont own any of the wallpapers, most of them are just screenshots by me.
-
-i use zen browser with the [transparent zen extension](https://sameerasw.com/zen) and `#212121CC` background. for firefox, [Firefox Gnome Theme](https://github.com/rafaelmardojai/firefox-gnome-theme) works well.
 
 <details>
-<summary>some usage tips</summary>
-<br>
+  <summary>
+    <h3>neovim theme</h3>
+  </summary>
 
+![nvim](assets/nvim.png)
+
+i have a [neovim theme](https://github.com/melatonia/nvim) based on the same color palette!
+
+</details>
+
+<details>
+  <summary>
+    <h3>some usage tips</h3>
+  </summary>
+  
 - im open to questions and feature requests, dont hesitate to hit me up on reddit or github (i dont check these places often so if i reply late dont worry)
 - for night light to work, you need to set your location in the file (~/.config/mango/scripts/nightlight.sh) (it activates based on time of day, so you might not notice right away, try toggling it at night.)
 - you can set your profile picture by just clicking the dashboard area.
@@ -269,6 +276,19 @@ i use zen browser with the [transparent zen extension](https://sameerasw.com/zen
 - the brightness and audio pills and sliders are scrollable. you can also scroll workspaces by scrolling on the numbers, or super + scroll anywhere.
 
 </details>
+
+<details>
+  <summary>
+    <h3>web browser</h3>
+  </summary>
+
+i use zen browser with the [transparent zen extension](https://sameerasw.com/zen) and `#212121CC` background. for firefox, [Firefox Gnome Theme](https://github.com/rafaelmardojai/firefox-gnome-theme) works well.
+
+</details>
+
+the sound files (login chime, notification, screenshot, usb connect/remove) were made by me in bitwig studio. use them freely, a credit would be appreciated :3
+
+i dont own any of the wallpapers, most of them are just screenshots by me.
 
 ---
 
