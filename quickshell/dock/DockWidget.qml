@@ -15,7 +15,7 @@ PanelWindow {
 
     exclusionMode: ExclusionMode.Ignore
     WlrLayershell.layer: WlrLayershell.Top
-    color:         "transparent"
+    color: "transparent"
 
     readonly property int margin:     8
     readonly property int pillHeight: 64
@@ -29,7 +29,7 @@ PanelWindow {
     // ── state ──────────────────────────────────────────────────────
     property bool windowsPresent: false
     property bool hovering:       false
-    property bool anyMenuOpen:    false   // set by AppIcon; keeps dock visible during popup
+    property bool anyMenuOpen:    false
     readonly property bool dockVisible: !windowsPresent || hovering || anyMenuOpen
 
     // ── hide debounce ──────────────────────────────────────────────
@@ -55,29 +55,34 @@ PanelWindow {
         }
     }
 
-    // ── mmsg -w -t : watch tag changes, update windowsPresent ─────
-    Timer {
-        id: watchRestartTimer
-        interval: 1000
-        onTriggered: watchProc.running = true
-    }
-
+    // ── watch all-tags: hide when active tag has clients ───────────
     Process {
-        id: watchProc
-        command: ["mmsg", "-w", "-t"]
+        id: watchTagsProc
+        command: ["mmsg", "watch", "all-tags"]
         running: true
-        onRunningChanged: {
-            if (!running) watchRestartTimer.start()
-        }
+        onRunningChanged: if (!running) tagsRestartTimer.start()
         stdout: SplitParser {
             onRead: (line) => {
-                var match = line.match(/\S+\s+tag\s+\d+\s+(\d+)\s+(\d+)\s+\d+/)
-                if (!match) return
-                var focused = parseInt(match[1]) === 1
-                var clients = parseInt(match[2])
-                if (focused) dock.windowsPresent = clients > 0
+                var trimmed = line.trim()
+                if (trimmed.length === 0) return
+                try {
+                    var json = JSON.parse(trimmed)
+                    var monitors = json["all_tags"] || []
+                    if (monitors.length === 0) return
+                    var tags = monitors[0]["tags"] || []
+                    var active = tags.find(t => t["is_active"])
+                    if (active) dock.windowsPresent = active["client_count"] > 0
+                } catch (e) {
+                    console.warn("DockWidget parse error:", e)
+                }
             }
         }
+    }
+
+    Timer {
+        id: tagsRestartTimer
+        interval: 1000
+        onTriggered: watchTagsProc.running = true
     }
 
     // ── pill ───────────────────────────────────────────────────────
@@ -116,7 +121,6 @@ PanelWindow {
             id: row
             anchors.centerIn: parent
             spacing: 6
-
 
             Repeater {
                 model: PinnedApps.apps

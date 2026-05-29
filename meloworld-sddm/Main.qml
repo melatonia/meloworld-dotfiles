@@ -180,7 +180,7 @@ Rectangle {
                     anchors.leftMargin: 12
                     anchors.rightMargin: 12
                     spacing: 12
-                    Text { text: ""; font.family: root.fontMain; font.pixelSize: 16; color: passwordField.activeFocus ? root.clrAccent : root.clrFgDim }
+                    Text { text: ""; font.family: root.fontMain; font.pixelSize: 16; color: passwordField.activeFocus ? root.clrAccent : root.clrFgDim }
                     TextInput {
                         id: passwordField
                         Layout.fillWidth: true

@@ -1,4 +1,6 @@
 # ignore the avatar in the quickshell config subfolder
 quickshell/avatar.png
-# ignore the hypr wallpaper since its symlinked anyways
-hypr/wallpaper.png
+# ignore the lockscreen wallpaper since its symlinked anyways
+quickshell/lockscreen/wallpaper
+# ignore the hyprland config for now, Im not thinking about switching now
+hypr/hyprland.lua
