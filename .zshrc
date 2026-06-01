@@ -10,20 +10,26 @@ setopt hist_ignore_space     # Don't save commands prefixed with a space
 setopt hist_reduce_blanks    # Remove superfluous blanks before recording
 setopt share_history         # Share history across all open terminals
 setopt append_history        # Append rather than overwrite history on exit
+setopt auto_cd               # type a dir name to cd into it
+setopt correct               # suggest corrections for mistyped commands
+setopt interactive_comments  # allow # commnets in the interactive shell
 
 # ── Completion ────────────────────────────────────────────────────────────────
 autoload -Uz compinit
 
 # Only regenerate .zcompdump once per day
 if [[ -n ~/.zcompdump(#qN.mh+24) ]]; then
-  compinit
+  compinit -i
 else
-  compinit -C
+  compinit -C -i
 fi
 
 zstyle :compinstall filename '$HOME/.zshrc'
-zstyle ':completion:*' menu select          # Arrow-key navigable completion menu
-zstyle ':completion:*' matcher-list 'm:{a-z}={A-Z}'  # Case-insensitive completion
+zstyle ':completion:*' menu select
+zstyle ':completion:*' matcher-list 'm:{a-zA-Z}={A-Za-z}' 'r:|=*' 'l:|=* r:|=*'
+zstyle ':completion:*' list-colors "${(s.:.)LS_COLORS}"
+zstyle ':completion:*' squeeze-slashes true
+zstyle ':completion:*:descriptions' format '%F{yellow}-- %d --%f'
 
 # ── Keybindings ───────────────────────────────────────────────────────────────
 bindkey -e  # Emacs keybindings
@@ -87,6 +93,7 @@ RPS1="${JOVIAL_PALETTE[time]}%T%f"
 
 # ── Aliases ───────────────────────────────────────────────────────────────────
 alias zed='zeditor'
+alias vim='nvim'
 alias ..='cd ..'
 alias ...='cd ../..'
 
