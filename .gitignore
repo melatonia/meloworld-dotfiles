@@ -2,5 +2,5 @@
 quickshell/avatar.png
 # ignore the lockscreen wallpaper since its symlinked anyways
 quickshell/lockscreen/wallpaper
-# ignore the hyprland config for now, Im not thinking about switching now
-hypr/hyprland.lua
+# ignore the hyprland config for now, i love mangowm <3
+hypr/

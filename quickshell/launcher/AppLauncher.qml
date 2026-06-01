@@ -257,7 +257,14 @@ PanelWindow {
         opacity:   0.0
         transform: Translate { id: panelSlide; y: 28 }
 
-        HoverHandler { onHoveredChanged: { if (hovered) panel.forceActiveFocus() } }
+        HoverHandler {
+            onHoveredChanged: {
+                if (hovered) {
+                    root.requestActivate()
+                    searchBar.forceActiveFocus()
+                }
+            }
+        }
 
         states: [
             State {
