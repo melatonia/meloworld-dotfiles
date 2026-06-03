@@ -91,6 +91,14 @@ supports shuffle and repeat on supported apps. uses the material expressive 3 pr
 
 ---
 
+**🔅 brightness**
+
+![brightness popup](assets/brightness.png)
+
+monitor and keyboard brightness sliders. keyboard slider hides itself if it doesn't have the brightness function.
+
+---
+
 **🔊 audio**
 
 ![audio popup](assets/audio.png)

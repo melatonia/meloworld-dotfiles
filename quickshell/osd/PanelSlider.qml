@@ -11,6 +11,9 @@ Item {
     property color accentColor: Colors.teal200
     property bool clickable: false
     property string label: ""
+    // Override for discrete sliders (e.g. kbd backlight with 2 steps).
+    // Defaults to 1/20th of range, matching the original behaviour.
+    property real wheelStep: (to - from) / 20
 
     signal moved(real value)
 
@@ -148,9 +151,8 @@ Item {
         onClicked: (mouse) => root._updateFromMouse(mouse.x)
 
         onWheel: (wheel) => {
-            var step = (root.to - root.from) / 20
             var notches = wheel.angleDelta.y / 120
-            var delta = notches * step
+            var delta = notches * root.wheelStep
 
             var base = (dragging || wheelTimer.running) ? root.internalValue : root.value
             var newVal = Math.round(Math.max(root.from, Math.min(root.to, base + delta)))
