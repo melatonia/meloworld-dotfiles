@@ -18,164 +18,203 @@ PopupBase {
         }
     }
 
-    readonly property bool btOn:      Bluetooth.defaultAdapter && Bluetooth.defaultAdapter.enabled
-    readonly property bool scanning:  btOn && Bluetooth.defaultAdapter.discovering
+    readonly property bool btOn:          Bluetooth.defaultAdapter && Bluetooth.defaultAdapter.enabled
+    readonly property bool scanning:      btOn && Bluetooth.defaultAdapter.discovering
     readonly property int  maxListHeight: 5 * 34 + 4 * 4
 
-    function isMacAddress(name) {
-        return /^([0-9A-Fa-f]{2}[-:]){5}[0-9A-Fa-f]{2}$/.test(name.trim())
+    // ── Shared animation component ─────────────────────────────────────
+    component SpinnerIcon: Text {
+        id: spinnerIcon
+        required property bool active
+        font.pixelSize: 15
+        font.family:    "JetBrainsMono Nerd Font"
+        SequentialAnimation on opacity {
+            running:  spinnerIcon.active
+            loops:    Animation.Infinite
+            NumberAnimation { to: 0.4; duration: 600; easing.type: Easing.InOutSine }
+            NumberAnimation { to: 1.0; duration: 600; easing.type: Easing.InOutSine }
+        }
+        onActiveChanged: if (!active) opacity = 1.0
     }
 
-    // ── Content ───────────────────────────────────
+    // ── Shared row button component ────────────────────────────────────
+    // accent: active fill color | active: filled vs outlined state
+    component RowButton: Rectangle {
+        id: btn
+        required property color accent
+        required property bool  active
+        required property bool  busy        // spinner / in-progress state
+        property alias  label:  labelText.text
+        property alias  icon:   iconText.text
+
+        width: parent.width; height: 34; radius: 6
+        color: {
+            let base = btn.active ? btn.accent : PanelColors.rowBackground
+            return btnMouse.containsMouse && !btn.active && !btn.busy
+                ? Qt.lighter(base, 1.15) : base
+        }
+        Behavior on color { ColorAnimation { duration: 150 } }
+
+        // Left accent bar (shown when inactive)
+        Rectangle {
+            visible: !btn.active
+            width: 3; height: parent.height - 10; radius: 2
+            anchors { left: parent.left; leftMargin: 4; verticalCenter: parent.verticalCenter }
+            color: btn.accent
+        }
+
+        Row {
+            anchors { left: parent.left; verticalCenter: parent.verticalCenter; leftMargin: 14 }
+            spacing: 8
+
+            SpinnerIcon {
+                id: iconText
+                active: btn.busy
+                color:  btn.active ? PanelColors.pillForeground : PanelColors.textMain
+                anchors.verticalCenter: parent.verticalCenter
+            }
+
+            Text {
+                id: labelText
+                font.pixelSize: 13; font.bold: true; font.family: "JetBrainsMono Nerd Font"
+                color: btn.active ? PanelColors.pillForeground : PanelColors.textMain
+                anchors.verticalCenter: parent.verticalCenter
+            }
+        }
+
+        property alias mouseArea: btnMouse
+        MouseArea {
+            id: btnMouse
+            anchors.fill: parent; hoverEnabled: true
+        }
+    }
+
+    // ── Content ────────────────────────────────────────────────────────
     Column {
         id: column
         anchors { top: parent.top; left: parent.left; right: parent.right; margins: root.padding }
         spacing: 4
 
-        // ── Adapter toggle ────────────────────────
-        Rectangle {
-            width: parent.width; height: 34; radius: 6
-            color: {
-                let base = root.btOn ? PanelColors.bluetooth : PanelColors.rowBackground
-                return btMouse.containsMouse ? Qt.lighter(base, 1.15) : base
-            }
-            Behavior on color { ColorAnimation { duration: 150 } }
-
-            Rectangle {
-                visible: !root.btOn
-                width: 3; height: parent.height - 10; radius: 2
-                anchors { left: parent.left; leftMargin: 4; verticalCenter: parent.verticalCenter }
-                color: PanelColors.bluetooth
-            }
-            Row {
-                anchors { left: parent.left; verticalCenter: parent.verticalCenter; leftMargin: 14 }
-                spacing: 8
-                Text {
-                    text: root.btOn ? "󰂯" : "󰂲"
-                    font.pixelSize: 15; font.family: "JetBrainsMono Nerd Font"
-                    color: root.btOn ? PanelColors.pillForeground : PanelColors.textMain
-                    anchors.verticalCenter: parent.verticalCenter
-                }
-                Text {
-                    text: root.btOn ? "Bluetooth On" : "Bluetooth Off"
-                    font.pixelSize: 13; font.bold: true; font.family: "JetBrainsMono Nerd Font"
-                    color: root.btOn ? PanelColors.pillForeground : PanelColors.textMain
-                    anchors.verticalCenter: parent.verticalCenter
-                }
-            }
-            MouseArea {
-                id: btMouse
-                anchors.fill: parent; hoverEnabled: true
-                onClicked: if (Bluetooth.defaultAdapter) Bluetooth.defaultAdapter.enabled = !Bluetooth.defaultAdapter.enabled
+        // ── Adapter toggle ─────────────────────────────────────────────
+        RowButton {
+            accent: PanelColors.bluetooth
+            active: root.btOn
+            busy:   false
+            icon:   root.btOn ? "󰂯" : "󰂲"
+            label:  root.btOn ? "Bluetooth On" : "Bluetooth Off"
+            mouseArea.onClicked: {
+                if (Bluetooth.defaultAdapter)
+                    Bluetooth.defaultAdapter.enabled = !Bluetooth.defaultAdapter.enabled
             }
         }
 
-        // ── Paired devices ────────────────────────
+        // ── Paired devices ─────────────────────────────────────────────
         Repeater {
             model: Bluetooth.devices
-            delegate: Rectangle {
+            delegate: Item {
                 required property var modelData
                 visible: modelData.paired
-                width: parent.width; height: visible ? 34 : 0; radius: 6
-                color: {
-                    let base = modelData.connected ? PanelColors.bluetooth : PanelColors.rowBackground
-                    return pairedMouse.containsMouse && !modelData.connected ? Qt.lighter(base, 1.15) : base
-                }
-                Behavior on color { ColorAnimation { duration: 150 } }
+                width:   parent.width
+                height:  visible ? 34 : 0
+
+                readonly property bool isConnected:    modelData.state === BluetoothDeviceState.Connected
+                readonly property bool isConnecting:   modelData.state === BluetoothDeviceState.Connecting
+                readonly property bool isDisconnecting: modelData.state === BluetoothDeviceState.Disconnecting
+                readonly property bool isTransitioning: isConnecting || isDisconnecting
 
                 Rectangle {
-                    visible: !modelData.connected
-                    width: 3; height: parent.height - 10; radius: 2
-                    anchors { left: parent.left; leftMargin: 4; verticalCenter: parent.verticalCenter }
-                    color: PanelColors.bluetooth
-                }
-                Row {
-                    anchors { left: parent.left; verticalCenter: parent.verticalCenter; leftMargin: 14; right: parent.right; rightMargin: 10 }
-                    spacing: 8
-                    Text {
-                        text: modelData.connected ? "󰂱" : "󰂯"
-                        font.pixelSize: 15; font.family: "JetBrainsMono Nerd Font"
-                        color: modelData.connected ? PanelColors.pillForeground : PanelColors.textMain
-                        anchors.verticalCenter: parent.verticalCenter
+                    anchors.fill: parent
+                    radius: 6
+                    color: {
+                        let base = isConnected ? PanelColors.bluetooth : PanelColors.rowBackground
+                        return pairedMouse.containsMouse && !isConnected && !isTransitioning
+                            ? Qt.lighter(base, 1.15) : base
                     }
-                    Text {
-                        text: modelData.name
-                        font.pixelSize: 13; font.bold: true; font.family: "JetBrainsMono Nerd Font"
-                        color: modelData.connected ? PanelColors.pillForeground : PanelColors.textMain
-                        elide: Text.ElideRight
-                        width: parent.width - 23 - 8
-                               - (modelData.connected && modelData.batteryAvailable ? 36 : 0)
-                        anchors.verticalCenter: parent.verticalCenter
+                    Behavior on color { ColorAnimation { duration: 150 } }
+
+                    // Left accent bar (shown when disconnected)
+                    Rectangle {
+                        visible: !isConnected
+                        width: 3; height: parent.height - 10; radius: 2
+                        anchors { left: parent.left; leftMargin: 4; verticalCenter: parent.verticalCenter }
+                        color: PanelColors.bluetooth
                     }
-                    Text {
-                        visible: modelData.connected && modelData.batteryAvailable
-                        text: visible ? Math.round(modelData.battery * 100) + "%" : ""
-                        font.pixelSize: 12; font.family: "JetBrainsMono Nerd Font"
-                        color: PanelColors.pillForeground
-                        anchors.verticalCenter: parent.verticalCenter
+
+                    Row {
+                        anchors {
+                            left: parent.left; verticalCenter: parent.verticalCenter
+                            leftMargin: 14; right: parent.right; rightMargin: 10
+                        }
+                        spacing: 8
+
+                        // Icon — spins while connecting / disconnecting
+                        SpinnerIcon {
+                            active: isTransitioning
+                            text: {
+                                if (isConnected)     return "󰂱"
+                                if (isTransitioning) return "󰑐"
+                                return "󰂯"
+                            }
+                            color: isConnected ? PanelColors.pillForeground : PanelColors.textMain
+                            anchors.verticalCenter: parent.verticalCenter
+                        }
+
+                        Text {
+                            text: modelData.name
+                            font.pixelSize: 13; font.bold: true; font.family: "JetBrainsMono Nerd Font"
+                            color: isConnected ? PanelColors.pillForeground : PanelColors.textMain
+                            elide: Text.ElideRight
+                            width: parent.width - 23 - 8
+                                   - (isConnected && modelData.batteryAvailable ? 36 : 0)
+                            anchors.verticalCenter: parent.verticalCenter
+                        }
+
+                        Text {
+                            visible: isConnected && modelData.batteryAvailable
+                            text:    visible ? Math.round(modelData.battery * 100) + "%" : ""
+                            font.pixelSize: 12; font.family: "JetBrainsMono Nerd Font"
+                            color: PanelColors.pillForeground
+                            anchors.verticalCenter: parent.verticalCenter
+                        }
                     }
-                }
-                MouseArea {
-                    id: pairedMouse
-                    anchors.fill: parent; hoverEnabled: true
-                    onClicked: modelData.connected = !modelData.connected
+
+                    MouseArea {
+                        id: pairedMouse
+                        anchors.fill: parent; hoverEnabled: true
+                        // Guard against clicks during transitioning states
+                        onClicked: {
+                            if (isTransitioning) return
+                            if (isConnected) modelData.disconnect()
+                            else             modelData.connect()
+                        }
+                    }
                 }
             }
         }
 
-        // ── Divider ───────────────────────────────
+        // ── Divider ────────────────────────────────────────────────────
         Rectangle {
             visible: root.btOn
             width: parent.width; height: visible ? 2 : 0
             color: PanelColors.rowBackground
         }
 
-        // ── Scan toggle ───────────────────────────
-        Rectangle {
+        // ── Scan toggle ────────────────────────────────────────────────
+        RowButton {
             visible: root.btOn
-            width: parent.width; height: visible ? 34 : 0; radius: 6
-            color: {
-                let base = root.scanning ? PanelColors.scanning : PanelColors.rowBackground
-                return scanMouse.containsMouse ? Qt.lighter(base, 1.15) : base
-            }
-            Behavior on color { ColorAnimation { duration: 150 } }
-
-            Rectangle {
-                visible: !root.scanning
-                width: 3; height: parent.height - 10; radius: 2
-                anchors { left: parent.left; leftMargin: 4; verticalCenter: parent.verticalCenter }
-                color: PanelColors.scanning
-            }
-            Row {
-                anchors { left: parent.left; verticalCenter: parent.verticalCenter; leftMargin: 14 }
-                spacing: 8
-                Text {
-                    text: "󰑐"
-                    font.pixelSize: 15; font.family: "JetBrainsMono Nerd Font"
-                    color: root.scanning ? PanelColors.pillForeground : PanelColors.textMain
-                    anchors.verticalCenter: parent.verticalCenter
-                    SequentialAnimation on opacity {
-                        running: root.scanning
-                        loops:   Animation.Infinite
-                        NumberAnimation { to: 0.4; duration: 600; easing.type: Easing.InOutSine }
-                        NumberAnimation { to: 1.0; duration: 600; easing.type: Easing.InOutSine }
-                    }
-                }
-                Text {
-                    text: root.scanning ? "Scanning..." : "Scan"
-                    font.pixelSize: 13; font.bold: true; font.family: "JetBrainsMono Nerd Font"
-                    color: root.scanning ? PanelColors.pillForeground : PanelColors.textMain
-                    anchors.verticalCenter: parent.verticalCenter
-                }
-            }
-            MouseArea {
-                id: scanMouse
-                anchors.fill: parent; hoverEnabled: true
-                onClicked: if (Bluetooth.defaultAdapter) Bluetooth.defaultAdapter.discovering = !Bluetooth.defaultAdapter.discovering
+            height:  visible ? 34 : 0
+            accent:  PanelColors.scanning
+            active:  root.scanning
+            busy:    root.scanning
+            icon:    "󰑐"
+            label:   root.scanning ? "Scanning..." : "Scan"
+            mouseArea.onClicked: {
+                if (Bluetooth.defaultAdapter)
+                    Bluetooth.defaultAdapter.discovering = !Bluetooth.defaultAdapter.discovering
             }
         }
 
-        // ── Pair with PIN ─────────────────────────
+        // ── Pair with PIN ──────────────────────────────────────────────
         Rectangle {
             visible: root.scanning
             width: parent.width; height: visible ? 34 : 0; radius: 6
@@ -187,6 +226,7 @@ PopupBase {
                 anchors { left: parent.left; leftMargin: 4; verticalCenter: parent.verticalCenter }
                 color: PanelColors.textDim
             }
+
             Row {
                 anchors { left: parent.left; verticalCenter: parent.verticalCenter; leftMargin: 14 }
                 spacing: 8
@@ -203,11 +243,13 @@ PopupBase {
                     anchors.verticalCenter: parent.verticalCenter
                 }
             }
+
             Process {
                 id: bluetoothctlProc
                 command: ["kitty", "--title=bluetoothctl", "-e", "bluetoothctl"]
                 running: false
             }
+
             MouseArea {
                 id: pinMouse
                 anchors.fill: parent; hoverEnabled: true
@@ -218,11 +260,11 @@ PopupBase {
             }
         }
 
-        // ── Unpaired scan results ─────────────────
+        // ── Unpaired scan results ──────────────────────────────────────
         Item {
             visible: root.scanning
-            width: parent.width
-            height: visible ? root.maxListHeight : 0
+            width:   parent.width
+            height:  visible ? root.maxListHeight : 0
 
             Flickable {
                 id: unpairedFlickable
@@ -238,56 +280,70 @@ PopupBase {
 
                     Repeater {
                         model: Bluetooth.devices
-                        delegate: Rectangle {
+                        delegate: Item {
                             required property var modelData
                             readonly property bool show: !modelData.paired
-                                && !root.isMacAddress(modelData.name)
                                 && modelData.name.trim() !== ""
+                                && !/^([0-9A-Fa-f]{2}[:\-]){5}[0-9A-Fa-f]{2}$/.test(modelData.name.trim())
+
                             visible: show
                             width:   unpairedColumn.width
                             height:  show ? 34 : 0
-                            radius: 6
-                            color: {
-                                let base = modelData.pairing ? PanelColors.pairing : PanelColors.rowBackground
-                                return unpMouse.containsMouse && !modelData.pairing ? Qt.lighter(base, 1.15) : base
-                            }
-                            Behavior on color { ColorAnimation { duration: 150 } }
 
                             Rectangle {
-                                visible: !modelData.pairing
-                                width: 3; height: parent.height - 10; radius: 2
-                                anchors { left: parent.left; leftMargin: 4; verticalCenter: parent.verticalCenter }
-                                color: PanelColors.pairing
-                            }
-                            Row {
-                                anchors { left: parent.left; verticalCenter: parent.verticalCenter; leftMargin: 14; right: parent.right; rightMargin: 10 }
-                                spacing: 8
-                                Text {
-                                    text: modelData.pairing ? "󰑐" : "󰂯"
-                                    font.pixelSize: 15; font.family: "JetBrainsMono Nerd Font"
-                                    color: modelData.pairing ? PanelColors.pillForeground : PanelColors.textMain
-                                    anchors.verticalCenter: parent.verticalCenter
+                                anchors.fill: parent
+                                radius: 6
+                                color: {
+                                    let base = modelData.pairing ? PanelColors.pairing : PanelColors.rowBackground
+                                    return unpMouse.containsMouse && !modelData.pairing
+                                        ? Qt.lighter(base, 1.15) : base
                                 }
-                                Text {
-                                    text: modelData.name
-                                    font.pixelSize: 13; font.bold: true; font.family: "JetBrainsMono Nerd Font"
-                                    color: modelData.pairing ? PanelColors.pillForeground : PanelColors.textMain
-                                    elide: Text.ElideRight
-                                    width: parent.width - 23 - 8
-                                    anchors.verticalCenter: parent.verticalCenter
+                                Behavior on color { ColorAnimation { duration: 150 } }
+
+                                // Left accent bar
+                                Rectangle {
+                                    visible: !modelData.pairing
+                                    width: 3; height: parent.height - 10; radius: 2
+                                    anchors { left: parent.left; leftMargin: 4; verticalCenter: parent.verticalCenter }
+                                    color: PanelColors.pairing
                                 }
-                            }
-                            MouseArea {
-                                id: unpMouse
-                                anchors.fill: parent; hoverEnabled: true
-                                onClicked: if (!modelData.pairing) modelData.pair()
+
+                                Row {
+                                    anchors {
+                                        left: parent.left; verticalCenter: parent.verticalCenter
+                                        leftMargin: 14; right: parent.right; rightMargin: 10
+                                    }
+                                    spacing: 8
+
+                                    SpinnerIcon {
+                                        active: modelData.pairing
+                                        text:   modelData.pairing ? "󰑐" : "󰂯"
+                                        color:  modelData.pairing ? PanelColors.pillForeground : PanelColors.textMain
+                                        anchors.verticalCenter: parent.verticalCenter
+                                    }
+
+                                    Text {
+                                        text: modelData.name
+                                        font.pixelSize: 13; font.bold: true; font.family: "JetBrainsMono Nerd Font"
+                                        color: modelData.pairing ? PanelColors.pillForeground : PanelColors.textMain
+                                        elide: Text.ElideRight
+                                        width: parent.width - 23 - 8
+                                        anchors.verticalCenter: parent.verticalCenter
+                                    }
+                                }
+
+                                MouseArea {
+                                    id: unpMouse
+                                    anchors.fill: parent; hoverEnabled: true
+                                    onClicked: if (!modelData.pairing) modelData.pair()
+                                }
                             }
                         }
                     }
                 }
             }
 
-            // ── Scroll hints ──────────────────────
+            // ── Scroll hints ───────────────────────────────────────────
             Rectangle {
                 visible: !unpairedFlickable.atYBeginning
                 anchors { top: parent.top; left: parent.left; right: parent.right }
