@@ -206,7 +206,7 @@ Item {
         if (root.isTerminal && root.resolvedSteamId === "") {
             var exec = root.execName !== "" ? root.execName : root.appId
             exec = exec.replace(/%[uUfFdDnNickvm]/g, "").trim()
-            Quickshell.execDetached(["ghostty", "-e", "bash", "-c", exec])
+            Quickshell.execDetached(["kitty", "-e", "bash", "-c", exec])
 
         } else if (root.resolvedSteamId !== "") {
             Quickshell.execDetached(["xdg-open", "steam://rungameid/" + root.resolvedSteamId])

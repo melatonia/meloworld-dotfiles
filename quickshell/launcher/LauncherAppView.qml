@@ -48,13 +48,11 @@ Item {
 
     function confirmSelection() {
         var fidx = root.filteredApps.indexOf(root.selectedIndex)
-        if (fidx === -1) {
-            if (root.filteredApps.length === 0) return
-            var first = _appsRepeater.itemAt(root.filteredApps[0])
-            if (first) first.executeApp()
-            return
-        }
-        var item = _appsRepeater.itemAt(root.selectedIndex)
+        var targetIdx = (fidx === -1)
+            ? (root.filteredApps.length > 0 ? root.filteredApps[0] : -1)
+            : root.selectedIndex
+        if (targetIdx < 0) return
+        var item = _appsRepeater.itemAt(targetIdx)
         if (item) item.executeApp()
     }
 
@@ -280,13 +278,28 @@ Item {
             id:   listDelegate
             required property int index
 
-            readonly property int  origIdx:    root.filteredApps[index] ?? -1
-            readonly property var  appItem:    origIdx >= 0 ? _appsRepeater.itemAt(origIdx) : null
+            readonly property int origIdx: root.filteredApps[index] ?? -1
+
+            // ── Core fix ──────────────────────────────────────────────────
+            // .values[i] is the reactive ObjectModel accessor — updates its
+            // binding on any model change, unlike bracket indexing or
+            // _appsRepeater.itemAt() which both go null during model resets.
+            readonly property var  entry:      origIdx >= 0 ? DesktopEntries.applications.values[origIdx] : null
+
+            // The grid icon is always live: gridContainer uses visible:false,
+            // not a Loader, so Qt never destroys its children. We use it as
+            // the authority for all action logic (launch, GPU, pin, hide)
+            // since it has already parsed execName, resolvedSteamId, etc.
+            // Display data (name, icon) comes from entry directly — that is
+            // what was going null and causing the blank rows.
+            readonly property var  gridIcon:   origIdx >= 0 ? _appsRepeater.itemAt(origIdx) : null
             readonly property bool isSelected: root.selectedIndex === origIdx
 
             width:   appListView.width
             height:  root.rowH
-            visible: appItem !== null
+            // Guard on entry (DesktopEntry from ObjectModel) — this never
+            // goes null due to Repeater churn, so rows never disappear.
+            visible: entry !== null
 
             Rectangle {
                 anchors { fill: parent; leftMargin: 4; rightMargin: 4 }
@@ -305,12 +318,13 @@ Item {
                     IconImage {
                         anchors.verticalCenter: parent.verticalCenter
                         implicitSize: 22
-                        source: listDelegate.appItem ? Quickshell.iconPath(listDelegate.appItem.appIcon) : ""
+                        // entry.icon is stable — from ObjectModel, never null
+                        source: listDelegate.entry ? Quickshell.iconPath(listDelegate.entry.icon) : ""
                     }
 
                     Text {
                         anchors.verticalCenter: parent.verticalCenter
-                        text:  listDelegate.appItem ? listDelegate.appItem.appName : ""
+                        text:  listDelegate.entry ? listDelegate.entry.name : ""
                         font.pixelSize: 17
                         font.bold: true
                         font.family:    "JetBrainsMono Nerd Font"
@@ -334,7 +348,9 @@ Item {
                             if (listCtxMenu.isOpen) listCtxMenu.closeMenu()
                             else                    listCtxMenu.openMenu()
                         } else {
-                            if (listDelegate.appItem) listDelegate.appItem.executeApp()
+                            // Proxy to executeApp() so terminal/Steam/GPU
+                            // launch logic and AppUsageTracker stay in one place
+                            if (listDelegate.gridIcon) listDelegate.gridIcon.executeApp()
                         }
                     }
                 }
@@ -365,9 +381,11 @@ Item {
                 }
 
                 function openMenu() {
-                    if (!listDelegate.appItem) return
+                    if (!listDelegate.gridIcon) return
                     root.notifyMenuOpened(listDelegate.origIdx)
-                    listCtxRepeater.model = listDelegate.appItem._buildMenuModel()
+                    // _buildMenuModel() lives in AppLauncherIcon and already
+                    // handles Steam, GPU, and pin/unpin correctly
+                    listCtxRepeater.model = listDelegate.gridIcon._buildMenuModel()
                     listCtxInner.y        = 14
                     listCtxInner.opacity  = 0.0
                     visible               = true
@@ -439,7 +457,7 @@ Item {
 
                         Text {
                             width:          parent.width
-                            text:           listDelegate.appItem ? listDelegate.appItem.appName : ""
+                            text:           listDelegate.entry ? listDelegate.entry.name : ""
                             font.pixelSize: 12
                             font.bold: true
                             font.family:    "JetBrainsMono Nerd Font"
@@ -493,19 +511,23 @@ Item {
                                         onContainsMouseChanged: { if (containsMouse) listCtxDismiss.restart() }
                                         onClicked: {
                                             listCtxMenu.closeMenu()
-                                            var appItem = listDelegate.appItem
-                                            if (!appItem) return
+                                            // All action logic proxied to gridIcon — it owns
+                                            // execName, resolvedSteamId, isTerminal, GPU index,
+                                            // AppUsageTracker, and the correct PinnedApps call
+                                            // signature with execName and resolvedSteamId.
+                                            var icon = listDelegate.gridIcon
+                                            if (!icon) return
                                             var action = modelData.action
                                             if (action === "launch") {
-                                                appItem._launchDefault()
+                                                icon._launchDefault()
                                             } else if (action === "gpu") {
-                                                appItem._launchOnGpu(modelData.gpuIndex)
+                                                icon._launchOnGpu(modelData.gpuIndex)
                                             } else if (action === "pin") {
-                                                PinnedApps.pinApp(appItem.appId, appItem.appName, appItem.appIcon, "", "")
+                                                PinnedApps.pinApp(icon.appId, icon.appName, icon.appIcon, icon.execName, icon.resolvedSteamId)
                                             } else if (action === "unpin") {
-                                                PinnedApps.unpinApp(appItem.appId)
+                                                PinnedApps.unpinApp(icon.appId)
                                             } else if (action === "hide") {
-                                                LauncherHiddenApps.hide(appItem.appId, appItem.appName, appItem.appIcon)
+                                                LauncherHiddenApps.hide(icon.appId, icon.appName, icon.appIcon)
                                             }
                                         }
                                     }
