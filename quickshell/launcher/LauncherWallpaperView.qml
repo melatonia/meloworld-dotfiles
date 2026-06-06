@@ -209,7 +209,8 @@ Item {
             } else {
                 script =
                     "pkill -x mpvpaper 2>/dev/null; " +
-                    "awww query >/dev/null 2>&1 || (awww-daemon & sleep 0.5); " +
+                    "awww query >/dev/null 2>&1 || { awww-daemon &>/dev/null & " +
+                    "for i in $(seq 1 20); do sleep 0.1 && awww query >/dev/null 2>&1 && break; done; }; " +
                     "awww img '" + p + "' --transition-type fade --transition-duration 0.8 --transition-fps 60; " +
                     "ln -sf '" + p + "' \"$HOME/.config/quickshell/lockscreen/wallpaper\""
             }
