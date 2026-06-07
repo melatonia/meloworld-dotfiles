@@ -8,6 +8,11 @@ _a rice that feels like /home <3_
 
 ---
 
+> [!CAUTION]
+> this branch is no longer maintained. the active development has moved to the [`main`](https://github.com/melatonia/meloworld-dotfiles/tree/main) branch which uses hyprland.
+
+---
+
 ![banner](assets/banner.png)
 
 ---
