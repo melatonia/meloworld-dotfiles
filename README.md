@@ -197,7 +197,7 @@ a sleeping cat appears after a few minutes of inactivity. dims the screen, breat
 **automatic (arch linux)**
 
 ```bash
-git clone https://github.com/melatonia/meloworld-dotfiles
+git clone --branch mangowm https://github.com/melatonia/meloworld-dotfiles
 cd meloworld-dotfiles
 chmod +x installer.sh
 ./installer.sh
@@ -216,7 +216,7 @@ sudo systemctl enable --now bluetooth power-profiles-daemon switcheroo-control
 ```
 
 ```bash
-git clone https://github.com/melatonia/meloworld-dotfiles
+git clone --branch mangowm https://github.com/melatonia/meloworld-dotfiles
 cd meloworld-dotfiles
 
 cp -r quickshell ~/.config/
