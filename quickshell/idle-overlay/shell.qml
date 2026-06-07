@@ -16,11 +16,12 @@ ShellRoot {
 
             WlrLayershell.layer: WlrLayer.Overlay
             WlrLayershell.keyboardFocus: WlrKeyboardFocus.Exclusive
+            WlrLayershell.namespace: "qs-idle-overlay"
 
             color: "transparent"
 
             // ─── TUNABLES ───
-            property real dimOpacity: 0.25
+            property real dimOpacity: 0.4
             property int fadeInDuration: 1200
             property int fadeOutDuration: 240
             property color catColor: "#ffffffdd"
@@ -30,8 +31,13 @@ ShellRoot {
 
             // ─── State ───
             property bool isQuitting: false
+            // Guard against Hyprland's synthetic key/pointer events fired at
+            // map-time when a layer surface with Exclusive keyboard focus is
+            // created.  Input is ignored until this is true.
+            property bool inputReady: false
 
             function fadeAndQuit() {
+                if (!inputReady) return
                 if (isQuitting) return
                 isQuitting = true
                 dimLayer.opacity = 0.0
@@ -140,9 +146,28 @@ ShellRoot {
                     acceptedButtons: Qt.AllButtons
                     hoverEnabled: true
                     onPressed: win.fadeAndQuit()
-                    onMouseXChanged: win.fadeAndQuit()
-                    onMouseYChanged: win.fadeAndQuit()
+                    // Use onPositionChanged instead of the individual axis signals
+                    // to avoid firing on Hyprland's initial pointer-warp event.
+                    property point lastPos: Qt.point(-1, -1)
+                    onPositionChanged: (mouse) => {
+                        if (lastPos.x < 0) {
+                            lastPos = Qt.point(mouse.x, mouse.y)
+                            return
+                        }
+                        win.fadeAndQuit()
+                    }
                 }
+            }
+
+            // ─── Arm input after the fade-in settles ───
+            // Hyprland fires a synthetic KeyPress + pointer-warp the moment an
+            // Exclusive layer surface is mapped.  We ignore all input for a
+            // short window so those spurious events don't immediately quit.
+            Timer {
+                id: inputReadyTimer
+                interval: 300   // well within the 1200 ms fade-in
+                repeat: false
+                onTriggered: win.inputReady = true
             }
 
             // ─── Trigger fade in ───
@@ -150,6 +175,7 @@ ShellRoot {
                 dimLayer.opacity = win.dimOpacity
                 catText.opacity = win.catOpacity
                 breatheTimer.start()
+                inputReadyTimer.start()
             }
 
             Timer {

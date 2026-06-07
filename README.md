@@ -30,7 +30,7 @@ meloworld is my personal arch linux desktop. i've been working on it for a while
 |                 |                                                       |
 | --------------- | ----------------------------------------------------- |
 | **os**          | Arch Linux                                            |
-| **wm**          | [MangoWM](https://github.com/mangowm/mango)           |
+| **wm**          | [hyprland](https://hypr.land/)                        |
 | **shell layer** | [Quickshell](https://quickshell.org/)                 |
 | **launcher**    | custom (quickshell)                                   |
 | **terminal**    | [kitty](https://sw.kovidgoyal.net/kitty/)             |
@@ -205,7 +205,7 @@ chmod +x installer.sh
 dependencies
 
 ```bash
-paru -S mangowm quickshell pipewire pipewire-pulse wireplumber bluez bluez-utils brightnessctl kitty power-profiles-daemon ttf-jetbrains-mono-nerd grim slurp awww mpvpaper bibata-cursor-theme-bin papirus-icon-theme zed zsh zsh-autosuggestions zsh-syntax-highlighting adw-gtk-theme xdg-desktop-portal-wlr cliphist wl-clipboard playerctl zoxide bat fd ripgrep lazygit switcheroo-control noto-fonts-emoji fzf zenity
+paru -S hyprland quickshell pipewire pipewire-pulse wireplumber bluez bluez-utils brightnessctl kitty power-profiles-daemon ttf-jetbrains-mono-nerd grim slurp awww mpvpaper bibata-cursor-theme-bin papirus-icon-theme zed zsh zsh-autosuggestions zsh-syntax-highlighting adw-gtk-theme xdg-desktop-portal-wlr cliphist wl-clipboard playerctl zoxide bat fd ripgrep lazygit switcheroo-control noto-fonts-emoji fzf zenity hypridle
 
 sudo systemctl enable --now bluetooth power-profiles-daemon switcheroo-control
 ```
@@ -215,18 +215,20 @@ git clone https://github.com/melatonia/meloworld-dotfiles
 cd meloworld-dotfiles
 
 cp -r quickshell ~/.config/
-cp -r mango ~/.config/
+cp -r hypr ~/.config/
 cp -r kitty ~/.config/
 cp -r vesktop ~/.config/
 cp -r zathura ~/.config/
 cp -r zed ~/.config/
 cp -r .zshrc ~/.zshrc
 
-find ~/.config/{quickshell,mango,rofi} -type f -name "*.sh" -exec chmod +x {} +
+find ~/.config/{quickshell,hypr,rofi} -type f -name "*.sh" -exec chmod +x {} +
 sudo cp -r meloworld-sddm /usr/share/sddm/themes/
 
 mkdir -p ~/Pictures/Wallpapers
-cp -r assets/wallpapers ~/Pictures/
+mkdir -p ~/Videos/Wallpapers/
+cp -r assets/wallpapers-static ~/Pictures/
+cp -r assets/wallpapers-animated ~/Videos/
 ```
 
 add to `/etc/sddm.conf.d/theme.conf`:
@@ -273,9 +275,9 @@ i have a [neovim theme](https://github.com/melatonia/nvim) based on the same col
   </summary>
   
 - im open to questions and feature requests, dont hesitate to hit me up on reddit or github (i dont check these places often so if i reply late dont worry)
-- for night light to work, you need to set your location in the file (~/.config/mango/scripts/nightlight.sh) (it activates based on time of day, so you might not notice right away, try toggling it at night.)
+- for night light to work, you need to set your location in the file (~/.config/hypr/scripts/nightlight.sh) (it activates based on time of day, so you might not notice right away, try toggling it at night.)
 - you can set your profile picture by just clicking the dashboard area.
-- the wallpaper selector reads your "~/Pictures/Wallpapers" folder.
+- the wallpaper selector reads your `~/Pictures/Wallpapers` and `~/Videos/Wallpapers/` folder.
 - you can switch between launcher modes with the prefixes. /h for hidden apps, /w for wallpapers, /g for grid-list view switch.
 - dashboard and launcher have apps pinning and switcheroo-control support.
 - the brightness and audio pills and sliders are scrollable. you can also scroll workspaces by scrolling on the numbers, or super + scroll anywhere.

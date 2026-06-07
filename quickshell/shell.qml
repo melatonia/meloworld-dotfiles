@@ -14,42 +14,6 @@ import "screenshot"
 import "theme"
 
 ShellRoot {
-    // ─── Idle overlay launcher ───
-    IdleMonitor {
-        id: idleMonitor
-        timeout: 300
-        enabled: !SystemTogglesState.caffeineOn
-
-        onIsIdleChanged: {
-            if (isIdle) {
-                idleOverlayProcess.running = true
-            }
-        }
-    }
-
-    // ─── Suspend ───
-    IdleMonitor {
-        id: suspendMonitor
-        timeout: 900
-        enabled: !SystemTogglesState.caffeineOn
-
-        onIsIdleChanged: {
-            if (isIdle) {
-                Quickshell.execDetached(["systemctl", "suspend"])
-            }
-        }
-    }
-
-    Process {
-        id: idleOverlayProcess
-        command: ["qs", "-p", Quickshell.shellPath("idle-overlay")]
-        running: false
-
-        onExited: (exitCode, exitStatus) => {
-            running = false
-        }
-    }
-
     Variants {
         model: Quickshell.screens
         PanelWindow {

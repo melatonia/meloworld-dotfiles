@@ -12,7 +12,9 @@ PanelWindow {
 
     WlrLayershell.layer: WlrLayer.Overlay
     WlrLayershell.keyboardFocus: WlrKeyboardFocus.Exclusive
+    WlrLayershell.namespace: "qs-screenshot"
     exclusionMode: ExclusionMode.Ignore
+
 
     // ─── IPC Handler ───
     Io.IpcHandler {

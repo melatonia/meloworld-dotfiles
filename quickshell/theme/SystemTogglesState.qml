@@ -2,6 +2,7 @@ pragma Singleton
 import QtQuick
 import Qt.labs.settings
 import Quickshell
+import Quickshell.Io
 import Quickshell.Services.UPower
 
 Singleton {
@@ -54,6 +55,14 @@ Singleton {
         onTriggered: {
             remainingSeconds -= 1
             if (remainingSeconds <= 0) SystemTogglesState.disableCaffeine()
+        }
+    }
+
+    onCaffeineOnChanged: {
+        if (caffeineOn) {
+            Quickshell.execDetached(["pkill", "hypridle"])
+        } else {
+            Quickshell.execDetached(["hypridle"])
         }
     }
 

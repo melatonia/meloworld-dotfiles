@@ -13,7 +13,7 @@ RESET='\033[0m'
 # ── Paths & Variables ─────────────────────────────────────────────────────────
 REPO_NAME="meloworld-dotfiles"
 INSTALL_LOC="$HOME/.config/$REPO_NAME"
-TARGETS=("quickshell" "mango" "kitty" "rofi" "zed")
+TARGETS=("quickshell" "hypr" "kitty" "ghostty" "rofi" "vesktop" "zed" "zathura")
 
 # ── Helper Functions ──────────────────────────────────────────────────────────
 info() { echo -e "${BLUE}==>${RESET} $1"; }
@@ -102,13 +102,13 @@ fi
 info "Step 2: Dependencies"
 if ask_permission "Install required packages?"; then
   PACKAGES=(
-    mangowm quickshell pipewire pipewire-pulse wireplumber bluez bluez-utils
+    hyprland quickshell pipewire pipewire-pulse wireplumber bluez bluez-utils
     brightnessctl kitty power-profiles-daemon papirus-icon-theme sddm
     ttf-jetbrains-mono-nerd grim slurp bibata-cursor-theme-bin eza
     zed zsh zsh-autosuggestions zsh-syntax-highlighting adw-gtk-theme zenity
     xdg-desktop-portal-wlr cliphist wl-clipboard playerctl
     zoxide bat fd fzf ripgrep lazygit noto-fonts-emoji switcheroo-control glow
-    unzip awww mpvpaper
+    unzip awww mpvpaper hypridle
   )
 
   info "Checking for missing packages..."
@@ -161,18 +161,31 @@ fi
 
 # ── 4. Wallpapers ─────────────────────────────────────────────────────────────
 info "Step 4: Wallpapers"
-if ask_permission "Install wallpapers to ~/Pictures/Wallpapers/meloworld-wallpapers?"; then
-  WALLPAPER_SRC="$INSTALL_LOC/assets/wallpapers"
-  WALLPAPER_DEST="$HOME/Pictures/Wallpapers/meloworld-wallpapers"
+if ask_permission "Install wallpapers to ~/Pictures & ~/Videos?"; then
+  WALLPAPER_STATIC_SRC="$INSTALL_LOC/assets/wallpapers-static"
+  WALLPAPER_ANIMATED_SRC="$INSTALL_LOC/assets/wallpapers-animated"
+  WALLPAPER_STATIC_DEST="$HOME/Pictures/Wallpapers/meloworld-wallpapers"
+  WALLPAPER_ANIMATED_DEST="$HOME/Videos/Wallpapers/meloworld-wallpapers"
 
-  if [[ -d "$WALLPAPER_SRC" ]]; then
+  if [[ -d "$WALLPAPER_STATIC_SRC" ]]; then
     mkdir -p "$HOME/Pictures/Wallpapers"
-    rm -rf "$WALLPAPER_DEST"
-    cp -r "$WALLPAPER_SRC" "$WALLPAPER_DEST"
-    success "Wallpapers installed to $WALLPAPER_DEST\n"
+    rm -rf "$WALLPAPER_STATIC_DEST"
+    cp -r "$WALLPAPER_STATIC_SRC" "$WALLPAPER_STATIC_DEST"
+    success "Static wallpapers installed to $WALLPAPER_STATIC_DEST"
   else
-    warn "Wallpaper source directory not found at $WALLPAPER_SRC\n"
+    warn "Static wallpaper source not found at $WALLPAPER_STATIC_SRC"
   fi
+
+  if [[ -d "$WALLPAPER_ANIMATED_SRC" ]]; then
+    mkdir -p "$HOME/Videos/Wallpapers"
+    rm -rf "$WALLPAPER_ANIMATED_DEST"
+    cp -r "$WALLPAPER_ANIMATED_SRC" "$WALLPAPER_ANIMATED_DEST"
+    success "Animated wallpapers installed to $WALLPAPER_ANIMATED_DEST"
+  else
+    warn "Animated wallpaper source not found at $WALLPAPER_ANIMATED_SRC"
+  fi
+
+  echo ""
 else
   info "Skipped wallpaper installation.\n"
 fi
@@ -200,10 +213,8 @@ else
 fi
 
 # ── 6. Keyboard Configuration ─────────────────────────────────────────────────
-# Targets the real source file at $INSTALL_LOC directly — never ~/.config/mango
-# (the symlink). Changes propagate through the symlink automatically.
 info "Step 6: Keyboard Configuration"
-if ask_permission "Configure keyboard layout for MangoWM?"; then
+if ask_permission "Configure keyboard layout for Hyprland?"; then
   CURRENT_LAYOUT=$(localectl status 2>/dev/null | awk '/X11 Layout/ {print $3}' | head -n 1)
   CURRENT_LAYOUT="${CURRENT_LAYOUT:-us}"
 
@@ -211,14 +222,13 @@ if ask_permission "Configure keyboard layout for MangoWM?"; then
   read -r USER_LAYOUT
   USER_LAYOUT="${USER_LAYOUT:-$CURRENT_LAYOUT}"
 
-  MANGO_CONF="$INSTALL_LOC/mango/config.conf"
+  INPUT_CONF="$INSTALL_LOC/hypr/config/input.lua"
 
-  if [[ -f "$MANGO_CONF" ]]; then
-    MANGO_CONF_REAL=$(realpath "$MANGO_CONF")
-    sed -i "s/^xkb_rules_layout=.*/xkb_rules_layout=$USER_LAYOUT/" "$MANGO_CONF_REAL"
-    success "Keyboard layout set to '$USER_LAYOUT' in MangoWM config.\n"
+  if [[ -f "$INPUT_CONF" ]]; then
+    sed -i "s/kb_layout = \".*\"/kb_layout = \"$USER_LAYOUT\"/" "$INPUT_CONF"
+    success "Keyboard layout set to '$USER_LAYOUT' in $INPUT_CONF.\n"
   else
-    warn "MangoWM config file not found at $MANGO_CONF. Could not update layout.\n"
+    warn "Hyprland input config not found at $INPUT_CONF. Could not update layout.\n"
   fi
 else
   info "Skipped keyboard configuration.\n"
