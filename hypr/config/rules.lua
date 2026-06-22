@@ -1,6 +1,10 @@
 -- config/rules.lua — meloworld
 -- Window rules and layer rules.
 
+-- Set this for smooth nvidia experience
+hl.env("LIBVA_DRIVER_NAME", "nvidia")
+hl.env("__GLX_VENDOR_LIBRARY_NAME", "nvidia")
+
 -- ─── Window Rules ─────────────────────────────────────────────────────────────
 hl.window_rule({
 	match = { title = "nmtui" },

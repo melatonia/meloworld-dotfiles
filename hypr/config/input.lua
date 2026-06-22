@@ -19,7 +19,7 @@ hl.config({
 		follow_mouse = 1,
 		mouse_refocus = true,
 
-		sensitivity = -0.2,
+		sensitivity = -0.4,
 		accel_profile = "flat",
 		natural_scroll = false,
 

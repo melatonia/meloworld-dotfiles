@@ -102,23 +102,36 @@ Item {
         wallpaperGrid.positionViewAtIndex(next, GridView.Contain)
     }
 
-    // ── Step 1: scan both wallpaper dirs ──────────────────────────────────
+    // ── Step 1: scan wallpaper dirs + Steam Workshop ───────────────────────
     Process {
         id: scanProc
         command: [
             "bash", "-c",
-            // Images (awww-supported formats)
+            // Images (awww-supported formats) — ~/Pictures/Wallpapers
             "find \"$HOME/Pictures/Wallpapers\" -type f \\( " +
             "-iname '*.jpg' -o -iname '*.jpeg' -o -iname '*.png' -o -iname '*.webp' " +
             "-o -iname '*.gif' -o -iname '*.jxl' -o -iname '*.bmp' -o -iname '*.tiff' " +
             "-o -iname '*.tga' -o -iname '*.avif' -o -iname '*.pnm' -o -iname '*.svg' \\) " +
             "2>/dev/null | sort | sed 's/$/ IMAGE/'; " +
-            // Videos (mpvpaper/mpv-supported formats)
+            // Videos (mpvpaper/mpv-supported formats) — ~/Videos/Wallpapers
             "find \"$HOME/Videos/Wallpapers\" -type f \\( " +
             "-iname '*.mp4' -o -iname '*.mkv' -o -iname '*.webm' -o -iname '*.mov' " +
             "-o -iname '*.avi' -o -iname '*.flv' -o -iname '*.wmv' " +
             "-o -iname '*.ts' -o -iname '*.m4v' -o -iname '*.ogv' \\) " +
-            "2>/dev/null | sort | sed 's/$/ VIDEO/'"
+            "2>/dev/null | sort | sed 's/$/ VIDEO/'; " +
+            // Steam Wallpaper Engine workshop — both images and videos, fully recursive
+            "find \"$HOME/.local/share/Steam/steamapps/workshop/content/431960\" -type f \\( " +
+            "-iname '*.jpg' -o -iname '*.jpeg' -o -iname '*.png' -o -iname '*.webp' " +
+            "-o -iname '*.gif' -o -iname '*.jxl' -o -iname '*.bmp' -o -iname '*.tiff' " +
+            "-o -iname '*.tga' -o -iname '*.avif' -o -iname '*.pnm' -o -iname '*.svg' " +
+            "-o -iname '*.mp4' -o -iname '*.mkv' -o -iname '*.webm' -o -iname '*.mov' " +
+            "-o -iname '*.avi' -o -iname '*.flv' -o -iname '*.wmv' " +
+            "-o -iname '*.ts' -o -iname '*.m4v' -o -iname '*.ogv' \\) " +
+            "2>/dev/null | sort | awk '{ " +
+            "  ext = tolower($0); sub(/.*\\./, \"\", ext); " +
+            "  tag = (ext ~ /^(mp4|mkv|webm|mov|avi|flv|wmv|ts|m4v|ogv)$/) ? \"VIDEO\" : \"IMAGE\"; " +
+            "  print $0 \" \" tag " +
+            "}'"
         ]
         running: false
         stdout: StdioCollector {
