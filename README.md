@@ -32,7 +32,7 @@ meloworld is my personal arch linux desktop. i've been working on it for a while
 |                 |                                                       |
 | --------------- | ----------------------------------------------------- |
 | **os**          | Arch Linux                                            |
-| **wm**          | [hyprland](https://hypr.land/)                        |
+| **wm**          | [niri](https://github.com/niri-wm/niri)                        |
 | **shell layer** | [Quickshell](https://quickshell.org/)                 |
 | **launcher**    | custom (quickshell)                                   |
 | **terminal**    | [kitty](https://sw.kovidgoyal.net/kitty/)             |
@@ -207,7 +207,7 @@ chmod +x installer.sh
 dependencies
 
 ```bash
-paru -S hyprland quickshell pipewire pipewire-pulse wireplumber bluez bluez-utils brightnessctl kitty power-profiles-daemon ttf-jetbrains-mono-nerd grim slurp awww mpvpaper bibata-cursor-theme-bin papirus-icon-theme zed zsh zsh-autosuggestions zsh-syntax-highlighting adw-gtk-theme xdg-desktop-portal-wlr cliphist wl-clipboard playerctl zoxide bat fd ripgrep lazygit switcheroo-control noto-fonts-emoji fzf zenity hypridle
+paru -S niri quickshell pipewire pipewire-pulse wireplumber bluez bluez-utils brightnessctl kitty power-profiles-daemon ttf-jetbrains-mono-nerd grim slurp awww mpvpaper bibata-cursor-theme-bin papirus-icon-theme zed zsh zsh-autosuggestions zsh-syntax-highlighting adw-gtk-theme xdg-desktop-portal-wlr cliphist wl-clipboard playerctl zoxide bat fd ripgrep lazygit switcheroo-control noto-fonts-emoji fzf zenity swayidle
 
 sudo systemctl enable --now bluetooth power-profiles-daemon switcheroo-control
 ```
@@ -217,14 +217,15 @@ git clone https://github.com/melatonia/meloworld-dotfiles
 cd meloworld-dotfiles
 
 cp -r quickshell ~/.config/
-cp -r hypr ~/.config/
+cp -r niri ~/.config/
+cp -r swayidle ~/.config
 cp -r kitty ~/.config/
 cp -r vesktop ~/.config/
 cp -r zathura ~/.config/
 cp -r zed ~/.config/
 cp -r .zshrc ~/.zshrc
 
-find ~/.config/{quickshell,hypr,rofi} -type f -name "*.sh" -exec chmod +x {} +
+find ~/.config/{quickshell,niri} -type f -name "*.sh" -exec chmod +x {} +
 sudo cp -r meloworld-sddm /usr/share/sddm/themes/
 
 mkdir -p ~/Pictures/Wallpapers

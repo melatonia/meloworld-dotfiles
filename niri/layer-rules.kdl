@@ -1,0 +1,5 @@
+// ─── Layer rules ───────────────────────────────────────────────────────────
+// Layer-shell surfaces (bars, launchers, notification daemons, wallpaper
+// tools) are matched by `namespace`, not app-id. Find real namespaces with:
+//   niri msg layers
+

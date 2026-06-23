@@ -1,0 +1,32 @@
+// ─── Outputs ───────────────────────────────────────────────────────────────
+// Run `niri msg outputs` after first boot to get real connector names
+// (e.g. eDP-1, DP-1, HDMI-A-1) and fill these in. Until then niri picks
+// sane automatic defaults, so this file is safe to leave mostly commented.
+
+output "eDP-1" {
+    // off
+    mode "1920x1080@120.030"
+    scale 1.0
+    // transform "90"
+    position x=1280 y=0
+    variable-refresh-rate // on-demand=true
+    focus-at-startup
+    backdrop-color "#212121"
+    // max-bpc 8
+
+    hot-corners {
+        // off
+        // top-left
+        // top-right
+        bottom-left
+        // bottom-right
+    }
+
+    layout {
+        // ...layout settings for eDP-1...
+    }
+
+    // Custom modes. Caution: may damage your display.
+    // mode custom=true "1920x1080@100"
+    // modeline 173.00  1920 2048 2248 2576  1080 1083 1088 1120 "-hsync" "+vsync"
+}

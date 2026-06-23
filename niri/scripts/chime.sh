@@ -4,4 +4,4 @@ while ! pw-cli info 0 &>/dev/null; do
 done
 
 sleep 0.3
-pw-play ~/.config/hypr/assets/sounds/chime.flac
+pw-play ~/.config/niri/assets/sounds/chime.flac

@@ -1,0 +1,15 @@
+// ════════════════════════════════════════════════════════════════════════════
+// niri — meloworld
+// Entry point. Each concern lives in its own file under ~/.config/niri/.
+// Includes are positional and mostly merge — see niri wiki "Configuration: Include".
+// ════════════════════════════════════════════════════════════════════════════
+
+include "input.kdl"
+include "outputs.kdl"
+include "layout.kdl"
+include "misc.kdl"
+include "animations.kdl"
+include "window-rules.kdl"
+include "layer-rules.kdl"
+include "binds.kdl"
+include "autostart.kdl"

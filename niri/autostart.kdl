@@ -1,0 +1,28 @@
+// ─── Autostart ─────────────────────────────────────────────────────────────
+// niri as a systemd session also honors xdg-desktop-autostart out of the
+// box, so anything you've set to autostart under GNOME will "just work"
+// without needing a line here. Use spawn-at-startup mainly for niri-specific
+// or shell-specific pieces (meloworld bar, polkit agent, etc.).
+
+// wallpaper restore script
+spawn-sh-at-startup "~/.config/niri/scripts/wallpaper-restore.sh"
+
+// quickshell bar:
+spawn-sh-at-startup "quickshell"
+
+// Polkit authentication agent (adjust path to whatever your distro ships).
+// spawn-at-startup "/usr/lib/polkit-kde-authentication-agent-1"
+
+// clipboard history daemon
+spawn-sh-at-startup "wl-paste --watch cliphist store"
+
+// nightlight filter with wlsunset
+spawn-sh-at-startup "~/.local/bin/nightlight.sh"
+
+// optional sounds
+// spawn-sh-at-startup "~/.config/niri/scripts/chime.sh"
+// spawn-sh-at-startup "~/.config/niri/scripts/usb-sound.sh"
+
+// Idle/lock daemon
+spawn-at-startup "swayidle" "-w"
+

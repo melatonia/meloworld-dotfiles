@@ -1,0 +1,17 @@
+# Idle overlay at 5 min
+timeout 300 'quickshell -c ~/.config/quickshell/idle-overlay' resume 'pkill -f quickshell.*idle-overlay'
+
+# Lockscreen at 10 min
+timeout 600 'qs -p ~/.config/quickshell/lockscreen'
+
+# Turn off monitors 1s after lockscreen, turn back on when active
+timeout 601 'niri msg action power-off-monitors' resume 'niri msg action power-on-monitors'
+
+# Suspend at 15 min
+timeout 900 'systemctl suspend'
+
+# Lock before sleep
+before-sleep 'qs -p ~/.config/quickshell/lockscreen'
+
+# Handle loginctl lock-session
+lock 'qs -p ~/.config/quickshell/lockscreen'

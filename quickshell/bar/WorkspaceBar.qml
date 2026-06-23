@@ -8,8 +8,8 @@ Row {
     spacing: 4
 
     // ── State (9 slots, index = workspaceIdx - 1) ─────────────────────────
-    property var tagFocused: [false, false, false, false, false, false, false, false, false]
-    property var tagClients: [0,     0,     0,     0,     0,     0,     0,     0,     0    ]
+    property var tagFocused: [false, false, false, false, false, false, false, false, false, false]
+    property var tagClients: [0,     0,     0,     0,     0,     0,     0,     0,     0,    0]
     property int focusedTag: 1
     property bool canScroll: true
 
@@ -105,7 +105,7 @@ Row {
         for (let i = 0; i < workspaces.length; i++) {
             const ws = workspaces[i]
             const idx = ws["idx"]
-            if (idx === undefined || idx < 1 || idx > 9) continue
+            if (idx === undefined || idx < 1 || idx > 10) continue
             indexMap[ws["id"]] = idx
             if (ws["is_focused"]) focused = idx
         }
@@ -128,20 +128,20 @@ Row {
     }
 
     function _recomputeFocused() {
-        const f = [false, false, false, false, false, false, false, false, false]
+        const f = [false, false, false, false, false, false, false, false, false, false]
         const focused = root.focusedTag
-        if (focused >= 1 && focused <= 9) f[focused - 1] = true
+        if (focused >= 1 && focused <= 10) f[focused - 1] = true
         root.tagFocused = f
     }
 
     function _recomputeClients() {
-        const c        = [0, 0, 0, 0, 0, 0, 0, 0, 0]
+        const c        = [0, 0, 0, 0, 0, 0, 0, 0, 0, 0]
         const indexMap = root.workspaceIndexMap
         const winMap   = root.windowWorkspaceMap
         for (const wid in winMap) {
             const wsId = winMap[wid]
             const idx  = indexMap[wsId]
-            if (idx >= 1 && idx <= 9) c[idx - 1]++
+            if (idx >= 1 && idx <= 10) c[idx - 1]++
         }
         root.tagClients = c
     }
@@ -155,7 +155,7 @@ Row {
 
     // ── Delegates ─────────────────────────────────────────────────────────
     Repeater {
-        model: 9
+        model: 10
         delegate: Rectangle {
             id: pill
 
@@ -210,7 +210,7 @@ Row {
                     if (!root.canScroll) return
 
                     const visible = []
-                    for (let i = 0; i < 9; i++) {
+                    for (let i = 0; i < 10; i++) {
                         if (root.tagFocused[i] || root.tagClients[i] > 0)
                             visible.push(i + 1)
                     }

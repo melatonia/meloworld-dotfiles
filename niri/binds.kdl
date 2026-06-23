@@ -1,0 +1,206 @@
+// ════════════════════════════════════════════════════════════════════════════
+// Binds — meloworld / niri
+//
+// Philosophy, not muscle memory:
+//   Mod              → focus / navigate      (cheapest tier, used constantly)
+//   Mod+Shift         → move things           (columns, windows, workspaces)
+//   Mod+Ctrl          → monitors               (focus / move across monitors)
+//   Mod+Alt           → layout & sizing        (resize, presets, maximize, tabs)
+//   Mod+Shift+Ctrl    → move column/window across monitors (rare, so 3 mods is fine)
+//
+// H/J/K/L are mirrored onto every directional bind, vim-style, same as your
+// old Mango config and as niri's own defaults already do.
+//
+// Every action name below is taken verbatim from niri's resources/default-config.kdl.
+// ════════════════════════════════════════════════════════════════════════════
+
+binds {
+    // ── Meta ────────────────────────────────────────────────────────────────
+    Mod+Shift+Slash { show-hotkey-overlay; }
+    Mod+Escape allow-inhibiting=false { toggle-keyboard-shortcuts-inhibit; }
+    Mod+Shift+E { quit; }
+    Ctrl+Alt+Delete { quit; }
+    Mod+Shift+P { power-off-monitors; }
+
+    // ── Launching programs ──────────────────────────────────────────────────
+    Mod+Return hotkey-overlay-title="Open a Terminal: kitty" { spawn "kitty"; }
+    Alt+Space hotkey-overlay-title="Run an Application: quickshell" { spawn-sh "qs ipc call launcher toggle"; }
+    //Mod+Shift+D hotkey-overlay-title="Run an Application: fuzzel (dmenu mode)" { spawn-sh "fuzzel --launch-prefix=''"; }
+    Super+Alt+L hotkey-overlay-title="Lock the Screen" { spawn-sh "quickshell -c $HOME/.config/quickshell/lockscreen/"; }
+
+    // ── Screenshots ─────────────────────────────────────────────────────────
+    Print { screenshot; }
+    Ctrl+Print { screenshot-screen; }
+    Alt+Print { screenshot-window; }
+
+    Mod+Shift+S { screenshot; }
+
+    // ── Focus: columns & windows (Mod) ──────────────────────────────────────
+    Mod+Left  { focus-column-left; }
+    Mod+Down  { focus-window-down; }
+    Mod+Up    { focus-window-up; }
+    Mod+Right { focus-column-right; }
+    Mod+H { focus-column-left; }
+    Mod+J { focus-window-down; }
+    Mod+K { focus-window-up; }
+    Mod+L { focus-column-right; }
+
+    Mod+Home { focus-column-first; }
+    Mod+End  { focus-column-last; }
+
+    // ── Move: columns & windows (Mod+Shift) ─────────────────────────────────
+    Mod+Shift+Left  { move-column-left; }
+    Mod+Shift+Down  { move-window-down; }
+    Mod+Shift+Up    { move-window-up; }
+    Mod+Shift+Right { move-column-right; }
+    Mod+Shift+H { move-column-left; }
+    Mod+Shift+J { move-window-down; }
+    Mod+Shift+K { move-window-up; }
+    Mod+Shift+L { move-column-right; }
+
+    Mod+Shift+Home { move-column-to-first; }
+    Mod+Shift+End  { move-column-to-last; }
+
+    // ── Monitors: focus (Mod+Ctrl) ──────────────────────────────────────────
+    Mod+Ctrl+Left  { focus-monitor-left; }
+    Mod+Ctrl+Down  { focus-monitor-down; }
+    Mod+Ctrl+Up    { focus-monitor-up; }
+    Mod+Ctrl+Right { focus-monitor-right; }
+    Mod+Ctrl+H { focus-monitor-left; }
+    Mod+Ctrl+J { focus-monitor-down; }
+    Mod+Ctrl+K { focus-monitor-up; }
+    Mod+Ctrl+L { focus-monitor-right; }
+
+    // ── Monitors: move column across (Mod+Shift+Ctrl) ──────────────────────
+    Mod+Shift+Ctrl+Left  { move-column-to-monitor-left; }
+    Mod+Shift+Ctrl+Down  { move-column-to-monitor-down; }
+    Mod+Shift+Ctrl+Up    { move-column-to-monitor-up; }
+    Mod+Shift+Ctrl+Right { move-column-to-monitor-right; }
+    Mod+Shift+Ctrl+H { move-column-to-monitor-left; }
+    Mod+Shift+Ctrl+J { move-column-to-monitor-down; }
+    Mod+Shift+Ctrl+K { move-column-to-monitor-up; }
+    Mod+Shift+Ctrl+L { move-column-to-monitor-right; }
+
+    // ── Workspaces: focus (Mod+U/I, Mod+PageUp/Down) ────────────────────────
+    // U/I sit right above H/J/K/L — natural reach for "up/down a workspace"
+    // without colliding with column focus on H/J/K/L.
+    Mod+Page_Down { focus-workspace-down; }
+    Mod+Page_Up   { focus-workspace-up; }
+    Mod+D { focus-workspace-down; }
+    Mod+U { focus-workspace-up; }
+
+    Mod+1 { focus-workspace 1; }
+    Mod+2 { focus-workspace 2; }
+    Mod+3 { focus-workspace 3; }
+    Mod+4 { focus-workspace 4; }
+    Mod+5 { focus-workspace 5; }
+    Mod+6 { focus-workspace 6; }
+    Mod+7 { focus-workspace 7; }
+    Mod+8 { focus-workspace 8; }
+    Mod+9 { focus-workspace 9; }
+    Mod+0 { focus-workspace 10; }
+
+    Mod+Tab { focus-workspace-previous; }
+
+    // ── Workspaces: move column to (Mod+Ctrl+U/I, Mod+Ctrl+PageUp/Down) ─────
+    Mod+Ctrl+Page_Down { move-column-to-workspace-down; }
+    Mod+Ctrl+Page_Up   { move-column-to-workspace-up; }
+    Mod+Ctrl+D { move-column-to-workspace-down; }
+    Mod+Ctrl+U { move-column-to-workspace-up; }
+
+    Mod+Ctrl+1 { move-column-to-workspace 1; }
+    Mod+Ctrl+2 { move-column-to-workspace 2; }
+    Mod+Ctrl+3 { move-column-to-workspace 3; }
+    Mod+Ctrl+4 { move-column-to-workspace 4; }
+    Mod+Ctrl+5 { move-column-to-workspace 5; }
+    Mod+Ctrl+6 { move-column-to-workspace 6; }
+    Mod+Ctrl+7 { move-column-to-workspace 7; }
+    Mod+Ctrl+8 { move-column-to-workspace 8; }
+    Mod+Ctrl+9 { move-column-to-workspace 9; }
+    Mod+Ctrl+0 { move-column-to-workspace 10; }
+
+    // ── Workspaces: reorder the workspace itself (Mod+Shift+U/I) ────────────
+    Mod+Shift+Page_Down { move-workspace-down; }
+    Mod+Shift+Page_Up   { move-workspace-up; }
+    Mod+Shift+D { move-workspace-down; }
+    Mod+Shift+U { move-workspace-up; }
+
+    // ── Mouse wheel: workspaces & columns ────────────────────────────────────
+    Mod+WheelScrollDown cooldown-ms=150 { focus-workspace-down; }
+    Mod+WheelScrollUp   cooldown-ms=150 { focus-workspace-up; }
+    Mod+Ctrl+WheelScrollDown cooldown-ms=150 { move-column-to-workspace-down; }
+    Mod+Ctrl+WheelScrollUp   cooldown-ms=150 { move-column-to-workspace-up; }
+
+    Mod+WheelScrollRight { focus-column-right; }
+    Mod+WheelScrollLeft  { focus-column-left; }
+    Mod+Ctrl+WheelScrollRight { move-column-right; }
+    Mod+Ctrl+WheelScrollLeft  { move-column-left; }
+
+    Mod+Shift+WheelScrollDown { focus-column-right; }
+    Mod+Shift+WheelScrollUp   { focus-column-left; }
+    Mod+Ctrl+Shift+WheelScrollDown { move-column-right; }
+    Mod+Ctrl+Shift+WheelScrollUp   { move-column-left; }
+
+    // ── Column manipulation: consume / expel ────────────────────────────────
+    // consume-or-expel auto-detects direction; bound to Mod+Alt+Left/Right
+    // rather than the bracket keys, since bracketleft/bracketright sit
+    // behind AltGr on Turkish-Q and I haven't verified the resulting
+    // keysym name on your actual hardware. Mod+Alt+Left/Right are
+    // physical-position arrow keys, identical on every layout.
+    Mod+Alt+Left  { consume-or-expel-window-left; }
+    Mod+Alt+Right { consume-or-expel-window-right; }
+    Mod+Comma  { consume-window-into-column; }
+    Mod+Period { expel-window-from-column; }
+
+    // ── Sizing & layout (Mod+Alt tier) ───────────────────────────────────────
+    Mod+R { switch-preset-column-width; }
+    Mod+Shift+R { switch-preset-column-width-back; }
+    Mod+Alt+R { switch-preset-window-height; }
+    Mod+Alt+Shift+R { switch-preset-window-height-back; }
+    Mod+Ctrl+R { reset-window-height; }
+
+    Mod+F { maximize-column; }
+    Mod+Alt+F { fullscreen-window; }
+    Mod+M { maximize-window-to-edges; }
+    Mod+Ctrl+F { expand-column-to-available-width; }
+
+    Mod+C { center-column; }
+    Mod+Alt+C { center-visible-columns; }
+
+    Mod+Minus { set-column-width "-10%"; }
+    Mod+Asterisk { set-column-width "+10%"; }
+    Mod+Shift+Minus { set-window-height "-10%"; }
+    Mod+Shift+Asterisk { set-window-height "+10%"; }
+
+    // ── Floating layout ──────────────────────────────────────────────────────
+    Mod+V { toggle-window-floating; }
+    Mod+Shift+V { switch-focus-between-floating-and-tiling; }
+
+    // ── Tabbed columns ───────────────────────────────────────────────────────
+    Mod+W { toggle-column-tabbed-display; }
+
+    // ── Overview ──────────────────────────────────────────────────────────────
+    Mod+O repeat=false { toggle-overview; }
+
+    // ── Close window ─────────────────────────────────────────────────────────
+    Mod+Q repeat=false { close-window; }
+
+    // ════════════════════════════════════════════════════════════════════════
+    // Hardware keys — verbatim from your Mango config, same tools (wpctl,
+    // playerctl, brightnessctl), allow-when-locked so they work on the
+    // lockscreen too.
+    // ════════════════════════════════════════════════════════════════════════
+
+    XF86AudioRaiseVolume allow-when-locked=true { spawn-sh "wpctl set-volume @DEFAULT_AUDIO_SINK@ 0.05+ -l 1.0"; }
+    XF86AudioLowerVolume allow-when-locked=true { spawn-sh "wpctl set-volume @DEFAULT_AUDIO_SINK@ 0.05-"; }
+    XF86AudioMute        allow-when-locked=true { spawn-sh "wpctl set-mute @DEFAULT_AUDIO_SINK@ toggle"; }
+    XF86AudioMicMute     allow-when-locked=true { spawn-sh "wpctl set-mute @DEFAULT_AUDIO_SOURCE@ toggle"; }
+
+    XF86AudioPlay allow-when-locked=true { spawn-sh "playerctl play-pause"; }
+    XF86AudioStop allow-when-locked=true { spawn-sh "playerctl stop"; }
+    XF86AudioPrev allow-when-locked=true { spawn-sh "playerctl previous"; }
+    XF86AudioNext allow-when-locked=true { spawn-sh "playerctl next"; }
+
+    XF86MonBrightnessUp   allow-when-locked=true { spawn "brightnessctl" "set" "+10%"; }
+    XF86MonBrightnessDown allow-when-locked=true { spawn "brightnessctl" "set" "10%-"; }
+}

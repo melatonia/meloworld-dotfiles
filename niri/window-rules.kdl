@@ -1,0 +1,119 @@
+// ─── Window rules ──────────────────────────────────────────────────────────
+// Order matters: rules apply in file order, later rules can override earlier
+// ones (but never "unset" a property — use `exclude` to carve out windows).
+
+window-rule {
+    draw-border-with-background false
+    background-effect{
+        blur true
+    }
+}
+
+// ---- Blurred apps --------------------------------------------------------
+window-rule {
+    match app-id="kitty$" 
+    background-effect {
+        blur true
+    }
+}
+
+window-rule {
+    match app-id="zen$" 
+    background-effect {
+        blur true
+    }
+}
+
+// ---- Picture-in-picture: always floats, small, corner-anchored -----------
+window-rule {
+    match app-id="firefox$" title="^Picture-in-Picture$"
+    open-floating true
+    default-floating-position x=32 y=32 relative-to="bottom-right"
+    default-column-width { fixed 480; }
+    default-window-height { fixed 270; }
+}
+
+window-rule {
+    match app-id="zen$" title="^Picture-in-Picture$"
+    open-floating true
+    default-floating-position x=32 y=32 relative-to="bottom-right"
+    default-column-width { fixed 480; }
+    default-window-height { fixed 270; }
+}
+
+// ---- GIMP / Blender: guaranteed starting width so toolboxes aren't crushed
+window-rule {
+    match app-id="^blender$"
+    match app-id="^gimp"
+    default-column-width { fixed 1200; }
+}
+
+// Don't auto-focus the GIMP splash.
+window-rule {
+    match app-id="^gimp" title="^GIMP Startup$"
+    open-focused false
+}
+
+// ---- File pickers / small utility dialogs: float, don't tile -------------
+window-rule {
+    match app-id="^xdg-desktop-portal-gtk$"
+    match title="^Open File$"
+    match title="^Save File$"
+    open-floating true
+}
+
+// ---- Discord/Vesktop: screen-share picker should float --------------------
+window-rule {
+    match app-id="^vesktop$" title="Screen Share"
+    open-floating true
+}
+
+// ---- Spotify: tiles normally, nothing special, but documented for clarity
+window-rule {
+    match app-id="^[Ss]potify$"
+}
+
+// ---- WezTerm initial-configure workaround (kept from upstream default) ---
+window-rule {
+    match app-id=r#"^org\.wezfurlong\.wezterm$"#
+    default-column-width {}
+}
+
+// ---- Rounded corners + clip everywhere, matching meloworld's pill design -
+window-rule {
+    geometry-corner-radius 10
+    clip-to-geometry true
+}
+
+// ---- Inactive windows ease back slightly — depth cue without distraction -
+window-rule {
+    match is-active=false
+    opacity 0.85
+}
+
+// ---- Block password managers from screen capture entirely -----------------
+window-rule {
+    match app-id=r#"^org\.keepassxc\.KeePassXC$"#
+    match app-id=r#"^org\.gnome\.World\.Secrets$"#
+    block-out-from "screen-capture"
+}
+
+// ---- Highlight whatever window is being screen-cast/recorded -------------
+window-rule {
+    match is-window-cast-target=true
+    border {
+        active-color "#f38ba8"
+        inactive-color "#7d0d2d"
+    }
+}
+
+// ---- Soft blur behind GTK pop-up menus (Nautilus etc.) --------------------
+window-rule {
+    match app-id="Nautilus"
+    popups {
+        geometry-corner-radius 12
+        background-effect {
+            blur true
+        }
+    }
+}
