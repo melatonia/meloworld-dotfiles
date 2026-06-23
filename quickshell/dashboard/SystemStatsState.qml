@@ -18,7 +18,7 @@ Singleton {
         command: [
             "bash",
             "-c",
-            "wm=\"mango\"; [[ \"${XDG_CURRENT_DESKTOP,,}\" == *\"hyprland\"* ]] && wm=\"hypr\"; script=\"$HOME/.config/$wm/scripts/stats-daemon.sh\"; fallback=\"$HOME/Projects/dev/dotfiles/meloworld/$wm/scripts/stats-daemon.sh\"; if [ -x \"$script\" ]; then exec \"$script\"; elif [ -x \"$fallback\" ]; then exec \"$fallback\"; else echo '0 0 0'; sleep 2; fi"
+            "script=\"$HOME/.config/niri/scripts/stats-daemon.sh\"; if [ -x \"$script\" ]; then exec \"$script\"; else echo '0 0 0'; sleep 2; fi"
         ]
         stdout: SplitParser {
             onRead: (line) => {

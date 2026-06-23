@@ -27,7 +27,7 @@ _a rice that feels like /home <3_
 
 meloworld is my personal arch linux desktop. i've been working on it for a while now, just trying to fit everything to my taste and build a cozy and safe space out of it. "what is done in love, is done well"
 
-> ⚠️ recently migrated to hyprland. the original mangowm config lives on the [`mangowm`](https://github.com/melatonia/meloworld-dotfiles/tree/mangowm) branch.
+> ⚠️ recently migrated to niri. the original mangowm and hyprland config lives on the [`mangowm`](https://github.com/melatonia/meloworld-dotfiles/tree/mangowm) and [`hypr`](https://github.com/melatonia/meloworld-dotfiles/tree/hypr) branch.
 
 |                 |                                                       |
 | --------------- | ----------------------------------------------------- |
@@ -207,7 +207,7 @@ chmod +x installer.sh
 dependencies
 
 ```bash
-paru -S niri quickshell pipewire pipewire-pulse wireplumber bluez bluez-utils brightnessctl kitty power-profiles-daemon ttf-jetbrains-mono-nerd grim slurp awww mpvpaper bibata-cursor-theme-bin papirus-icon-theme zed zsh zsh-autosuggestions zsh-syntax-highlighting adw-gtk-theme xdg-desktop-portal-wlr cliphist wl-clipboard playerctl zoxide bat fd ripgrep lazygit switcheroo-control noto-fonts-emoji fzf zenity swayidle
+paru -S niri quickshell pipewire pipewire-pulse wireplumber bluez bluez-utils brightnessctl kitty power-profiles-daemon ttf-jetbrains-mono-nerd grim slurp awww mpvpaper bibata-cursor-theme-bin papirus-icon-theme zed zsh zsh-autosuggestions zsh-syntax-highlighting adw-gtk-theme xdg-desktop-portal-wlr cliphist wl-clipboard playerctl zoxide bat fd ripgrep lazygit switcheroo-control noto-fonts-emoji fzf zenity swayidle xwayland-sattelite
 
 sudo systemctl enable --now bluetooth power-profiles-daemon switcheroo-control
 ```
@@ -278,7 +278,7 @@ i have a [neovim theme](https://github.com/melatonia/nvim) based on the same col
   </summary>
   
 - im open to questions and feature requests, dont hesitate to hit me up on reddit or github (i dont check these places often so if i reply late dont worry)
-- for night light to work, you need to set your location in the file (~/.config/hypr/scripts/nightlight.sh) (it activates based on time of day, so you might not notice right away, try toggling it at night.)
+- for night light to work, you need to set your location in the file (~/.config/niri/scripts/nightlight.sh) (it activates based on time of day, so you might not notice right away, try toggling it at night.)
 - you can set your profile picture by just clicking the dashboard area.
 - the wallpaper selector reads your `~/Pictures/Wallpapers` and `~/Videos/Wallpapers/` folder.
 - you can switch between launcher modes with the prefixes. /h for hidden apps, /w for wallpapers, /g for grid-list view switch.

@@ -9,7 +9,15 @@ Row {
 
     // ── State ─────────────────────────────────────────────────────────────
     // workspaceList: plain JS array of { wsId, idx, isFocused, clientCount }
-    // Assigned as a whole to trigger Repeater reactivity (no ListModel needed).
+    // IMPORTANT: this is fed into ScriptModel below, not bound to Repeater
+    // directly. A bare JS-array model gets destroyed and rebuilt wholesale
+    // on every reassignment, which is why the width/color Behaviors stopped
+    // animating after the rewrite — freshly created delegates have nothing
+    // to animate from. ScriptModel diffs by objectProp (wsId) and only
+    // creates/destroys delegates that actually entered or left the list;
+    // every other delegate just gets its bound properties updated in place,
+    // so the existing Behaviors animate exactly like they did on the old
+    // fixed Repeater{model:9} version.
     property var workspaceList: []
     property int focusedTag: 1
     property bool canScroll: true
@@ -31,6 +39,7 @@ Row {
 
         onConnectedChanged: {
             if (connected) {
+                eventReconnectTimer.stop()
                 eventSocket.write('"EventStream"\n')
             } else {
                 eventReconnectTimer.start()
@@ -50,10 +59,21 @@ Row {
         }
     }
 
+    // Reconnect on disconnect, and also as a periodic safety net: the niri
+    // event stream socket can go silently dead under heavy event load
+    // (rapid window open/close floods) without ever firing a clean
+    // disconnect, which would otherwise leave the bar frozen on stale state.
     Timer {
         id: eventReconnectTimer
         interval: 1000
-        onTriggered: eventSocket.connected = eventSocket.socketPath !== ""
+        repeat: true
+        onTriggered: {
+            if (!eventSocket.connected && eventSocket.socketPath !== "") {
+                eventSocket.connected = true
+            } else {
+                stop()
+            }
+        }
     }
 
     // ── Action: focus workspace by 1-based index ──────────────────────────
@@ -94,6 +114,8 @@ Row {
             root.windowWorkspaceMap = map
             _recomputeClients()
         }
+        // Unknown event variants (e.g. newly added niri events) are safely
+        // ignored above since we only check for specific keys.
     }
 
     // ── Model rebuild helpers ─────────────────────────────────────────────
@@ -120,7 +142,7 @@ Row {
 
         root.workspaceIndexMap = indexMap
         root.focusedTag = focused
-        root.workspaceList = entries   // single assignment → Repeater rebuilds once
+        root.workspaceList = entries   // single assignment → ScriptModel diffs once
         _recomputeClients()
     }
 
@@ -138,6 +160,11 @@ Row {
     // Both _recomputeFocused and _recomputeClients rebuild the array from
     // scratch so that the assignment triggers a proper reactive update.
     // (Mutating elements of a var array in place does not notify QML.)
+    // ScriptModel's objectProp diffing means this is cheap: since every
+    // entry keeps the same wsId, ScriptModel recognizes them as the *same*
+    // model rows and just updates delegate properties in place rather than
+    // recreating delegates, which is what lets the width/color Behaviors
+    // animate again.
 
     function _recomputeFocused() {
         const focused = root.focusedTag
@@ -177,7 +204,16 @@ Row {
 
     // ── Delegates ─────────────────────────────────────────────────────────
     Repeater {
-        model: root.workspaceList
+        // ScriptModel diffs root.workspaceList by wsId (objectProp) instead
+        // of letting Repeater see a raw JS array. Only workspaces that are
+        // genuinely new or removed get delegates created/destroyed; every
+        // other delegate is reused and just receives updated modelData,
+        // which is what makes the Behavior animations below work again.
+        model: ScriptModel {
+            objectProp: "wsId"
+            values: root.workspaceList
+        }
+
         delegate: Rectangle {
             id: pill
 
