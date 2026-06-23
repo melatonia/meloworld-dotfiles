@@ -33,7 +33,6 @@ _a rice that feels like /home <3_
 
 meloworld is my personal arch linux desktop. i've been working on it for a while now, just trying to fit everything to my taste and build a cozy and safe space out of it. "what is done in love, is done well"
 
-> ⚠️ recently migrated to hyprland. the original mangowm config lives on the [`mangowm`](https://github.com/melatonia/meloworld-dotfiles/tree/mangowm) branch.
 
 |                 |                                                       |
 | --------------- | ----------------------------------------------------- |
