@@ -6,6 +6,12 @@ _a rice that feels like /home <3_
 
 </div>
 
+
+---
+
+> [!CAUTION]
+> this branch is no longer maintained. the active development has moved to the [`main`](https://github.com/melatonia/meloworld-dotfiles/tree/main) branch which uses niri.
+
 ---
 
 ![banner](assets/banner.png)
@@ -194,7 +200,7 @@ a sleeping cat appears after a few minutes of inactivity. dims the screen, breat
 **automatic (arch linux)**
 
 ```bash
-git clone https://github.com/melatonia/meloworld-dotfiles
+git clone --branch hypr https://github.com/melatonia/meloworld-dotfiles
 cd meloworld-dotfiles
 chmod +x installer.sh
 ./installer.sh
@@ -213,7 +219,7 @@ sudo systemctl enable --now bluetooth power-profiles-daemon switcheroo-control
 ```
 
 ```bash
-git clone https://github.com/melatonia/meloworld-dotfiles
+git clone --branch hypr https://github.com/melatonia/meloworld-dotfiles
 cd meloworld-dotfiles
 
 cp -r quickshell ~/.config/
