@@ -7,9 +7,10 @@ Row {
     id: root
     spacing: 4
 
-    // ── State (9 slots, index = workspaceIdx - 1) ─────────────────────────
-    property var tagFocused: [false, false, false, false, false, false, false, false, false, false]
-    property var tagClients: [0,     0,     0,     0,     0,     0,     0,     0,     0,    0]
+    // ── State ─────────────────────────────────────────────────────────────
+    // workspaceList: plain JS array of { wsId, idx, isFocused, clientCount }
+    // Assigned as a whole to trigger Repeater reactivity (no ListModel needed).
+    property var workspaceList: []
     property int focusedTag: 1
     property bool canScroll: true
 
@@ -19,9 +20,7 @@ Row {
     property var workspaceIndexMap: ({})
     property var windowWorkspaceMap: ({})
 
-    // ── Niri event stream socket (read-only after EventStream) ────────────
-    // After sending "EventStream", niri stops reading this socket entirely.
-    // All actions MUST go through a separate process (niri msg).
+    // ── Niri event stream socket ───────────────────────────────────────────
     Socket {
         id: eventSocket
 
@@ -58,7 +57,6 @@ Row {
     }
 
     // ── Action: focus workspace by 1-based index ──────────────────────────
-    // Correct CLI syntax: niri msg action focus-workspace N  (no --index flag)
     function focusWorkspaceByIndex(idx) {
         Quickshell.execDetached(["niri", "msg", "action", "focus-workspace", String(idx)])
     }
@@ -98,21 +96,31 @@ Row {
         }
     }
 
-    function _rebuildWorkspaces(workspaces) {
+    // ── Model rebuild helpers ─────────────────────────────────────────────
+
+    function _rebuildWorkspaces(wsList) {
         const indexMap = {}
         let focused = root.focusedTag
 
-        for (let i = 0; i < workspaces.length; i++) {
-            const ws = workspaces[i]
+        const entries = []
+        for (let i = 0; i < wsList.length; i++) {
+            const ws = wsList[i]
             const idx = ws["idx"]
-            if (idx === undefined || idx < 1 || idx > 10) continue
+            if (idx === undefined || idx < 1) continue
             indexMap[ws["id"]] = idx
             if (ws["is_focused"]) focused = idx
+            entries.push({
+                wsId:       ws["id"],
+                idx:        idx,
+                isFocused:  ws["is_focused"] === true,
+                clientCount: 0
+            })
         }
+        entries.sort((a, b) => a.idx - b.idx)
 
         root.workspaceIndexMap = indexMap
         root.focusedTag = focused
-        _recomputeFocused()
+        root.workspaceList = entries   // single assignment → Repeater rebuilds once
         _recomputeClients()
     }
 
@@ -127,23 +135,37 @@ Row {
         _recomputeClients()
     }
 
+    // Both _recomputeFocused and _recomputeClients rebuild the array from
+    // scratch so that the assignment triggers a proper reactive update.
+    // (Mutating elements of a var array in place does not notify QML.)
+
     function _recomputeFocused() {
-        const f = [false, false, false, false, false, false, false, false, false, false]
         const focused = root.focusedTag
-        if (focused >= 1 && focused <= 10) f[focused - 1] = true
-        root.tagFocused = f
+        const next = root.workspaceList.map(ws => Object.assign({}, ws, {
+            isFocused: ws.idx === focused
+        }))
+        root.workspaceList = next
     }
 
     function _recomputeClients() {
-        const c        = [0, 0, 0, 0, 0, 0, 0, 0, 0, 0]
         const indexMap = root.workspaceIndexMap
         const winMap   = root.windowWorkspaceMap
+
+        // Count clients per idx
+        const counts = {}
         for (const wid in winMap) {
             const wsId = winMap[wid]
             const idx  = indexMap[wsId]
-            if (idx >= 1 && idx <= 10) c[idx - 1]++
+            if (idx === undefined) continue
+            counts[idx] = (counts[idx] || 0) + 1
         }
-        root.tagClients = c
+
+        const focused = root.focusedTag
+        const next = root.workspaceList.map(ws => Object.assign({}, ws, {
+            clientCount: counts[ws.idx] || 0,
+            isFocused:   ws.idx === focused
+        }))
+        root.workspaceList = next
     }
 
     // ── Scroll throttle ───────────────────────────────────────────────────
@@ -155,15 +177,15 @@ Row {
 
     // ── Delegates ─────────────────────────────────────────────────────────
     Repeater {
-        model: 10
+        model: root.workspaceList
         delegate: Rectangle {
             id: pill
 
-            required property int modelData
+            required property var modelData
 
-            readonly property int  tagNum:     modelData + 1
-            readonly property bool isFocused:  root.tagFocused[modelData]
-            readonly property bool hasClients: root.tagClients[modelData] > 0
+            readonly property int  tagIdx:     modelData.idx
+            readonly property bool isFocused:  modelData.isFocused
+            readonly property bool hasClients: modelData.clientCount > 0
             readonly property bool shouldShow: isFocused || hasClients
             property bool hovered: false
 
@@ -190,7 +212,7 @@ Row {
 
             Text {
                 anchors.centerIn: parent
-                text:           pill.tagNum
+                text:           pill.tagIdx
                 color:          pill.isFocused ? PanelColors.pillForeground : PanelColors.textDim
                 font.pixelSize: 16
                 font.bold:      true
@@ -204,24 +226,25 @@ Row {
                 onEntered: pill.hovered = true
                 onExited:  pill.hovered = false
 
-                onClicked: root.focusWorkspaceByIndex(pill.tagNum)
+                onClicked: root.focusWorkspaceByIndex(pill.tagIdx)
 
                 onWheel: (event) => {
                     if (!root.canScroll) return
 
                     const visible = []
-                    for (let i = 0; i < 10; i++) {
-                        if (root.tagFocused[i] || root.tagClients[i] > 0)
-                            visible.push(i + 1)
+                    for (let i = 0; i < root.workspaceList.length; i++) {
+                        const ws = root.workspaceList[i]
+                        if (ws.isFocused || ws.clientCount > 0)
+                            visible.push(ws.idx)
                     }
                     if (visible.length === 0) return
 
-                    let idx = visible.indexOf(root.focusedTag)
-                    if (idx === -1) idx = 0
-                    idx = event.angleDelta.y < 0
-                        ? Math.min(idx + 1, visible.length - 1)
-                        : Math.max(idx - 1, 0)
-                    root.focusWorkspaceByIndex(visible[idx])
+                    let pos = visible.indexOf(root.focusedTag)
+                    if (pos === -1) pos = 0
+                    pos = event.angleDelta.y < 0
+                        ? Math.min(pos + 1, visible.length - 1)
+                        : Math.max(pos - 1, 0)
+                    root.focusWorkspaceByIndex(visible[pos])
 
                     root.canScroll = false
                     scrollThrottle.start()

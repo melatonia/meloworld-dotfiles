@@ -1,7 +1,0 @@
-animations +
-autodstart +
-misc +
-binds +
-input +
-layer-rules +
-outputs +

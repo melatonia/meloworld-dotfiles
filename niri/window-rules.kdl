@@ -9,14 +9,21 @@ window-rule {
 
 // ---- Blurred apps --------------------------------------------------------
 window-rule {
-    match app-id="kitty$" 
+    match app-id="kitty$"
     background-effect {
         blur true
     }
 }
 
 window-rule {
-    match app-id="zen$" 
+    match app-id="zen$"
+    background-effect {
+        blur true
+    }
+}
+
+window-rule {
+    match app-id="dev.zed.Zed$"
     background-effect {
         blur true
     }
@@ -86,7 +93,7 @@ window-rule {
 // ---- Inactive windows ease back slightly — depth cue without distraction -
 window-rule {
     match is-active=false
-    opacity 0.85
+    // opacity 0.85
 }
 
 // ---- Block password managers from screen capture entirely -----------------
