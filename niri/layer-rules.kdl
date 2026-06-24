@@ -3,3 +3,10 @@
 // tools) are matched by `namespace`, not app-id. Find real namespaces with:
 //   niri msg layers
 
+layer-rule {
+    match namespace="^qs-idle-overlay$"
+    background-effect {
+        blur true
+        xray false
+    }
+}

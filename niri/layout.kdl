@@ -48,13 +48,13 @@ layout {
     }
 
     shadow {
-        // off
-        on
+        off
+        // on
         softness 30
         spread 4
         offset x=0 y=4
         draw-behind-window true
-        color "#00000060"
+        color "#00000040"
         // inactive-color "#00000054"
     }
 

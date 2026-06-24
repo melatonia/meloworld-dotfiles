@@ -21,7 +21,7 @@ ShellRoot {
             color: "transparent"
 
             // ─── TUNABLES ───
-            property real dimOpacity: 0.4
+            property real dimOpacity: 0.2
             property int fadeInDuration: 1200
             property int fadeOutDuration: 240
             property color catColor: "#ffffffdd"
