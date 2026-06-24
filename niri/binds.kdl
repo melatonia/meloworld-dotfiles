@@ -21,8 +21,10 @@ binds {
 
     // ── Launching programs ──────────────────────────────────────────────────
     Mod+Return hotkey-overlay-title="Open a Terminal: kitty" { spawn "kitty"; }
-    Alt+Space hotkey-overlay-title="Run an Application: quickshell" { spawn-sh "qs ipc call launcher toggle"; }
-    //Mod+Shift+D hotkey-overlay-title="Run an Application: fuzzel (dmenu mode)" { spawn-sh "fuzzel --launch-prefix=''"; }
+    Mod+Space hotkey-overlay-title="Open launcher: quickshell" { spawn-sh "qs ipc call launcher toggle"; }
+    Mod+Alt+V hotkey-overlay-title="Show clipboard manager: quickshell" { spawn-sh "qs ipc call launcher openClipboard"; }
+    Mod+Alt+E hotkey-overlay-title="Show emoji picker: quickshell" { spawn-sh "qs ipc call launcher openEmoji"; }
+    Mod+Alt+W hotkey-overlay-title="Show wallpaper selector: quickshell" { spawn-sh "qs ipc call launcher openWallpaper"; }
     Super+Alt+L hotkey-overlay-title="Lock the Screen" { spawn-sh "quickshell -c $HOME/.config/quickshell/lockscreen/"; }
 
     // ── Screenshots ─────────────────────────────────────────────────────────
