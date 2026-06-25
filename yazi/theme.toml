@@ -1,0 +1,230 @@
+# ~/.config/yazi/theme.toml
+# meloworld — yazi theme
+# Palette: meloworld Colors.qml · accent teal200 #80cbc4
+#
+# Colour roles (mirrors meloworld.lua):
+#   bg        #212121   grey900  — base surface
+#   bg_panel  #1c1c1c            — panel / statusbar surface
+#   bg_float  #242424            — floating popups
+#   bg_sel    #2d4a48            — teal-tinted selection
+#   bg_line   #272727            — subtle highlight
+#   fg        #eeeeee   grey200  — primary text
+#   fg_subtle #9e9e9e   grey500  — muted text
+#   border    #2c2c2c            — borders
+#   teal      #80cbc4   teal200  — primary accent
+#   hint      #26a69a   teal400  — secondary teal / hints
+#   blue      #81d4fa   lb200    — functions / links
+#   green     #a5d6a7   green200 — strings / success / files
+#   yellow    #fff59d   yellow200— types / git change
+#   orange    #ffcc80   orange200— numbers / git adds / warnings
+#   red       #ef9a9a   red200   — errors / tags / destructive
+#   red_bold  #ef5350   red400   — hard errors
+#   comment   #626262            — comments / dim ui
+
+# ── Manager ────────────────────────────────────────────────────────────────
+
+[app]
+overall = { bg = "#212121" }
+
+[mgr]
+cwd = { fg = "#80cbc4", bold = true }
+
+find_keyword = { fg = "#212121", bg = "#80cbc4", bold = true }
+find_position = { fg = "#212121", bg = "#26a69a", italic = true }
+
+symlink_target = { fg = "#26a69a", italic = true }
+
+# Left-gutter markers — thin colored strips
+marker_copied = { fg = "#a5d6a7", bg = "#a5d6a7" }
+marker_cut = { fg = "#ef9a9a", bg = "#ef9a9a" }
+marker_marked = { fg = "#fff59d", bg = "#fff59d" }
+marker_selected = { fg = "#80cbc4", bg = "#80cbc4" }
+
+count_copied = { fg = "#212121", bg = "#a5d6a7", bold = true }
+count_cut = { fg = "#212121", bg = "#ef9a9a", bold = true }
+count_selected = { fg = "#212121", bg = "#80cbc4", bold = true }
+
+border_symbol = "│"
+border_style = { fg = "#2c2c2c" }
+
+# ── Indicator (per-pane scrollbar / position bar) ──────────────────────────
+
+[indicator]
+parent = { fg = "#626262", bg = "#1c1c1c" }
+current = { fg = "#eeeeee", bg = "#1c1c1c" }
+preview = { fg = "#626262", bg = "#1c1c1c" }
+# Square pill caps — matches meloworld's pill-shape language
+padding = { open = "▐", close = "▌" }
+
+# ── Tabs ───────────────────────────────────────────────────────────────────
+
+[tabs]
+active = { fg = "#80cbc4", bg = "#1c1c1c", bold = true }
+inactive = { fg = "#626262", bg = "#1c1c1c" }
+# Minimal separators — keep the bar uncluttered
+sep_inner = { open = " ", close = " " }
+sep_outer = { open = "", close = "" }
+
+# ── Mode indicator ─────────────────────────────────────────────────────────
+
+[mode]
+# NORMAL — teal pill
+normal_main = { fg = "#212121", bg = "#80cbc4", bold = true }
+normal_alt = { fg = "#80cbc4", bg = "#2d4a48" }
+# SELECT — orange pill
+select_main = { fg = "#212121", bg = "#ffcc80", bold = true }
+select_alt = { fg = "#ffcc80", bg = "#1c1c1c" }
+# UNSET — muted
+unset_main = { fg = "#212121", bg = "#9e9e9e", bold = true }
+unset_alt = { fg = "#9e9e9e", bg = "#1c1c1c" }
+
+# ── Status bar ─────────────────────────────────────────────────────────────
+
+[status]
+overall = { fg = "#9e9e9e", bg = "#1c1c1c" }
+# Powerline-style separators
+sep_left = { open = "", close = "" }
+sep_right = { open = "", close = "" }
+
+perm_type = { fg = "#80cbc4" }
+perm_read = { fg = "#a5d6a7" }
+perm_write = { fg = "#ffcc80" }
+perm_exec = { fg = "#ef9a9a" }
+perm_sep = { fg = "#626262" }
+
+progress_label = { fg = "#eeeeee", bold = true }
+progress_normal = { fg = "#80cbc4", bg = "#1c1c1c" }
+progress_error = { fg = "#ef5350", bg = "#1c1c1c" }
+
+# ── Which-key ──────────────────────────────────────────────────────────────
+
+[which]
+cols = 3
+mask = { bg = "#1c1c1c" }
+cand = { fg = "#80cbc4", bold = true }
+rest = { fg = "#626262" }
+desc = { fg = "#9e9e9e" }
+separator = "  "
+separator_style = { fg = "#2c2c2c" }
+
+# ── Confirm dialog ─────────────────────────────────────────────────────────
+
+[confirm]
+border = { fg = "#80cbc4" }
+title = { fg = "#80cbc4", bold = true }
+body = { fg = "#eeeeee" }
+list = { fg = "#9e9e9e" }
+btn_yes = { fg = "#212121", bg = "#80cbc4", bold = true }
+btn_no = { fg = "#eeeeee", bg = "#2c2c2c" }
+btn_labels = ["  Yes  ", "  No  "]
+
+# ── Spot (file metadata viewer) ────────────────────────────────────────────
+
+[spot]
+border = { fg = "#2c2c2c" }
+title = { fg = "#80cbc4", bold = true }
+tbl_col = { fg = "#80cbc4", underline = true }
+tbl_cell = { fg = "#212121", bg = "#80cbc4" }
+
+# ── Notifications ──────────────────────────────────────────────────────────
+
+[notify]
+title_info = { fg = "#81d4fa", bold = true }
+title_warn = { fg = "#ffcc80", bold = true }
+title_error = { fg = "#ef5350", bold = true }
+
+# ── Pick (multi-choice overlay) ────────────────────────────────────────────
+
+[pick]
+border = { fg = "#2c2c2c" }
+active = { fg = "#212121", bg = "#80cbc4", bold = true }
+inactive = { fg = "#9e9e9e" }
+
+# ── Input ──────────────────────────────────────────────────────────────────
+
+[input]
+border = { fg = "#80cbc4" }
+title = { fg = "#80cbc4", bold = true }
+value = { fg = "#eeeeee" }
+selected = { fg = "#212121", bg = "#80cbc4" }
+
+# ── Completion (cmp) ───────────────────────────────────────────────────────
+
+[cmp]
+border = { fg = "#2c2c2c" }
+active = { fg = "#212121", bg = "#80cbc4", bold = true }
+inactive = { fg = "#9e9e9e" }
+icon_file = ""
+icon_folder = ""
+icon_command = ""
+
+# ── Tasks overlay ──────────────────────────────────────────────────────────
+
+[tasks]
+border = { fg = "#2c2c2c" }
+title = { fg = "#80cbc4", bold = true }
+hovered = { fg = "#212121", bg = "#2d4a48" }
+
+# ── Help overlay ───────────────────────────────────────────────────────────
+
+[help]
+on = { fg = "#80cbc4", bold = true }
+run = { fg = "#81d4fa" }
+desc = { fg = "#9e9e9e" }
+hovered = { fg = "#212121", bg = "#2d4a48" }
+footer = { fg = "#626262", bg = "#1c1c1c" }
+icon_info = ""
+icon_warn = ""
+icon_error = ""
+
+# ── File-type colouring ────────────────────────────────────────────────────
+# Mirrors the Neovim token roles for muscle-memory consistency.
+
+[filetype]
+rules = [
+  # Directories — teal (primary accent, matches @keyword role)
+  { url = "*/", fg = "#80cbc4", bold = true },
+
+  # Images — orange (matches @number / media role)
+  { mime = "image/*", fg = "#ffcc80" },
+
+  # Audio / Video — light-blue (matches @function role)
+  { mime = "{audio,video}/*", fg = "#81d4fa" },
+
+  # Archives — yellow (matches @type role)
+  { mime = "application/{zip,gzip,x-tar,x-bzip2,x-xz,x-7z-compressed,zstd,x-zstd,vnd.rar}", fg = "#fff59d" },
+
+  # Code / text — green (matches @string role)
+  { mime = "text/*", fg = "#a5d6a7" },
+
+  # Documents
+  { mime = "application/pdf", fg = "#ef9a9a" },
+  { mime = "application/{msword,vnd.openxmlformats-officedocument.*}", fg = "#81d4fa" },
+
+  # Empty files — muted
+  { mime = "inode/empty", fg = "#626262" },
+
+  # Executables — teal-hint (special)
+  { url = "*", is = "exec", fg = "#26a69a", bold = true },
+
+  # Symlinks — blue italic
+  { url = "*", is = "link", fg = "#81d4fa", italic = true },
+
+  # Orphan symlinks — red
+  { url = "*", is = "orphan", fg = "#ef5350" },
+
+  # Fallback
+  { url = "*", fg = "#eeeeee" },
+]
+
+# ── Icon colour overrides ──────────────────────────────────────────────────
+# Only tweak colours here; rely on nvim-web-devicons built-in glyph set.
+# Use append_ so Yazi's full built-in icon table stays intact.
+
+[icon]
+append_conds = [
+  # Hidden files — dimmed
+  { if = "hidden & !dir", text = "", fg = "#626262" },
+  # Hidden directories
+  { if = "hidden & dir", text = "", fg = "#455A64" },
+]

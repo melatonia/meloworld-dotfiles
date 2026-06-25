@@ -1,0 +1,72 @@
+# ~/.config/yazi/yazi.toml
+# meloworld — yazi config
+
+# ── Manager ────────────────────────────────────────────────────────────────
+
+[mgr]
+ratio = [1, 3, 4]                  # more preview space
+sort_by = "natural"                # 1.md < 2.md < 10.md
+sort_sensitive = false
+sort_reverse = false
+sort_dir_first = true
+linemode = "size_mtime"
+show_hidden = false
+show_symlink = true
+scrolloff = 5
+mouse_events = ["click", "scroll"]
+
+# ── Preview ────────────────────────────────────────────────────────────────
+
+[preview]
+wrap = "no"
+max_width = 1200
+max_height = 900
+image_filter = "lanczos3"
+image_quality = 82
+image_delay = 30
+
+# ── Openers ────────────────────────────────────────────────────────────────
+
+[opener]
+edit = [
+  { run = '$EDITOR %s', block = true, desc = "Edit in $EDITOR", for = "unix" },
+]
+open = [
+  { run = 'xdg-open %s1', orphan = true, desc = "xdg-open", for = "linux" },
+]
+play = [{ run = 'mpv %s', orphan = true, desc = "Play in mpv", for = "unix" }]
+reveal = [
+  { run = 'xdg-open %d1', orphan = true, desc = "Open parent dir", for = "linux" },
+]
+
+# ── Open rules ─────────────────────────────────────────────────────────────
+
+[open]
+prepend_rules = [
+  # Audio / video — mpv
+  { mime = "{audio,video}/*", use = ["play", "open"] },
+
+  # Images — xdg-open (imv/feh/etc per your default)
+  { mime = "image/*", use = ["open", "edit"] },
+
+  # PDF
+  { mime = "application/pdf", use = ["open"] },
+
+  # Text / code — editor first
+  { mime = "text/*", use = ["edit", "open"] },
+  { mime = "application/json", use = ["edit", "open"] },
+  { mime = "application/x-sh", use = ["edit", "open"] },
+  { mime = "application/x-toml", use = ["edit", "open"] },
+]
+
+# ── Input cursor ───────────────────────────────────────────────────────────
+
+[input]
+cursor_blink = true
+
+# ── Which-key sorting ──────────────────────────────────────────────────────
+
+[which]
+sort_by = "key"
+sort_sensitive = false
+sort_reverse = false

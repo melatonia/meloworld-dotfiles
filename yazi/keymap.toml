@@ -1,0 +1,159 @@
+# ~/.config/yazi/keymap.toml
+# meloworld — yazi keymap
+#
+# Strategy: prepend_keymap only — don't touch the default table, just
+# override or add on top. All Vim muscle-memory is kept intact.
+# Turkish Q layout: no special remaps needed at this layer.
+
+# ══════════════════════════════════════════════════════════════════════════
+# Manager
+# ══════════════════════════════════════════════════════════════════════════
+
+[mgr]
+prepend_keymap = [
+
+  # ── Navigation bookmarks (g-prefix) ─────────────────────────────────
+  { on = [
+    "g",
+    "h",
+  ], run = "cd ~", desc = "Go ~/", for = "unix" },
+  { on = [
+    "g",
+    "c",
+  ], run = "cd ~/.config", desc = "Go ~/.config", for = "unix" },
+  { on = [
+    "g",
+    "d",
+  ], run = "cd ~/Downloads", desc = "Go ~/Downloads", for = "unix" },
+  { on = [
+    "g",
+    "m",
+  ], run = "cd ~/Music", desc = "Go ~/Music", for = "unix" },
+  { on = [
+    "g",
+    "p",
+  ], run = "cd ~/Pictures", desc = "Go ~/Pictures", for = "unix" },
+  { on = [
+    "g",
+    "D",
+  ], run = "cd ~/Documents", desc = "Go ~/Documents", for = "unix" },
+  { on = [
+    "g",
+    "r",
+  ], run = "cd ~/Projects", desc = "Go ~/Projects", for = "unix" },
+  { on = [
+    "g",
+    ".",
+  ], run = "cd ~/.config/yazi", desc = "Go yazi config", for = "unix" },
+
+  # ── Linemode toggle (shift-L cycles through useful modes) ────────────
+  { on = [
+    "<A-s>",
+  ], run = "linemode size", desc = "Linemode: size" },
+  { on = [
+    "<A-m>",
+  ], run = "linemode mtime", desc = "Linemode: mtime" },
+  { on = [
+    "<A-p>",
+  ], run = "linemode permissions", desc = "Linemode: perms" },
+  { on = [
+    "<A-n>",
+  ], run = "linemode none", desc = "Linemode: none" },
+  { on = [
+    "<A-t>",
+  ], run = "linemode size_mtime", desc = "Linemode: size+mtime" },
+
+  # ── Sorting shortcuts ────────────────────────────────────────────────
+  { on = [
+    "s",
+    "n",
+  ], run = "sort natural   --dir-first", desc = "Sort: natural" },
+  { on = [
+    "s",
+    "m",
+  ], run = "sort mtime     --dir-first --reverse", desc = "Sort: newest first" },
+  { on = [
+    "s",
+    "s",
+  ], run = "sort size      --dir-first --reverse", desc = "Sort: largest first" },
+  { on = [
+    "s",
+    "e",
+  ], run = "sort extension --dir-first", desc = "Sort: extension" },
+
+  # ── Hidden files toggle ──────────────────────────────────────────────
+  { on = ".", run = "hidden toggle", desc = "Toggle hidden files" },
+
+  # ── Fuzzy find with fd (flat view) ───────────────────────────────────
+  { on = [
+    "<C-f>",
+  ], run = "search --via=fd", desc = "Search via fd" },
+  { on = [
+    "<C-g>",
+  ], run = "search --via=rg", desc = "Search via rg (content)" },
+
+  # ── Quick shell ──────────────────────────────────────────────────────
+  { on = [
+    "<C-s>",
+  ], run = "shell --interactive --block", desc = "Open shell (block)" },
+  { on = "!", run = "shell --interactive", desc = "Open shell (orphan)" },
+
+  # ── Copy path variants ───────────────────────────────────────────────
+  { on = [
+    "y",
+    "p",
+  ], run = "copy path", desc = "Yank: full path" },
+  { on = [
+    "y",
+    "d",
+  ], run = "copy dirname", desc = "Yank: directory" },
+  { on = [
+    "y",
+    "n",
+  ], run = "copy filename", desc = "Yank: filename" },
+  { on = [
+    "y",
+    "s",
+  ], run = "copy name_without_ext", desc = "Yank: name (no ext)" },
+
+  # ── Rename ergonomics ────────────────────────────────────────────────
+  { on = "A", run = "rename --cursor=end", desc = "Rename: cursor at end" },
+  { on = "I", run = "rename --cursor=start", desc = "Rename: cursor at start" },
+
+  # ── Tabs ─────────────────────────────────────────────────────────────
+  { on = "T", run = "tab_create --current", desc = "New tab (current dir)" },
+  { on = "<C-w>", run = "close", desc = "Close tab" },
+  { on = "<C-Tab>", run = "tab_switch 1  --relative", desc = "Next tab" },
+  { on = "<C-S-Tab>", run = "tab_switch -1 --relative", desc = "Prev tab" },
+
+  # ── Trash vs permanent delete ────────────────────────────────────────
+  # Default `d` keeps the confirm-to-trash flow; add shift-D for permanent
+  { on = "D", run = "remove --permanently", desc = "Delete permanently" },
+
+]
+
+# ══════════════════════════════════════════════════════════════════════════
+# Input
+# ══════════════════════════════════════════════════════════════════════════
+
+[input]
+prepend_keymap = [
+  # Readline-style kills in insert mode
+  { on = "<C-u>", run = "kill bol", desc = "Kill to beginning of line" },
+  { on = "<C-k>", run = "kill eol", desc = "Kill to end of line" },
+  { on = "<C-w>", run = "kill backward", desc = "Kill word backward" },
+  { on = "<A-d>", run = "kill forward", desc = "Kill word forward" },
+  # Fast word jump
+  { on = "<A-b>", run = "backward", desc = "Move word backward" },
+  { on = "<A-f>", run = "forward", desc = "Move word forward" },
+]
+
+# ══════════════════════════════════════════════════════════════════════════
+# Help overlay
+# ══════════════════════════════════════════════════════════════════════════
+
+[help]
+prepend_keymap = [
+  { on = "<C-c>", run = "close", desc = "Close help" },
+  { on = "<Esc>", run = "escape", desc = "Clear filter / close" },
+]
