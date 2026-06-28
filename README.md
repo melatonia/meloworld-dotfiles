@@ -32,7 +32,7 @@ meloworld is my personal arch linux desktop. i've been working on it for a while
 |                 |                                                       |
 | --------------- | ----------------------------------------------------- |
 | **os**          | Arch Linux                                            |
-| **wm**          | [niri](https://github.com/niri-wm/niri)                        |
+| **wm**          | [niri](https://github.com/niri-wm/niri)               |
 | **shell layer** | [Quickshell](https://quickshell.org/)                 |
 | **launcher**    | custom (quickshell)                                   |
 | **terminal**    | [kitty](https://sw.kovidgoyal.net/kitty/)             |
@@ -207,7 +207,7 @@ chmod +x installer.sh
 dependencies
 
 ```bash
-paru -S niri quickshell pipewire pipewire-pulse wireplumber bluez bluez-utils brightnessctl kitty power-profiles-daemon ttf-jetbrains-mono-nerd grim slurp awww mpvpaper bibata-cursor-theme-bin papirus-icon-theme zed zsh zsh-autosuggestions zsh-syntax-highlighting adw-gtk-theme xdg-desktop-portal-wlr cliphist wl-clipboard playerctl zoxide bat fd ripgrep lazygit switcheroo-control noto-fonts-emoji fzf zenity swayidle xwayland-sattelite
+paru -S niri quickshell pipewire pipewire-pulse wireplumber bluez bluez-utils brightnessctl kitty power-profiles-daemon ttf-jetbrains-mono-nerd grim slurp awww mpvpaper bibata-cursor-theme-bin papirus-icon-theme zed zsh zsh-autosuggestions zsh-syntax-highlighting adw-gtk-theme xdg-desktop-portal-wlr cliphist wl-clipboard playerctl zoxide bat fd ripgrep lazygit switcheroo-control noto-fonts-emoji fzf zenity hypridle xwayland-sattelite
 
 sudo systemctl enable --now bluetooth power-profiles-daemon switcheroo-control
 ```
@@ -218,7 +218,7 @@ cd meloworld-dotfiles
 
 cp -r quickshell ~/.config/
 cp -r niri ~/.config/
-cp -r swayidle ~/.config
+cp -r hypr ~/.config
 cp -r kitty ~/.config/
 cp -r vesktop ~/.config/
 cp -r zathura ~/.config/

@@ -13,7 +13,7 @@ RESET='\033[0m'
 # ── Paths & Variables ─────────────────────────────────────────────────────────
 REPO_NAME="meloworld-dotfiles"
 INSTALL_LOC="$HOME/.config/$REPO_NAME"
-TARGETS=("quickshell" "niri" "swayidle" "kitty" "vesktop" "zed" "zathura")
+TARGETS=("quickshell" "niri" "hypr" "kitty" "vesktop" "zed" "zathura")
 
 # ── Helper Functions ──────────────────────────────────────────────────────────
 info() { echo -e "${BLUE}==>${RESET} $1"; }
@@ -108,7 +108,7 @@ if ask_permission "Install required packages?"; then
         zed zsh zsh-autosuggestions zsh-syntax-highlighting adw-gtk-theme zenity
         xdg-desktop-portal-wlr cliphist wl-clipboard playerctl
         zoxide bat fd fzf ripgrep lazygit noto-fonts-emoji switcheroo-control glow
-        unzip awww mpvpaper swayidle xwayland-satellite
+        unzip awww mpvpaper hypridle xwayland-satellite
     )
 
     info "Checking for missing packages..."
@@ -228,7 +228,7 @@ if ask_permission "Configure keyboard layout for Niri?"; then
         sed -i "s/layout = \".*\"/layout = \"$USER_LAYOUT\"/" "$INPUT_CONF"
         success "Keyboard layout set to '$USER_LAYOUT' in $INPUT_CONF.\n"
     else
-        warn "Hyprland input config not found at $INPUT_CONF. Could not update layout.\n"
+        warn "Niri input config not found at $INPUT_CONF. Could not update layout.\n"
     fi
 else
     info "Skipped keyboard configuration.\n"
