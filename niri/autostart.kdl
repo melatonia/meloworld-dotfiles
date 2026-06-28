@@ -24,4 +24,4 @@ spawn-sh-at-startup "~/.local/bin/nightlight.sh"
 // spawn-sh-at-startup "~/.config/niri/scripts/usb-sound.sh"
 
 // Idle/lock daemon
-spawn-at-startup "swayidle" "-w"
+spawn-at-startup "hypridle"

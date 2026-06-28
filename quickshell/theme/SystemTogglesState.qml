@@ -60,9 +60,9 @@ Singleton {
 
     onCaffeineOnChanged: {
         if (caffeineOn) {
-            Quickshell.execDetached(["pkill", "swayidle"])
+            Quickshell.execDetached(["pkill", "hypridle"])
         } else {
-            Quickshell.execDetached(["swayidle", "-w"])
+            Quickshell.execDetached(["hypridle"])
         }
     }
 
