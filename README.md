@@ -263,17 +263,6 @@ chsh -s $(which zsh)
 
 <details>
   <summary>
-    <h3>neovim theme</h3>
-  </summary>
-
-![nvim](assets/nvim.png)
-
-i have a [neovim theme](https://github.com/melatonia/nvim) based on the same color palette!
-
-</details>
-
-<details>
-  <summary>
     <h3>some usage tips</h3>
   </summary>
   
